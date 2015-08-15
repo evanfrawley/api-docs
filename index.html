@@ -22,7 +22,7 @@
   <body class="index">
 	<div class="navbar-container">
 	  <nav class="navbar">
-		<a class="logo-container" href="/">
+		<a class="logo-container" href="#">
 			<div class="logo"></div>
 		</a>
 		<ul>
@@ -110,6 +110,7 @@ This API assumes a good working knowledge of the Smartsheet application UI, conc
 <h2 id="restful-architecture">RESTful Architecture</h2>
 <pre class="highlight plaintext"><code>Resources:
 
+/contacts
 /favorites
 /folders
 /groups
@@ -122,6 +123,7 @@ This API assumes a good working knowledge of the Smartsheet application UI, conc
 /sheets/{id}/columns
 /sheets/{id}/attachments
 /sheets/{id}/discussions
+/sheets/{id}/updateRequests
 /templates
 /token
 /users
@@ -200,7 +202,7 @@ An <strong>Authorization</strong> HTTP header containing an Access Token is requ
 Access Tokens can be acquired in one of two ways:
 <ul>
 <li>via the Smartsheet UI (<a href="#user-generated-access-tokens">User-generated Access Tokens</a>) </li>
-<li>via oAuth 2.0 (see <a href="#third-party-access-tokens">Third-party Access Tokens</a>)</li>
+<li>via OAuth 2.0 (see <a href="#third-party-access-tokens">Third-party Access Tokens</a>)</li>
 </ul> </p>
 
 <h3 id="user-generated-access-tokens">User-generated Access Tokens</h3>
@@ -927,6 +929,10 @@ Please design your applications assuming that the stated limit will be enforced.
 <td>Multipart request contained an invalid part name: &rsquo;{0}&rsquo;</td>
 </tr>
 <tr>
+<td>1148</td>
+<td>Numeric cell values must be between {0} and {1}.</td>
+</tr>
+<tr>
 <td>2000</td>
 <td>Invalid username and/or password.</td>
 </tr>
@@ -1198,6 +1204,8 @@ sense of it. To enable lenient parsing simply include <code class="prettyprint">
 <td>All numeric and text values are valid. Formatted numbers passed as text values, such as currencies (&ldquo;$5,000&rdquo;), percentages (&ldquo;50%&rdquo;), or decimals (&ldquo;100.5&rdquo;)  will be parsed to their numeric equivalents, based on the locale of the Access Token owner,  with the proper formatting enabled for the cell.</td>
 </tr>
 </tbody></table>
+
+<aside class="notice">The Smartsheet application only supports numeric values in the range -9007199254740992 to 9007199254740992. If using strict parsing, any numeric value outside that range will result in <a href="#errors">error code 1148</a>. If using lenient parsing, the value will be silently converted to text.</aside>
 
 <p><strong>PICKLIST</strong>:</p>
 
@@ -1642,7 +1650,7 @@ Doing so requires that you complete the following steps.</p>
 <ol>
 <li><a href="#developer-registration">Complete your Developer Profile</a> </li>
 <li><a href="#registering-your-app">Register your App</a></li>
-<li>Within your app, <a href="#oauth-flow">implement a 3-legged oAuth flow</a> to obtain an access token that can be used to access Smartsheet data on behalf of an end user. </li>
+<li>Within your app, <a href="#oauth-flow">implement a 3-legged OAuth flow</a> to obtain an access token that can be used to access Smartsheet data on behalf of an end user. </li>
 </ol>
 
 <h3 id="developer-registration">Developer Registration</h3>
@@ -1666,7 +1674,7 @@ Follow the instructions on the registration form to add Developer Tools to an ex
 <li>Login to Smartsheet.</li>
 <li>Click the <strong>Account</strong> button in the upper-left corner of your Smartsheet screen and select <strong>Developer Tools</strong>.</li>
 <li>Create new app and provide the required information, including name, description, contact info and a redirect URL. Redirect URL (also known as the &ldquo;callback URL&rdquo;) is the URL in your app where Smartsheet must redirect after authentication is complete.</li>
-<li>Use the generated app <strong>client id</strong> and <strong>secret</strong> to connect your app to Smartsheet. See <a href="#oauth-flow">oAuth Flow</a> for details on how to use <strong>client id</strong> and <strong>secret</strong> to do that.</li>
+<li>Use the generated app <strong>client id</strong> and <strong>secret</strong> to connect your app to Smartsheet. See <a href="#oauth-flow">OAuth Flow</a> for details on how to use <strong>client id</strong> and <strong>secret</strong> to do that.</li>
 </ol></p>
 
 <h3 id="access-scopes">Access Scopes</h3>
@@ -1709,6 +1717,10 @@ For example, having the Access Scope of WRITE_SHEETS will not allow your app to 
 <td>Retrieve users and groups for your Smartsheet organization</td>
 </tr>
 <tr>
+<td>READ_CONTACTS</td>
+<td>Retrieve contacts</td>
+</tr>
+<tr>
 <td>ADMIN_USERS</td>
 <td>Add and remove users from your Smartsheet organization; create groups and manage membership</td>
 </tr>
@@ -1722,11 +1734,11 @@ For example, having the Access Scope of WRITE_SHEETS will not allow your app to 
 </tr>
 </tbody></table>
 
-<aside class="notice">Third-party apps should only request the scopes necessary. User-generated Access Tokens are granted all of these permissions.</aside>
+<aside class="notice"><b>Additional Info:</b><ul><li>User-generated Access Tokens are granted all of these permissions.</li><li>Third-party apps must request at least one access scope, but should only request the scopes necessary.</li><li>Once a third-party app attains a valid access token, it will be able to execute <a href="#get-current-user">Get Current User</a> operation, regardless of which access scopes were requested.</li></ul></aside>
 
-<h3 id="oauth-flow">oAuth Flow</h3>
+<h3 id="oauth-flow">OAuth Flow</h3>
 
-<p>Your app must implement a 3-legged oAuth flow to retrieve an access token that can be used to access Smartsheet data on behalf of an end user. 
+<p>Your app must implement a 3-legged OAuth flow to retrieve an access token that can be used to access Smartsheet data on behalf of an end user. 
 This process involves the following steps:</p>
 
 <ol>
@@ -1738,7 +1750,7 @@ This process involves the following steps:</p>
 
 <h4 id="requesting-authorization-from-the-user">Requesting authorization from the user</h4>
 
-<p>To request authorization from an end user, direct your user to <code class="prettyprint">https://www.smartsheet.com/b/authorize</code> with the following parameters through either a <code class="prettyprint">GET</code> or <code class="prettyprint">POST</code>. The parameter values must be URL-encoded:</p>
+<p>To request authorization from an end user, direct your user to <code class="prettyprint">https://app.smartsheet.com/b/authorize</code> with the following parameters through either a <code class="prettyprint">GET</code> or <code class="prettyprint">POST</code>. The parameter values must be URL-encoded:</p>
 
 <table><thead>
 <tr>
@@ -1770,7 +1782,7 @@ This process involves the following steps:</p>
 
 <p>Here is an example of a URL to which you would send your user as a <code class="prettyprint">GET</code> request:</p>
 
-<p><code class="prettyprint">https://www.smartsheet.com/b/authorize?response_type=code&amp;client_id=dheu3dmkd32fhxme&amp;scope=READ_SHEETS%20WRITE_SHEETS&amp;state=MY_STATE</code></p>
+<p><code class="prettyprint">https://app.smartsheet.com/b/authorize?response_type=code&amp;client_id=dheu3dmkd32fhxme&amp;scope=READ_SHEETS%20WRITE_SHEETS&amp;state=MY_STATE</code></p>
 
 <p>If your user has not logged in to Smartsheet, he/she will first be directed to the Smartsheet login page. 
 After a successful login, your user will be prompted to allow or deny the access scopes you requested.</p>
@@ -1841,7 +1853,7 @@ After a successful login, your user will be prompted to allow or deny the access
 <p>Request an access token:</p>
 </blockquote>
 <pre class="highlight shell"><code>curl https://api.smartsheet.com/2.0/token <span class="se">\</span>
--d <span class="s1">'grant_type=authorization_code&amp;code={your_code}&amp;client_id={your_client_id}&amp;redirect_uri={redirect_uri}&amp;hash={SHA_256(client_secret|code)}'</span> <span class="se">\</span>
+-d <span class="s1">'grant_type=authorization_code&amp;code={your_code}&amp;client_id={your_client_id}&amp;redirect_uri={redirect_uri}&amp;hash={SHA_256(app_secret|code)}'</span> <span class="se">\</span>
 -X POST
 </code></pre>
 <pre class="highlight javascript"><code><span class="c1">// [todo]</span>
@@ -1899,7 +1911,7 @@ To do so, you’ll need to make a <code class="prettyprint">POST</code> request 
 </tr>
 <tr>
 <td>hash<br/>(required)</td>
-<td>SHA-256 hash of your client secret concatenated with a pipe and the authorization code.  The <strong>client_secret</strong> is never sent with the request.</td>
+<td>SHA-256 hash of your App secret concatenated with a pipe and the authorization code.  The app_secret is never sent with the request.</td>
 </tr>
 </tbody></table>
 
@@ -1923,7 +1935,7 @@ To do so, you’ll need to make a <code class="prettyprint">POST</code> request 
 </tr>
 <tr>
 <td>invalid_grant</td>
-<td>The authorization code or refresh token is invalid or expired, the redirect_uri does not match, or the hash value does not match the client secret and/or code.</td>
+<td>The authorization code or refresh token is invalid or expired, the redirect_uri does not match, or the hash value does not match the App secret and/or code.</td>
 </tr>
 <tr>
 <td>unsupported_grant_type</td>
@@ -1937,7 +1949,7 @@ To do so, you’ll need to make a <code class="prettyprint">POST</code> request 
 <p>Refresh an access token:</p>
 </blockquote>
 <pre class="highlight shell"><code>curl https://api.smartsheet.com/2.0/token <span class="se">\</span>
--d <span class="s1">'grant_type=refresh_token&amp;refresh_token={your_refresh_token}&amp;client_id={your_client_id}&amp;redirect_uri={redirect_uri}&amp;hash={SHA_256(client_secret|refresh_token)}'</span> <span class="se">\</span>
+-d <span class="s1">'grant_type=refresh_token&amp;refresh_token={your_refresh_token}&amp;client_id={your_client_id}&amp;redirect_uri={redirect_uri}&amp;hash={SHA_256(app_secret|refresh_token)}'</span> <span class="se">\</span>
 -X POST
 </code></pre>
 <pre class="highlight javascript"><code><span class="c1">// [todo]</span>
@@ -1987,7 +1999,7 @@ Once you obtain the new access token, you can use it in place of the old one, wh
 </tr>
 <tr>
 <td>hash<br/>(required)</td>
-<td>SHA-256 hash of your client secret concatenated with a pipe and the refresh token value</td>
+<td>SHA-256 hash of your App secret concatenated with a pipe and the refresh token value</td>
 </tr>
 </tbody></table>
 
@@ -2171,6 +2183,30 @@ Please see <a href="#list-all-org-sheets">List All Org Sheets</a> for more infor
 
 <p>You can use the sheet version number to enable incremental backups. <a href="#get-sheet-version">Fetch the sheet version number</a> and compare it to the last backed up version number (you will need to store the sheet ID and the last backup up version number) - if they are the same, no need to include the sheet in your incremental backup run.</p>
 
+<h1 id="api-change-log">API Change Log</h1>
+
+<p>This section documents the evolution of Smartsheet API 2.0 over time. 
+To stay informed about changes to the API, we recommend that you periodically review this list for new information, subscribe to our Developer Newsletter (using the <em>Get Developer Updates</em> form on the <a href="http://www.smartsheet.com/developers">Smartsheet Developer Portal</a>) or follow us via <a href="https://twitter.com/smartsheetapi">Twitter</a>.</p>
+
+<h2 id="august-14,-2015">August 14, 2015</h2>
+
+<p>Backwards-compatible updates to Smartsheet API 2.0. </p>
+
+<ul>
+<li><p>New endpoints for accessing Contacts, copy/move Folder/Sheet, copy Workspace, bulk Row delete, bulk Send Rows, Send Update Request.</p></li>
+<li><p>API enhancements that enable you to attach a link to a file in Egnyte, lock and unlock Rows/Columns, get more information about Sheets/Reports/Users, choose Columns to include when sending Rows via email, send a Gantt view of a Sheet via email (in PDF format), create Discussion on Row using a multipart upload, include everything when copying a Row from one sheet to another, and retrieve a permalink for a Row.</p></li>
+<li><p>New access scope for retrieving Contacts.</p></li>
+<li><p>Deprecations: <strong>Delete (single) Row</strong> endpoint, <strong>Send (single) Row</strong> endpoint, <strong>fromId</strong> attribute and <strong>include</strong> parameter on the <strong>Create Sheet/Folder/Workspace</strong> endpoints. </p></li>
+<li><p>Bug fixes: <strong>Add Column(s)</strong> operation now returns correct Ids for new columns; <strong>Revoke Token</strong> operation no longer returns error code 1004 &ldquo;not authorized&rdquo;.</p></li>
+</ul>
+
+<p>For more detailed information about this release, see the <a href="https://www.smartsheet.com/blog/august-2015-api-update">release notes</a>.</p>
+
+<h2 id="july-11,-2015">July 11, 2015</h2>
+
+<p>Initial release of Smartsheet API 2.0. 
+For detailed information about API 2.0 features and guidance for migrating from API 1.1 to API 2.0, see the <a href="https://www.smartsheet.com/blog/july-2015-api-v2-launch">release notes</a>.</p>
+
 <h1 id="api-reference"><span class="customTOCSectionHeading">API Reference</span></h1>
 
 <h1 id="attachments">Attachments</h1>
@@ -2211,12 +2247,12 @@ Please see <a href="#list-all-org-sheets">List All Org Sheets</a> for more infor
 <tr>
 <td><strong>attachmentType</strong></td>
 <td>string</td>
-<td>Attachment type (one of FILE, GOOGLE_DRIVE, LINK, BOX_COM, DROPBOX, or EVERNOTE)</td>
+<td>Attachment type (one of FILE, GOOGLE_DRIVE, LINK, BOX_COM, DROPBOX, EVERNOTE, or EGNYTE)</td>
 </tr>
 <tr>
 <td><strong>attachmentSubType</strong></td>
 <td>string</td>
-<td>Attachment sub type, only for GOOGLE_DRIVE type attachments; one of (DOCUMENT, SPREADSHEET, PRESENTATION, PDF, DRAWING)</td>
+<td>Attachment sub type, valid only for either GOOGLE_DRIVE attachments or EGNYTE attachments:<ul><li>possible values for GOOGLE_DRIVE attachments: DOCUMENT, SPREADSHEET, PRESENTATION, PDF, DRAWING</li><li>possible values for EGNYTE attachments: FOLDER</li></ul></td>
 </tr>
 <tr>
 <td><strong>createdAt</strong></td>
@@ -2320,7 +2356,7 @@ File parts must have the part name &ldquo;file&rdquo;, and documentation for ope
 <code class="prettyprint">Content-Length: 29008</code><br>
 <code class="prettyprint">Content-Type: multipart/form-data; boundary=----gU8h01zAAp3LagBr</code>  </p>
 
-<p><code class="prettyprint">----gU8h01zAAp3LagBr</code><br>
+<p><code class="prettyprint">------gU8h01zAAp3LagBr</code><br>
 <code class="prettyprint">Content-Disposition: form-data; name=&quot;comment&quot;</code><br>
 <code class="prettyprint">Content-Type: application/json</code>  </p>
 
@@ -2801,13 +2837,16 @@ For example, you can perform a simple upload to upload a file to a <a href="#att
 <li>a normal URL (attachmentType &ldquo;LINK&rdquo;)</li>
 <li>a Google Drive URL (attachmentType &ldquo;GOOGLE_DRIVE&rdquo;)</li>
 <li>a Box.com URL (attachmentType &ldquo;BOX_COM&rdquo;)</li>
-<li>a Dropbox URL (attachmentType “DROPBOX”)</li>
-<li>an Evernote URL (attachmentType “EVERNOTE”)</li>
+<li>a Dropbox URL (attachmentType &ldquo;DROPBOX&rdquo;)</li>
+<li>an Evernote URL (attachmentType &ldquo;EVERNOTE&rdquo;)</li>
+<li>an Egnyte URL (attachmentType &ldquo;EGNYTE&rdquo;)</li>
 </ul></p>
 
-<aside class="notice">attachmentSubType is valid only for GOOGLE_DRIVE attachments which are Google Docs.  It can optionally be included to indicate the type of a file.  The following attachmentSubTypes are valid for GOOGLE_DRIVE attachments &ldquo;DOCUMENT&rdquo;, &ldquo;SPREADSHEET&rdquo;, &ldquo;PRESENTATION&rdquo;, &ldquo;PDF&rdquo;, &ldquo;DRAWING&rdquo;.</aside>
+<aside class="notice">For GOOGLE_DRIVE attachments that are Google Docs, the <b>attachmentSubType</b> attribute can be optionally included to indicate the type of a file.  Valid values are: &ldquo;DOCUMENT&rdquo;, &ldquo;SPREADSHEET&rdquo;, &ldquo;PRESENTATION&rdquo;, &ldquo;PDF&rdquo;, &ldquo;DRAWING&rdquo;.</aside>
 
-<aside class="notice">When the attachment type is BOX_COM, DROPBOX, or GOOGLE_DRIVE (without an attachmentSubType specified), the mimeType will be derived by the file extension specified on the &ldquo;name&rdquo;.</aside>
+<aside class="notice">For EGNYTE attachments which are Folders, the <b>attachmentSubType</b> attribute must be included with a value of &ldquo;FOLDER&rdquo;.</aside>
+
+<aside class="notice">When the attachment type is BOX_COM, DROPBOX, EGNYTE, or GOOGLE_DRIVE (without an attachmentSubType specified), the mimeType will be derived by the file extension specified on the <b>name</b> attribute.</aside>
 
 <h2 id="attach-url-to-row">Attach URL to Row</h2>
 
@@ -2908,13 +2947,16 @@ For example, you can perform a simple upload to upload a file to a <a href="#att
 <li>a normal URL (attachmentType &ldquo;LINK&rdquo;)</li>
 <li>a Google Drive URL (attachmentType &ldquo;GOOGLE_DRIVE&rdquo;)</li>
 <li>a Box.com URL (attachmentType &ldquo;BOX_COM&rdquo;)</li>
-<li>a Dropbox URL (attachmentType “DROPBOX”)</li>
-<li>an Evernote URL (attachmentType “EVERNOTE”)</li>
+<li>a Dropbox URL (attachmentType &ldquo;DROPBOX&rdquo;)</li>
+<li>an Evernote URL (attachmentType &ldquo;EVERNOTE&rdquo;)</li>
+<li>an Egnyte URL (attachmentType &ldquo;EGNYTE&rdquo;)</li>
 </ul></p>
 
-<aside class="notice">attachmentSubType is valid only for GOOGLE_DRIVE attachments which are Google Docs.  It can optionally be included to indicate the type of a file.  The following attachmentSubTypes are valid for GOOGLE_DRIVE attachments &ldquo;DOCUMENT&rdquo;, &ldquo;SPREADSHEET&rdquo;, &ldquo;PRESENTATION&rdquo;, &ldquo;PDF&rdquo;, &ldquo;DRAWING&rdquo;.</aside>
+<aside class="notice">For GOOGLE_DRIVE attachments that are Google Docs, the <b>attachmentSubType</b> attribute can be optionally included to indicate the type of a file.  Valid values are: &ldquo;DOCUMENT&rdquo;, &ldquo;SPREADSHEET&rdquo;, &ldquo;PRESENTATION&rdquo;, &ldquo;PDF&rdquo;, &ldquo;DRAWING&rdquo;.</aside>
 
-<aside class="notice">When the attachment type is BOX_COM, DROPBOX, or GOOGLE_DRIVE (without an attachmentSubType specified), the mimeType will be derived by the file extension specified on the &ldquo;name&rdquo;.</aside>
+<aside class="notice">For EGNYTE attachments which are Folders, the <b>attachmentSubType</b> attribute must be included with a value of &ldquo;FOLDER&rdquo;.</aside>
+
+<aside class="notice">When the attachment type is BOX_COM, DROPBOX, EGNYTE, or GOOGLE_DRIVE (without an attachmentSubType specified), the mimeType will be derived by the file extension specified on the <b>name</b> attribute.</aside>
 
 <h2 id="attach-url-to-sheet">Attach URL to Sheet</h2>
 
@@ -3014,13 +3056,16 @@ For example, you can perform a simple upload to upload a file to a <a href="#att
 <li>a normal URL (attachmentType &ldquo;LINK&rdquo;)</li>
 <li>a Google Drive URL (attachmentType &ldquo;GOOGLE_DRIVE&rdquo;)</li>
 <li>a Box.com URL (attachmentType &ldquo;BOX_COM&rdquo;)</li>
-<li>a Dropbox URL (attachmentType “DROPBOX”)</li>
-<li>an Evernote URL (attachmentType “EVERNOTE”)</li>
+<li>a Dropbox URL (attachmentType &ldquo;DROPBOX&rdquo;)</li>
+<li>an Evernote URL (attachmentType &ldquo;EVERNOTE&rdquo;)</li>
+<li>an Egnyte URL (attachmentType &ldquo;EGNYTE&rdquo;)</li>
 </ul></p>
 
-<aside class="notice">attachmentSubType is valid only for GOOGLE_DRIVE attachments which are Google Docs.  It can optionally be included to indicate the type of a file.  The following attachmentSubTypes are valid for GOOGLE_DRIVE attachments &ldquo;DOCUMENT&rdquo;, &ldquo;SPREADSHEET&rdquo;, &ldquo;PRESENTATION&rdquo;, &ldquo;PDF&rdquo;, &ldquo;DRAWING&rdquo;.</aside>
+<aside class="notice">For GOOGLE_DRIVE attachments that are Google Docs, the <b>attachmentSubType</b> attribute can be optionally included to indicate the type of a file.  Valid values are: &ldquo;DOCUMENT&rdquo;, &ldquo;SPREADSHEET&rdquo;, &ldquo;PRESENTATION&rdquo;, &ldquo;PDF&rdquo;, &ldquo;DRAWING&rdquo;.</aside>
 
-<aside class="notice">When the attachment type is BOX_COM, DROPBOX, or GOOGLE_DRIVE (without an attachmentSubType specified), the mimeType will be derived by the file extension specified on the &ldquo;name&rdquo;.</aside>
+<aside class="notice">For EGNYTE attachments which are Folders, the <b>attachmentSubType</b> attribute must be included with a value of &ldquo;FOLDER&rdquo;.</aside>
+
+<aside class="notice">When the attachment type is BOX_COM, DROPBOX, EGNYTE, or GOOGLE_DRIVE (without an attachmentSubType specified), the mimeType will be derived by the file extension specified on the <b>name</b> attribute.</aside>
 
 <h2 id="delete-attachment">Delete Attachment</h2>
 
@@ -3124,7 +3169,7 @@ For example, you can perform a simple upload to upload a file to a <a href="#att
 <pre class="highlight json"><code><span class="p">{</span><span class="w">
     </span><span class="s2">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"at3.png"</span><span class="p">,</span><span class="w">
     </span><span class="s2">"url"</span><span class="p">:</span><span class="w"> </span><span class="s2">"URL_TO_ATTACHMENT"</span><span class="p">,</span><span class="w">
-    </span><span class="s2">"attachmentType"</span><span class="p">:</span><span class="w"> </span><span class="s2">"file"</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"attachmentType"</span><span class="p">:</span><span class="w"> </span><span class="s2">"FILE"</span><span class="p">,</span><span class="w">
     </span><span class="s2">"mimeType"</span><span class="p">:</span><span class="w"> </span><span class="s2">"image/png"</span><span class="p">,</span><span class="w">
     </span><span class="s2">"id"</span><span class="p">:</span><span class="w"> </span><span class="mi">4583173393803140</span><span class="p">,</span><span class="w">
     </span><span class="s2">"urlExpiresInMillis"</span><span class="p">:</span><span class="w"> </span><span class="mi">120000</span><span class="w">
@@ -4068,7 +4113,7 @@ If null, the cell&rsquo;s value will be derived from the hyperlink:
 <tr>
 <td><strong>primary</strong></td>
 <td>boolean</td>
-<td>Returned only if the column is the Primary Column (value = &ldquo;true&rdquo;)</td>
+<td>Returned only if the column is the Primary Column (value = <code class="prettyprint">true</code>)</td>
 </tr>
 <tr>
 <td><strong>type</strong></td>
@@ -4103,7 +4148,7 @@ If null, the cell&rsquo;s value will be derived from the hyperlink:
 <tr>
 <td><strong>tags</strong></td>
 <td>string[]</td>
-<td>Set of tags to indicate special columns, one of:<ul><li>CALENDAR_START_DATE</li><li>CALENDAR_END_DATE</li><li>GANTT_START_DATE</li><li>GANTT_END_DATE</li><li>GANTT_PERCENT_COMPLETE</li><li>GANTT_DISPLAY_LABEL</li><li>GANTT_PREDECESSOR</li><li>GANTT_DURATION</li><li>GANTT_ASSIGNED_RESOURCE</li></ul></td>
+<td>Set of tags to indicate special columns. Each element in the array will be set to one of the following values:<ul><li>CALENDAR_START_DATE</li><li>CALENDAR_END_DATE</li><li>GANTT_START_DATE</li><li>GANTT_END_DATE</li><li>GANTT_PERCENT_COMPLETE</li><li>GANTT_DISPLAY_LABEL</li><li>GANTT_PREDECESSOR</li><li>GANTT_DURATION</li><li>GANTT_ASSIGNED_RESOURCE</li></ul></td>
 </tr>
 <tr>
 <td><strong>width</strong></td>
@@ -4119,6 +4164,16 @@ If null, the cell&rsquo;s value will be derived from the hyperlink:
 <td><strong>filter</strong></td>
 <td><a href="#filter-object">Filter</a></td>
 <td>The filter applied to the column.<br/>Only returned if the <strong>include</strong> query string parameter contains <strong>filters</strong> and this column has a filter applied to it.</td>
+</tr>
+<tr>
+<td><strong>locked</strong></td>
+<td>boolean</td>
+<td>Flag indicating whether the column is locked. In a response, a value of <code class="prettyprint">true</code> indicates that the column has been locked by the sheet owner or the admin.</td>
+</tr>
+<tr>
+<td><strong>lockedForUser</strong></td>
+<td>boolean</td>
+<td>Flag indicating whether the column is locked for the requesting user.  This attribute may be present in a response, but cannot be specified in a request.</td>
 </tr>
 </tbody></table>
 
@@ -4190,7 +4245,7 @@ If null, the cell&rsquo;s value will be derived from the hyperlink:
 -H <span class="s2">"Authorization: Bearer ACCESS_TOKEN"</span> <span class="se">\</span>
 -H <span class="s2">"Content-Type: application/json"</span> <span class="se">\</span>
 -X POST <span class="se">\</span>
--d <span class="s1">'[{"title": "New Picklist Column 1", "type": "PICKLIST", "options": ["First", "Second", "Third"], "index": 4} , {"title":"New Date Column", "type":"DATE", "index":5}, {"title": "New Picklist Column 2", "type": "PICKLIST", "options": ["1", "2", "3"], "index": 6}]'</span>
+-d <span class="s1">'[{"title": "New Picklist Column 1", "type": "PICKLIST", "options": ["First", "Second", "Third"], "index": 4} , {"title":"New Date Column", "type":"DATE", "index":4}, {"title": "New Picklist Column 2", "type": "PICKLIST", "options": ["1", "2", "3"], "index": 4}]'</span>
 </code></pre>
 <pre class="highlight javascript"><code><span class="c1">// Specify new columns.</span>
 <span class="kd">var</span> <span class="nx">column</span> <span class="o">=</span> <span class="p">[</span>
@@ -4279,14 +4334,14 @@ If null, the cell&rsquo;s value will be derived from the hyperlink:
         </span><span class="p">},</span><span class="w">
         </span><span class="p">{</span><span class="w">
             </span><span class="s2">"id"</span><span class="p">:</span><span class="w"> </span><span class="mi">4503594425063547</span><span class="p">,</span><span class="w">
-            </span><span class="s2">"index"</span><span class="p">:</span><span class="w"> </span><span class="mi">5</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"index"</span><span class="p">:</span><span class="w"> </span><span class="mi">4</span><span class="p">,</span><span class="w">
             </span><span class="s2">"title"</span><span class="p">:</span><span class="w"> </span><span class="s2">"New Date Column"</span><span class="p">,</span><span class="w">
             </span><span class="s2">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"DATE"</span><span class="p">,</span><span class="w">
             </span><span class="s2">"width"</span><span class="p">:</span><span class="w"> </span><span class="mi">150</span><span class="w">
         </span><span class="p">},</span><span class="w">
         </span><span class="p">{</span><span class="w">
             </span><span class="s2">"id"</span><span class="p">:</span><span class="w"> </span><span class="mi">6755394238748795</span><span class="p">,</span><span class="w">
-            </span><span class="s2">"index"</span><span class="p">:</span><span class="w"> </span><span class="mi">6</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"index"</span><span class="p">:</span><span class="w"> </span><span class="mi">4</span><span class="p">,</span><span class="w">
             </span><span class="s2">"title"</span><span class="p">:</span><span class="w"> </span><span class="s2">"New Picklist Column 2"</span><span class="p">,</span><span class="w">
             </span><span class="s2">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"PICKLIST"</span><span class="p">,</span><span class="w">
             </span><span class="s2">"options"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
@@ -4307,6 +4362,8 @@ If null, the cell&rsquo;s value will be derived from the hyperlink:
 
 <aside class="notice">This operation supports both single-object and bulk semantics. For more information, see <a href="#bulk-insert-operations">Bulk-insert Operations</a>.</aside>
 
+<aside class="notice">If multiple columns are specified in the request, the <b>index</b> attribute must be set to the same value for all columns. Columns will be inserted into the sheet starting at the specified position (<b>index</b>), in the sequence that the columns appear in the request.</aside>
+
 <table><thead>
 <tr>
 <th></th>
@@ -4323,7 +4380,7 @@ If null, the cell&rsquo;s value will be derived from the hyperlink:
 </tr>
 <tr>
 <td><strong>Request Body</strong></td>
-<td><a href="#column-object">Column object</a> or an array of Column objects, with the following attributes:<ul><li>title</li><li>type</li><li>symbol (optional)</li><li>options (optional)</li><li>index (zero-based)</li><li>systemColumnType (optional)</li><li>autoNumberFormat (optional)</li><li>width (optional)</li></ul></td>
+<td><a href="#column-object">Column object</a> or an array of Column objects, with the following attributes:<ul><li>title</li><li>type</li><li>symbol (optional)</li><li>options (optional)</li><li>index (zero-based)</li><li>systemColumnType (optional)</li><li>autoNumberFormat (optional)</li><li>width (optional)</li><li>locked (optional)</li></ul></td>
 </tr>
 <tr>
 <td><strong>Returns</strong></td>
@@ -4663,7 +4720,7 @@ If null, the cell&rsquo;s value will be derived from the hyperlink:
 </tr>
 <tr>
 <td><strong>Request Body</strong></td>
-<td>A <a href="#column-object">Column object</a> that contains the following attributes:<ul><li>index (column&rsquo;s new index in the sheet)</li><li>title</li><li>type (optional)</li><li>options (optional)</li><li>symbol (optional)</li><li>systemColumnType (optional)</li><li>autoNumberFormat (optional)</li><li>width (optional)</li><li>format (optional)</li></ul></td>
+<td>A <a href="#column-object">Column object</a> that contains the following attributes:<ul><li>index (column&rsquo;s new index in the sheet)</li><li>title</li><li>type (optional)</li><li>options (optional)</li><li>symbol (optional)</li><li>systemColumnType (optional)</li><li>autoNumberFormat (optional)</li><li>width (optional)</li><li>format (optional)</li><li>locked (optional)</li></ul></td>
 </tr>
 <tr>
 <td><strong>Returns</strong></td>
@@ -5020,6 +5077,143 @@ If null, the cell&rsquo;s value will be derived from the hyperlink:
 
 <p>For details about working with a Comment&rsquo;s attachments, see <a href="#attachments">Attachments</a>.</p>
 
+<h1 id="contacts">Contacts</h1>
+
+<p>A Contact is a user&rsquo;s personal contact in Smartsheet (as described <a href="http://help.smartsheet.com/customer/portal/articles/796143-managing-contacts">here</a>).</p>
+
+<h2 id="objects">Objects</h2>
+
+<h3 id="contact-object">Contact Object</h3>
+
+<table><thead>
+<tr>
+<th></th>
+<th></th>
+<th></th>
+</tr>
+</thead><tbody>
+<tr>
+<td><strong>id</strong></td>
+<td>string</td>
+<td>Contact ID</td>
+</tr>
+<tr>
+<td><strong>name</strong></td>
+<td>string</td>
+<td>Contact&rsquo;s full name</td>
+</tr>
+<tr>
+<td><strong>email</strong></td>
+<td>string</td>
+<td>Contact&rsquo;s email address</td>
+</tr>
+</tbody></table>
+
+<h2 id="get-contact">Get Contact</h2>
+
+<blockquote>
+<p>Example Request:</p>
+</blockquote>
+<pre class="highlight shell"><code>curl https://api.smartsheet.com/2.0/contacts/<span class="o">{</span>contactId<span class="o">}</span> <span class="se">\</span>
+-H <span class="s2">"Authorization: Bearer ACCESS_TOKEN"</span>
+</code></pre>
+
+<blockquote>
+<p>Example Response:</p>
+</blockquote>
+<pre class="highlight json"><code><span class="p">{</span><span class="w">
+    </span><span class="s2">"id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"AAAAATYU54QAD7_fNhTnhA"</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"David Davidson"</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"email"</span><span class="p">:</span><span class="w"> </span><span class="s2">"dd@example.com"</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre>
+
+<p><code class="prettyprint">GET /contacts/{contactId}</code></p>
+
+<p>Gets the specified Contact.</p>
+
+<table><thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead><tbody>
+<tr>
+<td><strong>Access Scope</strong></td>
+<td>READ_CONTACTS</td>
+</tr>
+<tr>
+<td><strong>Headers</strong></td>
+<td><strong>Authorization</strong>: Bearer ACCESS_TOKEN</td>
+</tr>
+<tr>
+<td><strong>Returns</strong></td>
+<td><a href="#contact-object">Contact object</a></td>
+</tr>
+</tbody></table>
+
+<h2 id="list-contacts">List Contacts</h2>
+
+<blockquote>
+<p>Example Request:</p>
+</blockquote>
+<pre class="highlight shell"><code>curl https://api.smartsheet.com/2.0/contacts <span class="se">\</span>
+-H <span class="s2">"Authorization: Bearer ACCESS_TOKEN"</span>
+</code></pre>
+
+<blockquote>
+<p>Example Response:</p>
+</blockquote>
+<pre class="highlight json"><code><span class="p">{</span><span class="w">
+    </span><span class="s2">"pageNumber"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"pageSize"</span><span class="p">:</span><span class="w"> </span><span class="mi">100</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"totalPages"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"totalCount"</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"data"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+        </span><span class="p">{</span><span class="w">
+            </span><span class="s2">"id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"AAAAATYU54QAD7_fNhTnhA"</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"David Davidson"</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"email"</span><span class="p">:</span><span class="w"> </span><span class="s2">"dd@example.com"</span><span class="w">
+        </span><span class="p">},</span><span class="w">
+        </span><span class="p">{</span><span class="w">
+            </span><span class="s2">"id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"AAAAATYU54QAH7_fNhTnhA"</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Ed Edwin"</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"email"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ee@example.com"</span><span class="w">
+        </span><span class="p">}</span><span class="w">
+    </span><span class="p">]</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre>
+
+<p><code class="prettyprint">GET /contacts</code></p>
+
+<p>Gets a list of the user&rsquo;s Smartsheet Contacts.</p>
+
+<aside class="notice">This operation supports pagination of results. For more information, see <a href="#paging">Paging</a>.</aside>
+
+<table><thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead><tbody>
+<tr>
+<td><strong>Access Scope</strong></td>
+<td>READ_CONTACTS</td>
+</tr>
+<tr>
+<td><strong>Headers</strong></td>
+<td><strong>Authorization</strong>: Bearer ACCESS_TOKEN</td>
+</tr>
+<tr>
+<td><strong>Parameters</strong></td>
+<td>This operation supports query string parameters for pagination of results. For more information, see <a href="#paging-query-string-parameters">Paging Query String Parameters</a>.</td>
+</tr>
+<tr>
+<td><strong>Returns</strong></td>
+<td><a href="#indexresult-object">IndexResult object</a> containing an array of <a href="#contact-object">Contact objects</a></td>
+</tr>
+</tbody></table>
+
 <h1 id="discussions">Discussions</h1>
 
 <p>A Discussion is a collection of one or more <a href="#comments">Comments</a>. A Discussion can exist on a <a href="#rows">Row</a> or a <a href="#sheets">Sheet</a>.</p>
@@ -5080,12 +5274,22 @@ If null, the cell&rsquo;s value will be derived from the hyperlink:
 <td><a href="#user-object">User</a></td>
 <td>User object containing name and email of the creator of the Discussion</td>
 </tr>
+<tr>
+<td><strong>accessLevel</strong></td>
+<td>string</td>
+<td>User&rsquo;s permissions on the Discussion</td>
+</tr>
+<tr>
+<td><strong>readOnly</strong></td>
+<td>boolean</td>
+<td>Flag to indicate if the User can modify the Discussion</td>
+</tr>
 </tbody></table>
 
 <h2 id="create-discussion-on-row">Create Discussion on Row</h2>
 
 <blockquote>
-<p>Example Request:</p>
+<p>Example Request (without attachment):</p>
 </blockquote>
 <pre class="highlight shell"><code>curl https://api.smartsheet.com/2.0/sheets/<span class="o">{</span>sheetId<span class="o">}</span>/rows/<span class="o">{</span>rowId<span class="o">}</span>/discussions <span class="se">\</span>
 -H <span class="s2">"Authorization: Bearer ACCESS_TOKEN"</span> <span class="se">\</span>
@@ -5137,6 +5341,33 @@ If null, the cell&rsquo;s value will be derived from the hyperlink:
 </code></pre>
 
 <blockquote>
+<p>Example Request (with attachment):</p>
+</blockquote>
+<pre class="highlight shell"><code>curl https://api.smartsheet.com/2.0/sheets/<span class="o">{</span>sheetId<span class="o">}</span>/rows/<span class="o">{</span>rowId<span class="o">}</span>/discussions <span class="se">\</span>
+-H <span class="s2">"Authorization: Bearer ACCESS_TOKEN"</span> <span class="se">\</span>
+-H <span class="s2">"Content-Type: application/json"</span> <span class="se">\</span>
+-X POST <span class="se">\</span>
+-F <span class="s2">"discussion=&lt;discussion.json;type=application/json"</span> <span class="se">\</span>
+-F <span class="s2">"file=@datafile;type=application/octet-stream"</span>
+
+    <span class="c">#</span>
+    <span class="c"># Content of the discussion.json file:</span>
+    <span class="c">#</span>
+    <span class="o">{</span>
+        <span class="s2">"title"</span>: <span class="s2">"This is a new discussion with an attachment"</span>, 
+        <span class="s2">"comment"</span>: <span class="o">{</span>
+            <span class="s2">"text"</span>:<span class="s2">"This text is the body of the first comment"</span>
+        <span class="o">}</span>
+    <span class="o">}</span>
+</code></pre>
+<pre class="highlight javascript"><code><span class="c1">// [todo]</span>
+</code></pre>
+<pre class="highlight csharp"><code><span class="c1">// [todo]
+</span></code></pre>
+<pre class="highlight java"><code><span class="c1">// [todo]</span>
+</code></pre>
+
+<blockquote>
 <p>Example Response:</p>
 </blockquote>
 
@@ -5147,7 +5378,7 @@ If null, the cell&rsquo;s value will be derived from the hyperlink:
             </span><span class="p">{</span><span class="w">
                 </span><span class="s2">"createdAt"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2013-02-28T22:00:56-08:00"</span><span class="p">,</span><span class="w">
                 </span><span class="s2">"createdBy"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
-                    </span><span class="s2">"email"</span><span class="p">:</span><span class="w"> </span><span class="s2">"jane.doev@smartsheet.com"</span><span class="p">,</span><span class="w">
+                    </span><span class="s2">"email"</span><span class="p">:</span><span class="w"> </span><span class="s2">"jane.doe@smartsheet.com"</span><span class="p">,</span><span class="w">
                     </span><span class="s2">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Jane Doe"</span><span class="w">
                 </span><span class="p">},</span><span class="w">
                 </span><span class="s2">"id"</span><span class="p">:</span><span class="w"> </span><span class="mi">4583173393803140</span><span class="p">,</span><span class="w">
@@ -5166,6 +5397,10 @@ If null, the cell&rsquo;s value will be derived from the hyperlink:
 
 <p>Creates a new Discussion on a Row.</p>
 
+<aside class="notice">This operation supports multipart requests. Using a multipart request allows you to create a new Discussion and upload a file to the first Comment within that Discussion in a single step (i.e., using a single request). For more information, see <a href="#multipart-uploads">Multipart Uploads</a>.</aside>
+
+<p><br/>
+<strong>Creating a Discussion without an Attachment:</strong>
 <table><thead>
 <tr>
 <th></th>
@@ -5188,7 +5423,33 @@ If null, the cell&rsquo;s value will be derived from the hyperlink:
 <td><strong>Returns</strong></td>
 <td><a href="#result-object">Result object</a> containing <a href="#discussion-object">Discussion object</a> for the newly created Discussion</td>
 </tr>
-</tbody></table>
+</tbody></table></p>
+
+<p><br/>
+<strong>Creating a Discussion with an Attachment:</strong>
+<table><thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead><tbody>
+<tr>
+<td><strong>Access Scope</strong></td>
+<td>WRITE_SHEETS</td>
+</tr>
+<tr>
+<td><strong>Headers</strong></td>
+<td>See <a href="#multipart-uploads">Multipart Uploads</a> for information about headers that are required for multipart requests.</td>
+</tr>
+<tr>
+<td><strong>Request Body</strong></td>
+<td>Request body should contain <em>parts</em> with the following names:<ul><li><strong>discussion</strong>: JSON <a href="#discussion-object">Discussion object</a> with the following attributes:<ul><li>title (string)</li><li>comment (<a href="#comment-object">Comment object</a>)</li></ul></li><li><strong>file</strong>: (optional) file to attach to the new comment</li></ul>See <a href="#multipart-uploads">Multipart Uploads</a> for more information on parts.</td>
+</tr>
+<tr>
+<td><strong>Returns</strong></td>
+<td><a href="#result-object">Result object</a> containing a <a href="#discussion-object">Discussion object</a> for the newly created Discussion, which contains a <a href="#comment-object">Comment object</a> for the initial discussion comment, which in turn contains an <a href="#attachment-object">Attachment object</a> for the attachment that was uploaded to the comment.</td>
+</tr>
+</tbody></table></p>
 
 <h2 id="create-discussion-on-sheet">Create Discussion on Sheet</h2>
 
@@ -5199,12 +5460,7 @@ If null, the cell&rsquo;s value will be derived from the hyperlink:
 -H <span class="s2">"Authorization: Bearer ACCESS_TOKEN"</span> <span class="se">\</span>
 -H <span class="s2">"Content-Type: application/json"</span> <span class="se">\</span>
 -X POST <span class="se">\</span>
--d <span class="s1">'{
-    "title": "This is a new discussion", 
-    "comment": {
-        "text":"This text is the body of the first comment"
-    }
-}'</span>
+-d <span class="s1">'{"title": "This is a new discussion", "comment": {"text":"This text is the body of the first comment"}}'</span>
 </code></pre>
 <pre class="highlight javascript"><code><span class="c1">// Specify discussion.</span>
 <span class="kd">var</span> <span class="nx">discussion</span> <span class="o">=</span> <span class="p">{</span>
@@ -5300,7 +5556,7 @@ If null, the cell&rsquo;s value will be derived from the hyperlink:
             </span><span class="p">{</span><span class="w">
                 </span><span class="s2">"createdAt"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2013-02-28T22:00:56-08:00"</span><span class="p">,</span><span class="w">
                 </span><span class="s2">"createdBy"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
-                    </span><span class="s2">"email"</span><span class="p">:</span><span class="w"> </span><span class="s2">"jane.doev@smartsheet.com"</span><span class="p">,</span><span class="w">
+                    </span><span class="s2">"email"</span><span class="p">:</span><span class="w"> </span><span class="s2">"jane.doe@smartsheet.com"</span><span class="p">,</span><span class="w">
                     </span><span class="s2">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Jane Doe"</span><span class="w">
                 </span><span class="p">},</span><span class="w">
                 </span><span class="s2">"id"</span><span class="p">:</span><span class="w"> </span><span class="mi">4583173393803140</span><span class="p">,</span><span class="w">
@@ -5321,7 +5577,7 @@ If null, the cell&rsquo;s value will be derived from the hyperlink:
 
 <aside class="notice">This operation supports multipart requests. Using a multipart request allows you to create a new Discussion and upload a file to the first Comment within that Discussion in a single step (i.e., using a single request). For more information, see <a href="#multipart-uploads">Multipart Uploads</a>.</aside>
 
-<p><br/><br/>
+<p><br/>
 <strong>Creating a Discussion without an Attachment:</strong>
 <table><thead>
 <tr>
@@ -6694,7 +6950,7 @@ These API operations allow you to access the user&rsquo;s favorite API-supported
 <tr>
 <td><strong>permalink</strong></td>
 <td>string</td>
-<td>Direct URL to Folder</td>
+<td>URL that represents a direct link to the Folder in Smartsheet</td>
 </tr>
 <tr>
 <td><strong>sheets</strong></td>
@@ -6715,6 +6971,72 @@ These API operations allow you to access the user&rsquo;s favorite API-supported
 <td><strong>templates</strong></td>
 <td><a href="#template-object">Template</a>[]</td>
 <td>Array of Template objects</td>
+</tr>
+</tbody></table>
+
+<h2 id="copy-folder">Copy Folder</h2>
+
+<blockquote>
+<p>Example Request:</p>
+</blockquote>
+<pre class="highlight shell"><code>curl https://api.smartsheet.com/2.0/folders/<span class="o">{</span>folderId<span class="o">}</span>/copy?include<span class="o">=</span>all <span class="se">\</span>
+-H <span class="s2">"Authorization: Bearer ACCESS_TOKEN"</span> <span class="se">\</span>
+-H <span class="s2">"Content-Type: application/json"</span> <span class="se">\</span>
+-d <span class="s1">'{ \
+    "destinationType": "workspace|folder|home", \
+    "destinationId": workspace_or_folder_id, \
+    "newName": "newFolderName" \
+}'</span> <span class="se">\</span>
+-X POST
+</code></pre>
+
+<blockquote>
+<p>Example Response:</p>
+</blockquote>
+<pre class="highlight json"><code><span class="p">{</span><span class="w">
+    </span><span class="s2">"resultCode"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"result"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+        </span><span class="s2">"id"</span><span class="p">:</span><span class="w"> </span><span class="mi">7116448184199044</span><span class="p">,</span><span class="w">
+        </span><span class="s2">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"newFolderName"</span><span class="p">,</span><span class="w">
+        </span><span class="s2">"permalink"</span><span class="p">:</span><span class="w"> </span><span class="s2">"https://{base_url}?lx=lB0JaOh6AX1wGwqxsQIMaA"</span><span class="w">
+    </span><span class="p">},</span><span class="w">
+    </span><span class="s2">"message"</span><span class="p">:</span><span class="w"> </span><span class="s2">"SUCCESS"</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre>
+
+<p><code class="prettyprint">POST /folders/{folderId}/copy</code></p>
+
+<p>Creates a copy of the specified Folder.</p>
+
+<table><thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead><tbody>
+<tr>
+<td><strong>Access Scope</strong></td>
+<td>ADMIN_WORKSPACES</td>
+</tr>
+<tr>
+<td><strong>Headers</strong></td>
+<td><strong>Authorization</strong>: Bearer ACCESS_TOKEN<br/><strong>Content-Type</strong>: application/json</td>
+</tr>
+<tr>
+<td><strong>Parameters</strong></td>
+<td><strong>include</strong> (optional) &ndash; a comma-separated list of elements to copy:<ul><li>data</li><li>attachments</li><li>discussions</li><li>cellLinks</li><li>forms</li><li><strong>all</strong> - specify a value of &ldquo;all&rdquo; to include everything (data, attachments, discussions, cellLinks, and forms)</li></ul><i>Note</i>: Cell history will not be copied, regardless of which <strong>include</strong> parameter values are specified.</td>
+</tr>
+<tr>
+<td></td>
+<td><strong>skipRemap</strong> (optional) &ndash;  &ndash; comma-separated list of references to NOT re-map for the newly created folder:<ul><li>cellLinks</li><li>reports</li></ul>By default, all cell links and reports that reference sheets in the source folder will be re-mapped to reference corresponding sheets in the newly created folder. The <strong>skipRemap</strong> parameter can be specified to change that default behavior:<ul><li>If &ldquo;cellLinks&rdquo; is specified in the <b>skipRemap</b> parameter value, the cell links within the newly created folder will continue to point to the original source sheets.</li><li>If &ldquo;reports&rdquo; is specified in the <b>skipRemap</b> parameter value, the reports within the newly created folder will continue to point to the original source sheets.</li></ul></td>
+</tr>
+<tr>
+<td><strong>Request Body</strong></td>
+<td><a href="#containerdestination-object">ContainerDestination object</a></li></ul></td>
+</tr>
+<tr>
+<td><strong>Returns</strong></td>
+<td><a href="#result-object">Result object</a> containing a <a href="#folder-object">Folder object</a> for the newly created Folder</td>
 </tr>
 </tbody></table>
 
@@ -7089,7 +7411,9 @@ These API operations allow you to access the user&rsquo;s favorite API-supported
             </span><span class="s2">"id"</span><span class="p">:</span><span class="w"> </span><span class="mi">4509918431602564</span><span class="p">,</span><span class="w">
             </span><span class="s2">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Project Timeline"</span><span class="p">,</span><span class="w">
             </span><span class="s2">"accessLevel"</span><span class="p">:</span><span class="w"> </span><span class="s2">"OWNER"</span><span class="p">,</span><span class="w">
-            </span><span class="s2">"permalink"</span><span class="p">:</span><span class="w"> </span><span class="s2">"https://app.smartsheet.com/b/home?lx=uWicCItTmkbxJwpCfQ5wiwW"</span><span class="w">
+            </span><span class="s2">"permalink"</span><span class="p">:</span><span class="w"> </span><span class="s2">"https://app.smartsheet.com/b/home?lx=uWicCItTmkbxJwpCfQ5wiwW"</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"createdAt"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2015-06-05T20:05:29Z"</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"modifiedAt"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2015-06-05T20:05:43Z"</span><span class="w">
         </span><span class="p">}</span><span class="w">
     </span><span class="p">]</span><span class="w">
 </span><span class="p">}</span><span class="w">
@@ -7115,11 +7439,11 @@ These API operations allow you to access the user&rsquo;s favorite API-supported
 </tr>
 <tr>
 <td><strong>Parameters</strong></td>
-<td><strong>include</strong> (optional): when specified with a value of &ldquo;source&rdquo;, response will include the <a href="#source-object">source</a> for any sheet that was created from another sheet or template</td>
+<td><strong>include</strong> (optional) &ndash; a comma-separated list of optional elements to include in the response:<ul><li>ownerInfo - owner&rsquo;s email address and user ID for each sheet</li><li>source - the <a href="#source-object">source</a> for any sheet that was created from another sheet or template</li></ul></td>
 </tr>
 <tr>
 <td><strong>Returns</strong></td>
-<td><a href="#folder-object">Folder object</a><br/><br/>Note: If no folders and/or sheets are present in the Folder, the corresponding attribute (e.g., &ldquo;folders&rdquo;, &ldquo;sheets&rdquo;) will not be present in the response.</td>
+<td><a href="#folder-object">Folder object</a>, populated according to the <strong>include</strong> parameter<br/><br/>Note: If no folders and/or sheets are present in the Folder, the corresponding attribute (e.g., &ldquo;folders&rdquo;, &ldquo;sheets&rdquo;) will not be present in the response.</td>
 </tr>
 </tbody></table>
 
@@ -7398,6 +7722,63 @@ These API operations allow you to access the user&rsquo;s favorite API-supported
 <tr>
 <td><strong>Returns</strong></td>
 <td><a href="#indexresult-object">IndexResult object</a> containing an array of <a href="#folder-object">Folder objects</a>, limited to the following attributes:<ul><li>id</li><li>name</li><li>permalink</li></ul></td>
+</tr>
+</tbody></table>
+
+<h2 id="move-folder">Move Folder</h2>
+
+<blockquote>
+<p>Example Request:</p>
+</blockquote>
+<pre class="highlight shell"><code>curl https://api.smartsheet.com/2.0/folders/<span class="o">{</span>folderId<span class="o">}</span>/move <span class="se">\</span>
+-H <span class="s2">"Authorization: Bearer ACCESS_TOKEN"</span> <span class="se">\</span>
+-H <span class="s2">"Content-Type: application/json"</span> <span class="se">\</span>
+-d <span class="s1">'{ \
+    "destinationType": "workspace|folder|home", \
+    "destinationId": workspace_or_folder_id \
+}'</span> <span class="se">\</span>
+-X POST
+</code></pre>
+
+<blockquote>
+<p>Example Response:</p>
+</blockquote>
+<pre class="highlight json"><code><span class="p">{</span><span class="w">
+    </span><span class="s2">"resultCode"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"result"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+        </span><span class="s2">"id"</span><span class="p">:</span><span class="w"> </span><span class="mi">4509918431602564</span><span class="p">,</span><span class="w">
+        </span><span class="s2">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"moved_folder_name"</span><span class="p">,</span><span class="w">
+        </span><span class="s2">"permalink"</span><span class="p">:</span><span class="w"> </span><span class="s2">"https://{base_url}?lx=lB0JaOh6AX1wGwqxsQIMaA"</span><span class="w">
+    </span><span class="p">},</span><span class="w">
+    </span><span class="s2">"message"</span><span class="p">:</span><span class="w"> </span><span class="s2">"SUCCESS"</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre>
+
+<p><code class="prettyprint">POST /folders/{folderId}/move</code></p>
+
+<p>Moves the specified Folder to another location.</p>
+
+<table><thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead><tbody>
+<tr>
+<td><strong>Access Scope</strong></td>
+<td>ADMIN_WORKSPACES</td>
+</tr>
+<tr>
+<td><strong>Headers</strong></td>
+<td><strong>Authorization</strong>: Bearer ACCESS_TOKEN<br/><strong>Content-Type</strong>: application/json</td>
+</tr>
+<tr>
+<td><strong>Request Body</strong></td>
+<td><a href="#containerdestination-object">ContainerDestination object</a>, limited to the following required attributes:<ul><li>destinationType</li><li>destinationId</li></ul></td>
+</tr>
+<tr>
+<td><strong>Returns</strong></td>
+<td><a href="#result-object">Result object</a> containing a <a href="#folder-object">Folder object</a> for the moved Folder</td>
 </tr>
 </tbody></table>
 
@@ -8279,13 +8660,17 @@ of <a href="#groupmember-object">GroupMember objects</a> any users specified in 
             </span><span class="s2">"id"</span><span class="p">:</span><span class="w"> </span><span class="mi">4583173393803140</span><span class="p">,</span><span class="w">
             </span><span class="s2">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"sheet 1"</span><span class="p">,</span><span class="w">
             </span><span class="s2">"accessLevel"</span><span class="p">:</span><span class="w"> </span><span class="s2">"OWNER"</span><span class="p">,</span><span class="w">
-            </span><span class="s2">"permalink"</span><span class="p">:</span><span class="w"> </span><span class="s2">"https://app.smartsheet.com/b/home?lx=Dsje3YKtpyZScrCX6Za"</span><span class="w">
+            </span><span class="s2">"permalink"</span><span class="p">:</span><span class="w"> </span><span class="s2">"https://app.smartsheet.com/b/home?lx=Dsje3YKtpyZScrCX6Za"</span><span class="p">,</span><span class="w"> 
+            </span><span class="s2">"createdAt"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2015-06-05T20:05:29Z"</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"modifiedAt"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2015-06-05T20:05:43Z"</span><span class="w">
         </span><span class="p">},</span><span class="w">
         </span><span class="p">{</span><span class="w">
             </span><span class="s2">"id"</span><span class="p">:</span><span class="w"> </span><span class="mi">2331373580117892</span><span class="p">,</span><span class="w">
             </span><span class="s2">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Copy of sheet 1"</span><span class="p">,</span><span class="w">
             </span><span class="s2">"accessLevel"</span><span class="p">:</span><span class="w"> </span><span class="s2">"OWNER"</span><span class="p">,</span><span class="w">
             </span><span class="s2">"permalink"</span><span class="p">:</span><span class="w"> </span><span class="s2">"https://app.smartsheet.com/b/home?lx=Dsje3YKtpyZScrCX6Zb"</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"createdAt"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2015-06-05T20:05:29Z"</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"modifiedAt"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2015-06-05T20:05:43Z"</span><span class="p">,</span><span class="w">
             </span><span class="s2">"source"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
                 </span><span class="s2">"id"</span><span class="p">:</span><span class="w"> </span><span class="mi">4583173393803140</span><span class="p">,</span><span class="w">
                 </span><span class="s2">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"sheet"</span><span class="w">
@@ -8318,7 +8703,7 @@ of <a href="#groupmember-object">GroupMember objects</a> any users specified in 
 </tr>
 <tr>
 <td><strong>Parameters</strong></td>
-<td><strong>include</strong> (optional) &ndash; when specified with a value of &ldquo;source&rdquo;, response will include the <a href="#source-object">source</a> for any sheet that was created from another sheet or template</td>
+<td><strong>include</strong> (optional) &ndash; a comma-separated list of optional elements to include in the response:<ul><li>ownerInfo - owner&rsquo;s email address and user ID for each sheet</li><li>source - the <a href="#source-object">source</a> for any sheet that was created from another sheet or template</li></ul></td>
 </tr>
 <tr>
 <td><strong>Returns</strong></td>
@@ -8534,7 +8919,7 @@ of <a href="#groupmember-object">GroupMember objects</a> any users specified in 
 </tr>
 <tr>
 <td><strong>Parameters</strong></td>
-<td><strong>include</strong> (optional) &ndash; a comma-separated list of optional objects to include in the response:<ul><li>discussions</li><li>attachments</li><li><a href="#formatting">format</a></li><li>sourceSheets</li></ul></td>
+<td><strong>include</strong> (optional) &ndash; a comma-separated list of optional elements to include in the response:<ul><li>discussions</li><li>attachments</li><li><a href="#formatting">format</a></li><li>sourceSheets</li></ul></td>
 </tr>
 <tr>
 <td></td>
@@ -8936,16 +9321,6 @@ of <a href="#groupmember-object">GroupMember objects</a> any users specified in 
 <td>Row number within the sheet (1-based - starts at 1)</td>
 </tr>
 <tr>
-<td><strong>parentId</strong></td>
-<td>number</td>
-<td>If this is a child row, the ID of the parent row, else omitted from response</td>
-</tr>
-<tr>
-<td><strong>siblingId</strong></td>
-<td>number</td>
-<td>The ID of the previous sibling row at the same hierarchical level of this row, if any, else omitted from response</td>
-</tr>
-<tr>
 <td><strong>version</strong></td>
 <td>number</td>
 <td>Number that is incremented every time a sheet is modified</td>
@@ -8963,12 +9338,12 @@ of <a href="#groupmember-object">GroupMember objects</a> any users specified in 
 <tr>
 <td><strong>locked</strong></td>
 <td>boolean</td>
-<td><code class="prettyprint">true</code> if the row is locked by the sheet owner or the admin. Returned if the row is locked.</td>
+<td>Flag indicating whether the row is locked. In a response, a value of <code class="prettyprint">true</code> indicates that the row has been locked by the sheet owner or the admin.</td>
 </tr>
 <tr>
 <td><strong>lockedForUser</strong></td>
 <td>boolean</td>
-<td><code class="prettyprint">true</code> if the row is locked for the requesting user. Returned if the row is locked.</td>
+<td>Flag indicating whether the row is locked for the requesting user. This attribute may be present in a response, but cannot be specified in a request.</td>
 </tr>
 <tr>
 <td><strong>expanded</strong></td>
@@ -9021,29 +9396,34 @@ of <a href="#groupmember-object">GroupMember objects</a> any users specified in 
 <td>Array of Column objects.<br/>Only returned if the <a href="#get-row">Get Row</a> <strong>include</strong> query string parameter contains <strong>columns</strong>.</td>
 </tr>
 <tr>
-<td><strong>toTop</strong></td>
-<td>boolean</td>
-<td>Flag used to specify the location at which to create or move a row. Indicates that the row should be added to the top of the sheet. This attribute can be specified in a request, but will never be present in a response.</td>
-</tr>
-<tr>
-<td><strong>toBottom</strong></td>
-<td>boolean</td>
-<td>Flag used to specify the location at which to create or move a row. Indicates that the row should be added to the bottom of the sheet, or, if used in conjunction with <strong>parentId</strong>, added as the last child of the parent. This attribute can be specified in a request, but will never be present in a response.</td>
+<td><strong>permalink</strong></td>
+<td>string</td>
+<td>URL that represents a direct link to the Row in Smartsheet<br/>Only returned if the <a href="#row-include-flags"><strong>include</strong></a> query string parameter contains <strong>rowPermalink</strong>.</td>
 </tr>
 <tr>
 <td><strong>parentId</strong></td>
 <td>number</td>
-<td>Flag used to specify the location at which to create or move a row. Indicates that the row  should be added as the first child of this row. This attribute can be specified in a request, but will never be present in a response.</td>
+<td>In a response - the ID of the parent row (if any).<br/><br/>In a request - the ID of the desired parent row (used to specify the location for a new or moved row). For more information, see <a href="#row-location">Row Location</a>.</td>
 </tr>
 <tr>
 <td><strong>siblingId</strong></td>
 <td>number</td>
-<td>Flag used to specify the location at which to create or move a row. Indicates that the row should be added as the next row at the same hierarchical level of this row. This attribute can be specified in a request, but will never be present in a response.</td>
+<td>In a response - the ID of the previous sibling row at the same hierarchical level of this row (if any).<br/><br/>In a request - the ID of the desired sibling row (used to specify the location for a new or moved row). For more information, see <a href="#row-location">Row Location</a>.</td>
+</tr>
+<tr>
+<td><strong>toTop</strong></td>
+<td>boolean</td>
+<td>Flag used to specify the location for a new or moved row. This attribute can be specified in a request, but will never be present in a response. For more information, see <a href="#row-location">Row Location</a>.</td>
+</tr>
+<tr>
+<td><strong>toBottom</strong></td>
+<td>boolean</td>
+<td>Flag used to specify the location for a new or moved row. This attribute can be specified in a request, but will never be present in a response. For more information, see <a href="#row-location">Row Location</a>.</td>
 </tr>
 <tr>
 <td><strong>above</strong></td>
 <td>boolean</td>
-<td>Flag used to specify the location at which to create or move a row. Optionally used in conjunction with <strong>siblingId</strong> with a value of <code class="prettyprint">true</code> to indicate that the row should be added above the specified sibling row. This attribute can be specified in a request, but will never be present in a response.</td>
+<td>Flag used to specify the location for a new or moved row. This attribute can be specified in a request, but will never be present in a response. For more information, see <a href="#row-location">Row Location</a>.</td>
 </tr>
 </tbody></table>
 
@@ -9277,6 +9657,8 @@ of <a href="#groupmember-object">GroupMember objects</a> any users specified in 
 
 <aside class="notice">If multiple rows are specified in the request, all rows must be inserted at the same location (i.e. the <b>toTop</b>, <b>toBottom</b>, <b>parentId</b>, <b>siblingId</b>, and <b>above</b> attributes must be the same for all rows in the request).</aside>
 
+<aside class="notice">In a parent row, values of the following fields will be auto-calculated based upon values in the child rows (and therefore cannot be updated using the API): Start Date, End Date, Duration, % Complete.</aside>
+
 <table><thead>
 <tr>
 <th></th>
@@ -9293,7 +9675,7 @@ of <a href="#groupmember-object">GroupMember objects</a> any users specified in 
 </tr>
 <tr>
 <td><strong>Request Body</strong></td>
-<td><a href="#row-object">Row object</a> or an array of Row objects, with the following attributes:<ul><li>A location specifier &ndash; one of the following attributes (optional):<ul><li><strong>toTop</strong></li><li><strong>toBottom</strong></li><li><strong>parentId</strong></li><li><strong>siblingId</strong></li><li><strong>above</strong></li></ul><li><strong>format</strong> (optional)</li><li><strong>expanded</strong> (optional)</li><li>A <strong>cells</strong> attribute set to an array of <a href="#cell-object">Cell objects</a>. To insert an empty row, set the <strong>cells</strong> attribute to empty or null. Each Cell object may contain the following attributes:<ul><li>columnId (required)</li><li>value (required)</li><li>strict (optional)</li><li>format (optional)</li><li>hyperlink (optional)</li></ul></li><li>See <a href="#column-types">Column Types</a> and <a href="#update-cell(s)">Update Cell(s)</a> for more information.</li><li>See <a href="#contact-list-columns">Contact List Columns</a> for information on inserting cells for columns of type CONTACT_LIST.</li></ul></td>
+<td><a href="#row-object">Row object</a> or an array of Row objects, with the following attributes:<ul><li>One or more <a href="#row-location"><em>location-specifier</em> attributes</a> (optional)</li><li><strong>format</strong> (optional)</li><li><strong>expanded</strong> (optional)</li><li><strong>locked</strong> (optional)</li><li>A <strong>cells</strong> attribute set to an array of <a href="#cell-object">Cell objects</a>. To insert an empty row, set the <strong>cells</strong> attribute to empty or null. Each Cell object may contain the following attributes:<ul><li>columnId (required)</li><li>value (required)</li><li>strict (optional)</li><li>format (optional)</li><li>hyperlink (optional)</li></ul></li><li>See <a href="#column-types">Column Types</a> and <a href="#update-cell(s)">Update Cell(s)</a> for more information.</li><li>See <a href="#contact-list-columns">Contact List Columns</a> for information on inserting cells for columns of type CONTACT_LIST.</li></ul></td>
 </tr>
 <tr>
 <td><strong>Returns</strong></td>
@@ -9401,7 +9783,7 @@ of <a href="#groupmember-object">GroupMember objects</a> any users specified in 
 </tr>
 <tr>
 <td><strong>Parameters</strong></td>
-<td><strong>include</strong> (optional) &ndash; comma-separated list of row elements to copy in addition to the cell data:<ul><li>attachments</li><li>discussions</li><li>children - if specified, any child rows of the rows specified in the request will also be copied to the destination sheet, and parent-child relationships amongst rows will be preserved within the destination sheet; if not specified, only the rows specified in the request will be copied.</li></ul><strong>ignoreRowsNotFound</strong> (optional) &ndash; true or false: default is false. If set to true, specifying row Ids that do not exist within the source sheet will not cause an error response. If omitted or set to false, specifying row Ids that do not exist within the source sheet will cause an error response (and no rows will be copied).</td>
+<td><strong>include</strong> (optional) &ndash; comma-separated list of row elements to copy in addition to the cell data:<ul><li>attachments</li><li>discussions</li><li>children - if specified, any child rows of the rows specified in the request will also be copied to the destination sheet, and parent-child relationships amongst rows will be preserved within the destination sheet; if not specified, only the rows specified in the request will be copied.</li><li><strong>all</strong> - specify a value of &ldquo;all&rdquo; to include everything (attachments, discussions, and children)</li></ul><strong>ignoreRowsNotFound</strong> (optional) &ndash; true or false: default is false. If set to true, specifying row Ids that do not exist within the source sheet will not cause an error response. If omitted or set to false, specifying row Ids that do not exist within the source sheet will cause an error response (and no rows will be copied).</td>
 </tr>
 <tr>
 <td><strong>Request Body</strong></td>
@@ -9413,13 +9795,12 @@ of <a href="#groupmember-object">GroupMember objects</a> any users specified in 
 </tr>
 </tbody></table>
 
-<h2 id="delete-row">Delete Row</h2>
+<h2 id="delete-row(s)">Delete Row(s)</h2>
 
 <blockquote>
 <p>Example Request:</p>
 </blockquote>
-<pre class="highlight shell"><code>curl https://api.smartsheet.com/2.0/sheets/<span class="o">{</span>sheetId<span class="o">}</span>/rows/<span class="o">{</span>rowId<span class="o">}</span> <span class="se">\</span>
--H <span class="s2">"Authorization: Bearer ACCESS_TOKEN"</span> <span class="se">\</span>
+<pre class="highlight shell"><code>curl https://api.smartsheet.com/2.0/sheets/<span class="o">{</span>sheetId<span class="o">}</span>/rows?ids<span class="o">={</span>rowId1<span class="o">}</span>,<span class="o">{</span>rowId2<span class="o">}</span>,<span class="o">{</span>rowId3<span class="o">}</span>&amp;ignoreRowsNotFound<span class="o">=</span><span class="nb">true</span> <span class="se">\</span>
 -X DELETE
 </code></pre>
 <pre class="highlight javascript"><code><span class="c1">// Set options.</span>
@@ -9448,16 +9829,22 @@ of <a href="#groupmember-object">GroupMember objects</a> any users specified in 
 <p>Example Response:</p>
 </blockquote>
 <pre class="highlight json"><code><span class="p">{</span><span class="w">
-   </span><span class="s2">"message"</span><span class="p">:</span><span class="w"> </span><span class="s2">"SUCCESS"</span><span class="p">,</span><span class="w">
-   </span><span class="s2">"resultCode"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="w">
+    </span><span class="s2">"resultCode"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"result"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+        </span><span class="mi">145417762563972</span><span class="p">,</span><span class="w">
+        </span><span class="mi">4508365800925060</span><span class="p">,</span><span class="w">
+        </span><span class="mi">8026717110462340</span><span class="p">,</span><span class="w">
+        </span><span class="mi">2256565987239812</span><span class="w"> 
+    </span><span class="p">],</span><span class="w">
+    </span><span class="s2">"message"</span><span class="p">:</span><span class="w"> </span><span class="s2">"SUCCESS"</span><span class="w">
 </span><span class="p">}</span><span class="w">
 </span></code></pre>
 
-<p><code class="prettyprint">DELETE /sheets/{sheetId}/rows/{rowId}</code></p>
+<p><code class="prettyprint">DELETE /sheets/{sheetId}/rows?ids={rowId1},{rowId2},{rowId3}...</code></p>
 
-<p>Deletes the Row specified in the URL.</p>
+<p>Deletes one or more row(s) from the Sheet specified in the URL.</p>
 
-<aside class="warning">This operation will delete ALL child Rows of the specified Row.</aside>
+<aside class="warning">This operation will delete ALL child Rows of the specified Row(s).</aside>
 
 <table><thead>
 <tr>
@@ -9474,8 +9861,16 @@ of <a href="#groupmember-object">GroupMember objects</a> any users specified in 
 <td><strong>Authorization</strong>: Bearer ACCESS_TOKEN</td>
 </tr>
 <tr>
+<td><strong>Parameters</strong></td>
+<td><strong>ids</strong> (required) - comma-separated list of Row IDs</td>
+</tr>
+<tr>
+<td></td>
+<td><strong>ignoreRowsNotFound</strong> (optional) - true or false. If set to false and any of the specified Row IDs are not found, no rows will be deleted, and the &ldquo;not found&rdquo; <a href="#errors">error</a> will be returned.</td>
+</tr>
+<tr>
 <td><strong>Returns</strong></td>
-<td><a href="#result-object">Result object</a></td>
+<td><a href="#result-object">Result object</a> containing Row IDs corresponding to all rows that were successfully deleted (including any child rows of rows specified in the URL).</td>
 </tr>
 </tbody></table>
 
@@ -9686,91 +10081,34 @@ of <a href="#groupmember-object">GroupMember objects</a> any users specified in 
 </tr>
 </tbody></table>
 
-<h2 id="send-row-via-email">Send Row via Email</h2>
+<h2 id="send-row(s)-via-email">Send Row(s) via Email</h2>
 
 <blockquote>
 <p>Example Request:</p>
 </blockquote>
 
-<pre class="highlight shell"><code>curl https://api.smartsheet.com/2.0/sheets/<span class="o">{</span>sheetId<span class="o">}</span>/rows/<span class="o">{</span>rowId<span class="o">}</span>/emails <span class="se">\</span>
+<pre class="highlight shell"><code>curl https://api.smartsheet.com/2.0/sheets/<span class="o">{</span>sheetId<span class="o">}</span>/rows/emails <span class="se">\</span>
 -H <span class="s2">"Authorization: Bearer ACCESS_TOKEN"</span> <span class="se">\</span>
 -H <span class="s2">"Content-Type: application/json"</span> <span class="se">\</span>
 -X POST <span class="se">\</span>
--d <span class="s1">'{"sendTo" : [{"email": "john.doe@smartsheet.com"}, {"groupId": 2258118617917316}], "subject": "Check these rows out!", "message": "Here are the rows I mentioned in our meeting", "ccMe": false, "includeAttachments": "true", "includeDiscussions": "false"}'</span>
-</code></pre>
-
-<pre class="highlight javascript"><code><span class="c1">// Configure email.</span>
-<span class="kd">var</span> <span class="nx">email</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s2">"sendTo"</span><span class="p">:</span> <span class="p">[</span>
-        <span class="p">{</span>
-            <span class="s2">"email"</span><span class="p">:</span> <span class="s2">"john.doe@smartsheet.com"</span>
-        <span class="p">},</span>
-        <span class="p">{</span>
-            <span class="s2">"groupId"</span><span class="p">:</span> <span class="mi">2258118617917316</span>
-        <span class="p">}</span>
-    <span class="p">],</span>
-    <span class="s2">"subject"</span><span class="p">:</span> <span class="s2">"Check these rows out!"</span><span class="p">,</span>
-    <span class="s2">"message"</span><span class="p">:</span> <span class="s2">"Here are the rows I mentioned in our meeting"</span><span class="p">,</span>
-    <span class="s2">"ccMe"</span><span class="p">:</span> <span class="kc">false</span><span class="p">,</span>
-    <span class="s2">"includeDiscussions"</span><span class="p">:</span> <span class="kc">false</span><span class="p">,</span>
-    <span class="s2">"includeAttachments"</span><span class="p">:</span> <span class="kc">true</span>
-<span class="p">};</span>
-
-<span class="c1">// Set options.</span>
-<span class="kd">var</span> <span class="nx">options</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="na">body</span><span class="p">:</span> <span class="nx">email</span><span class="p">,</span>
-    <span class="na">sheetId</span><span class="p">:</span> <span class="mi">2252168947361668</span><span class="p">,</span>
-    <span class="na">rowId</span><span class="p">:</span> <span class="mi">4293147074291588</span>
-<span class="p">};</span>
-
-<span class="c1">// Send row via email.</span>
-<span class="nx">smartsheet</span><span class="p">.</span><span class="nx">sheets</span><span class="p">.</span><span class="nx">sendRow</span><span class="p">(</span><span class="nx">options</span><span class="p">)</span>
-    <span class="p">.</span><span class="nx">then</span><span class="p">(</span><span class="kd">function</span> <span class="p">(</span><span class="nx">data</span><span class="p">)</span> <span class="p">{</span>
-        <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">data</span><span class="p">);</span>
-    <span class="p">})</span>
-    <span class="p">.</span><span class="k">catch</span><span class="p">(</span><span class="kd">function</span> <span class="p">(</span><span class="nx">error</span><span class="p">)</span> <span class="p">{</span>
-        <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">error</span><span class="p">);</span>
-    <span class="p">});</span>
-</code></pre>
-
-<pre class="highlight csharp"><code><span class="c1">// Specify recipients.
-</span><span class="n">Recipient</span><span class="p">[]</span> <span class="n">recipients</span> <span class="p">=</span> <span class="k">new</span> <span class="n">Recipient</span><span class="p">[]</span> <span class="p">{</span> 
-    <span class="k">new</span> <span class="n">Recipient</span> <span class="p">{</span> <span class="n">Email</span> <span class="p">=</span> <span class="s">"john.doe@smartsheet.com"</span> <span class="p">},</span> 
-    <span class="k">new</span> <span class="n">Recipient</span> <span class="p">{</span> <span class="n">GroupId</span> <span class="p">=</span> <span class="m">2258118617917316</span> <span class="p">}</span> 
-<span class="p">};</span>
-
-<span class="c1">// Configure email.
-</span><span class="n">RowEmail</span> <span class="n">rowEmail</span> <span class="p">=</span> <span class="k">new</span> <span class="n">RowEmail</span> <span class="p">{</span> 
-    <span class="n">SendTo</span> <span class="p">=</span> <span class="n">recipients</span><span class="p">,</span> 
-    <span class="n">Subject</span> <span class="p">=</span> <span class="s">"Check these rows out!"</span><span class="p">,</span> 
-    <span class="n">Message</span> <span class="p">=</span> <span class="s">"Here are the rows I mentioned in our meeting"</span><span class="p">,</span> 
-    <span class="n">CcMe</span> <span class="p">=</span> <span class="k">false</span><span class="p">,</span> 
-    <span class="n">IncludeAttachments</span> <span class="p">=</span> <span class="k">true</span><span class="p">,</span> 
-    <span class="n">IncludeDiscussions</span> <span class="p">=</span> <span class="k">false</span> 
-<span class="p">};</span>
-
-<span class="c1">// Send row via email.
-</span><span class="n">smartsheet</span><span class="p">.</span><span class="n">SheetResources</span><span class="p">.</span><span class="n">RowResources</span><span class="p">.</span><span class="nf">SendRow</span><span class="p">(</span><span class="n">sheetId</span><span class="p">,</span> <span class="n">rowId</span><span class="p">,</span> <span class="n">rowEmail</span><span class="p">);</span>
-</code></pre>
-
-<pre class="highlight java"><code><span class="c1">// Specify individual recipient.</span>
-<span class="n">RecipientEmail</span> <span class="n">recipientEmail</span> <span class="o">=</span> <span class="k">new</span> <span class="n">RecipientEmail</span><span class="o">.</span><span class="na">AddRecipientEmailBuilder</span><span class="o">().</span><span class="na">setEmail</span><span class="o">(</span><span class="s">"john.doe@smartsheet.com"</span><span class="o">).</span><span class="na">build</span><span class="o">();</span>
-
-<span class="c1">// Specify group recipient.</span>
-<span class="n">RecipientGroup</span> <span class="n">recipientGroup</span> <span class="o">=</span> <span class="k">new</span> <span class="n">RecipientGroup</span><span class="o">.</span><span class="na">AddRecipientGroupBuilder</span><span class="o">().</span><span class="na">setGroupId</span><span class="o">(</span><span class="mi">2258118617917316</span><span class="o">).</span><span class="na">build</span><span class="o">();</span>
-
-<span class="c1">// Set recipients.</span>
-<span class="n">List</span><span class="o">&lt;</span><span class="n">Recipient</span><span class="o">&gt;</span> <span class="n">recipients</span> <span class="o">=</span> <span class="n">Arrays</span><span class="o">.</span><span class="na">asList</span><span class="o">(</span><span class="n">recipientEmail</span><span class="o">,</span> <span class="n">recipientGroup</span><span class="o">);</span>
-
-<span class="c1">// Set format details.</span>
-<span class="n">FormatDetails</span> <span class="n">formatDetails</span> <span class="o">=</span> <span class="k">new</span> <span class="n">FormatDetails</span><span class="o">();</span>
-<span class="n">formatDetails</span><span class="o">.</span><span class="na">setPaperSize</span><span class="o">(</span><span class="n">PaperSize</span><span class="o">.</span><span class="na">A0</span><span class="o">);</span> 
-
-<span class="c1">// Configure email.</span>
-<span class="n">RowEmail</span> <span class="n">email</span> <span class="o">=</span> <span class="k">new</span> <span class="n">RowEmail</span><span class="o">.</span><span class="na">AddRowEmailBuilder</span><span class="o">().</span><span class="na">setSendTo</span><span class="o">(</span><span class="n">recipients</span><span class="o">).</span><span class="na">setSubject</span><span class="o">(</span><span class="s">"Check these rows out!"</span><span class="o">).</span><span class="na">setMessage</span><span class="o">(</span><span class="s">"Here are the rows I mentioned in our meeting"</span><span class="o">).</span><span class="na">setCcMe</span><span class="o">(</span><span class="kc">false</span><span class="o">).</span><span class="na">setIncludeAttachments</span><span class="o">(</span><span class="kc">true</span><span class="o">).</span><span class="na">setIncludeDiscussions</span><span class="o">(</span><span class="kc">true</span><span class="o">).</span><span class="na">build</span><span class="o">();</span>
-
-<span class="c1">// Send row via email.</span>
-<span class="n">smartsheet</span><span class="o">.</span><span class="na">sheetResources</span><span class="o">().</span><span class="na">rowResources</span><span class="o">().</span><span class="na">sendRow</span><span class="o">(</span><span class="n">sheetId</span><span class="o">,</span> <span class="n">rowId</span><span class="o">,</span> <span class="n">email</span><span class="o">);</span>
+-d <span class="s1">'{ \
+    "sendTo": [ \
+        {"email": "recipient@smartsheet.com"} \
+    ], \
+    "subject": "some subject", \
+    "message": "some message", \
+    "ccMe": false, \
+    "rowIds": [ \
+        rId1, \
+        rId2 \
+    ], \
+    "columnIds": [ \
+        cId1, \
+        cId2 \
+    ], \
+    "includeAttachments": false, \
+    "includeDiscussions": false \
+}'</span>
 </code></pre>
 
 <blockquote>
@@ -9778,14 +10116,14 @@ of <a href="#groupmember-object">GroupMember objects</a> any users specified in 
 </blockquote>
 
 <pre class="highlight json"><code><span class="p">{</span><span class="w">
-    </span><span class="s2">"message"</span><span class="p">:</span><span class="w"> </span><span class="s2">"SUCCESS"</span><span class="p">,</span><span class="w">
-    </span><span class="s2">"resultCode"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="w">
+    </span><span class="s2">"resultCode"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"message"</span><span class="p">:</span><span class="w"> </span><span class="s2">"SUCCESS"</span><span class="w">
 </span><span class="p">}</span><span class="w">
 </span></code></pre>
 
-<p><code class="prettyprint">POST /sheets/{sheetId}/rows/{rowId}/emails</code></p>
+<p><code class="prettyprint">POST /sheets/{sheetId}/rows/emails</code></p>
 
-<p>Sends a Row via email.</p>
+<p>Sends one or more Rows via email.</p>
 
 <table><thead>
 <tr>
@@ -9803,11 +10141,77 @@ of <a href="#groupmember-object">GroupMember objects</a> any users specified in 
 </tr>
 <tr>
 <td><strong>Request Body</strong></td>
-<td><a href="#rowemail-object">RowEmail object</a></td>
+<td><a href="#multirowemail-object">MultiRowEmail object</a>. <br/><br/>The columns included for each row in the email will be populated according to the following rules:<ul><li>If the <strong>columnIds</strong> attribute of the MultiRowEmail object is specified as an array of column IDs, those specific columns will be included.</li><li>If the <strong>columnIds</strong> attribute of the MultiRowEmail object is omitted, all columns except hidden columns shall be included.</li><li>If the <strong>columnIds</strong> attribute of the MultiRowEmail object is specified as <em>empty</em>, no columns shall be included. (Note: In this case, either <strong>includeAttachments</strong>:true or <strong>includeDiscussions</strong>:true must be specified.)</td>
 </tr>
 <tr>
 <td><strong>Returns</strong></td>
 <td><a href="#result-object">Result object</a></td>
+</tr>
+</tbody></table>
+
+<h2 id="send-update-request">Send Update Request</h2>
+
+<blockquote>
+<p>Example Request:</p>
+</blockquote>
+
+<pre class="highlight shell"><code>curl https://api.smartsheet.com/2.0/sheets/<span class="o">{</span>sheetId<span class="o">}</span>/updaterequests <span class="se">\</span>
+-H <span class="s2">"Authorization: Bearer ACCESS_TOKEN"</span> <span class="se">\</span>
+-H <span class="s2">"Content-Type: application/json"</span> <span class="se">\</span>
+-X POST <span class="se">\</span>
+-d <span class="s1">'{ \
+    "sendTo": [ \
+        {"email": "email789@smartsheet.com"}, \
+        {"email": "email0123@smartsheet.com"} \
+    ], \
+    "subject": "some subject", \
+    "message": "some message", \
+    "ccMe": (true|false), \
+    "rowIds": [rowId1], \
+    "columnIds": [colId1, colId2], \
+    "includeAttachments": (true|false), \
+    "includeDiscussions": (true|false) \
+}'</span>
+</code></pre>
+
+<blockquote>
+<p>Example Response:</p>
+</blockquote>
+
+<pre class="highlight json"><code><span class="p">{</span><span class="w">
+    </span><span class="s2">"resultCode"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"result"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+        </span><span class="s2">"id"</span><span class="p">:</span><span class="w"> </span><span class="mi">4583173393803140</span><span class="w">
+    </span><span class="p">},</span><span class="w">
+    </span><span class="s2">"message"</span><span class="p">:</span><span class="w"> </span><span class="s2">"SUCCESS"</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre>
+
+<p><code class="prettyprint">POST /sheets/{sheetId}/updaterequests</code></p>
+
+<p>Creates an Update Request for the specified Row(s) within the Sheet. An email notification (containing a link to the update request) will be asynchronously sent to the specified recipient(s).</p>
+
+<table><thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead><tbody>
+<tr>
+<td><strong>Access Scope</strong></td>
+<td>WRITE_SHEETS</td>
+</tr>
+<tr>
+<td><strong>Headers</strong></td>
+<td><strong>Authorization</strong>: Bearer ACCESS_TOKEN<br/><strong>Content-Type</strong>: application/json</td>
+</tr>
+<tr>
+<td><strong>Request Body</strong></td>
+<td><a href="#multirowemail-object">MultiRowEmail object</a><br/><br/>The MultiRowEmail object in the request body must specify one or more of the following attributes:<ul><li><b>columnIds</b>: number[]</li><li><b>attachments</b>: true</li><li><b>discussions</b>: true</li></ul></td>
+</tr>
+<tr>
+<td><strong>Returns</strong></td>
+<td><a href="#result-object">Result object</a> containing the newly created <a href="#updaterequest-object">UpdateRequest object</a>.</td>
 </tr>
 </tbody></table>
 
@@ -9974,6 +10378,8 @@ of <a href="#groupmember-object">GroupMember objects</a> any users specified in 
 
 <aside class="notice">If a row&rsquo;s position is updated, all child rows are moved with the row.</aside>
 
+<aside class="notice">In a parent row, values of the following fields are auto-calculated based upon values in the child rows (and therefore cannot be updated using the API): Start Date, End Date, Duration, % Complete.</aside>
+
 <table><thead>
 <tr>
 <th></th>
@@ -9990,7 +10396,7 @@ of <a href="#groupmember-object">GroupMember objects</a> any users specified in 
 </tr>
 <tr>
 <td><strong>Request Body</strong></td>
-<td><a href="#row-object">Row object</a> or an array of Row objects, with the following attributes:<ul><li><strong>expanded</strong> (optional)</li><li><strong>format</strong> (optional)</li><li>A location specifier – one of the following attributes (optional): One of:<ul><li><strong>toTop</strong>: Moves the row (and its child rows, if any) to the top of the sheet.</li><li><strong>toBottom</strong>: Moves the row (and its child rows, if any) to the bottom of the sheet</li><li><strong>parentId</strong>: Moves the row (and its child rows, if any) as the first child row of the parent. <strong>toBottom</strong> = true can also be set to move the row as the last child of the parent</li><li><strong>siblingId</strong>: Moves the row (and its child rows, if any) as the next sibling of the row ID provided</li></ul></li></ul><ul><li><strong>cells</strong> (optional) &ndash; if specified, must be an array of <a href="#cell-object">Cell objects</a>, where each object is limited to the following attributes:<ul><li>columnId (required)</li><li>value (required)</li><li>strict (optional)</li><li>format (optional)</li><li>hyperlink (optional) with exactly one of the following attributes set:<ul><li>url</li><li>sheetId</li><li>reportId</li></ul></li><li>linkInFromCell (optional) with all of the following attributes set:<ul><li>sheetId</li><li>rowId</li><li>columnId</li></ul></li></ul></li><li><strong>locked</strong> (optional) - <strong>true</strong> to lock the row or <strong>false</strong> to unlock the row.</li></ul>See <a href="#column-types">Column Types</a> for more information.<br/><br/>Please note the following:<ul><li>Column Ids must be valid for the sheet to which the row belongs, and must only be used once for each row in the operation.</li><li>Cells containing formulas cannot be updated.</li><li>Cells of a project sheet in the  &ldquo;Predecessor&rdquo; or &ldquo;Finish Date&rdquo; columns cannot be updated at this time.</li><li>Max length for a cell value is 4000 characters after which truncation will occur without warning. Empty string values are converted to null.</li></ul></td>
+<td><a href="#row-object">Row object</a> or an array of Row objects, with the following attributes:<ul><li>One or more <a href="#row-location"><em>location-specifier</em> attributes</a> (optional)</li><li><strong>expanded</strong> (optional)</li><li><strong>format</strong> (optional)</li><li><strong>cells</strong> (optional) &ndash; if specified, must be an array of <a href="#cell-object">Cell objects</a>, where each object is limited to the following attributes:<ul><li>columnId (required)</li><li>value (required)</li><li>strict (optional)</li><li>format (optional)</li><li>hyperlink (optional) with exactly one of the following attributes set:<ul><li>url</li><li>sheetId</li><li>reportId</li></ul></li><li>linkInFromCell (optional) with all of the following attributes set:<ul><li>sheetId</li><li>rowId</li><li>columnId</li></ul></li></ul></li><li><strong>locked</strong> (optional) - <strong>true</strong> to lock the row or <strong>false</strong> to unlock the row.</li></ul>See <a href="#column-types">Column Types</a> for more information.<br/><br/>Please note the following:<ul><li>Column Ids must be valid for the sheet to which the row belongs, and must only be used once for each row in the operation.</li><li>Cells containing formulas cannot be updated.</li><li>Cells of a project sheet in the  &ldquo;Predecessor&rdquo; or &ldquo;Finish Date&rdquo; columns cannot be updated at this time.</li><li>Max length for a cell value is 4000 characters after which truncation will occur without warning. Empty string values are converted to null.</li></ul></td>
 </tr>
 <tr>
 <td><strong>Returns</strong></td>
@@ -10044,6 +10450,57 @@ a comma-delimited list of flags that indicate additional attributes to be includ
 <tr>
 <td><strong>columnType</strong></td>
 <td>Includes <strong>columnType</strong> attribute in the row&rsquo;s <a href="#cell-object">cells</a> indicating the type of the column the cell resides in.</td>
+</tr>
+<tr>
+<td><strong>rowPermalink</strong></td>
+<td>Includes <strong>permalink</strong> attribute that represents a direct link to the <a href="#row-object">row</a> in the Smartsheet application.</td>
+</tr>
+</tbody></table>
+
+<h3 id="row-location">Row Location</h3>
+
+<p>When using the <a href="#add-row(s)">Add Row(s)</a> operation to insert new rows into a sheet or the <a href="#update-row(s)">Update Row(s)</a> to move rows in a sheet, 
+the following &ldquo;location-specifier&rdquo; <a href="#row-object">Row</a> attributes can be used to specify where the rows get added or moved to in the sheet:</p>
+
+<ul>
+<li>toTop</li>
+<li>toBotom</li>
+<li>above</li>
+<li>siblingId</li>
+<li>parentId</li>
+</ul>
+
+<p>The following table describes which <em>location-specifier</em> Row attribute(s) should be set to implement various actions.</p>
+
+<table><thead>
+<tr>
+<th>Action</th>
+<th>Row attribute(s)</th>
+</tr>
+</thead><tbody>
+<tr>
+<td>Add or move the Row to the top of the Sheet.</td>
+<td><strong>toTop</strong> = <code class="prettyprint">true</code></td>
+</tr>
+<tr>
+<td>Add or move the Row to the bottom of the Sheet.</td>
+<td><strong>toBottom</strong> = <code class="prettyprint">true</code></td>
+</tr>
+<tr>
+<td>Add or move the Row directly above the specified sibling Row (at the same hierarchical level).</td>
+<td><strong>above</strong> = <code class="prettyprint">true</code><br/><strong>siblingId</strong> = (ID of sibling row)</td>
+</tr>
+<tr>
+<td>Add or move the Row directly below the specified sibling Row (at the same hierarchical level).</td>
+<td><strong>siblingId</strong> = (ID of sibling row)</td>
+</tr>
+<tr>
+<td>Add or move the Row so that it is the first child row of the specified parent Row.</td>
+<td><strong>parentId</strong> = (ID of parent row)</td>
+</tr>
+<tr>
+<td>Add or move the Row so that it is the last child row of the specified parent Row.</td>
+<td><strong>parentId</strong> = (ID of parent row)<br/><strong>toBottom</strong> = <code class="prettyprint">true</code></td>
 </tr>
 </tbody></table>
 
@@ -10191,6 +10648,8 @@ a comma-delimited list of flags that indicate additional attributes to be includ
 
 <p>Searches all Sheets that the User can access, for the specified text.</p>
 
+<aside class="notice">Newly-created or recently-updated data may not be immediately discoverable via Search.</aside>
+
 <table><thead>
 <tr>
 <th></th>
@@ -10282,6 +10741,8 @@ a comma-delimited list of flags that indicate additional attributes to be includ
 <p><code class="prettyprint">GET /search/sheets/{sheetId}</code></p>
 
 <p>Searches a Sheet for the specified text.</p>
+
+<aside class="notice">Newly-created or recently-updated data may not be immediately discoverable via Search.</aside>
 
 <table><thead>
 <tr>
@@ -10396,6 +10857,11 @@ Either <strong>email</strong> and <strong>groupId</strong> may be set, but not b
 </tr>
 </thead><tbody>
 <tr>
+<td><strong>columnIds</strong></td>
+<td>number[]</td>
+<td>IDs of the columns to be included.</td>
+</tr>
+<tr>
 <td><strong>includeAttachments</strong></td>
 <td>boolean</td>
 <td>A flag to indicate whether or not to include Attachments in the email.</td>
@@ -10404,6 +10870,24 @@ Either <strong>email</strong> and <strong>groupId</strong> may be set, but not b
 <td><strong>includeDiscussions</strong></td>
 <td>boolean</td>
 <td>A flag to indicate whether or not to include Discussions in the email.</td>
+</tr>
+</tbody></table>
+
+<h3 id="multirowemail-object">MultiRowEmail Object</h3>
+
+<p>Extends the <a href="#rowemail-object">RowEmail object</a>, adding the following:</p>
+
+<table><thead>
+<tr>
+<th></th>
+<th></th>
+<th></th>
+</tr>
+</thead><tbody>
+<tr>
+<td><strong>rowIds</strong></td>
+<td>number[]</td>
+<td>IDs of rows to be included.</td>
 </tr>
 </tbody></table>
 
@@ -10421,7 +10905,7 @@ Either <strong>email</strong> and <strong>groupId</strong> may be set, but not b
 <tr>
 <td><strong>format</strong></td>
 <td>string</td>
-<td>Can either be &ldquo;PDF&rdquo; or &ldquo;EXCEL&rdquo;.</td>
+<td>One of the following values:<ul><li>PDF</li><li>PDF_GANTT</li><li>EXCEL</li></ul></td>
 </tr>
 <tr>
 <td><strong>formatDetails</strong></td>
@@ -10556,91 +11040,34 @@ Either <strong>email</strong> and <strong>groupId</strong> may be set, but not b
 </tr>
 </tbody></table>
 
-<h2 id="send-row">Send Row</h2>
+<h2 id="send-row(s)">Send Row(s)</h2>
 
 <blockquote>
 <p>Example Request:</p>
 </blockquote>
 
-<pre class="highlight shell"><code>curl https://api.smartsheet.com/2.0/sheets/<span class="o">{</span>sheetId<span class="o">}</span>/rows/<span class="o">{</span>rowId<span class="o">}</span>/emails <span class="se">\</span>
+<pre class="highlight shell"><code>curl https://api.smartsheet.com/2.0/sheets/<span class="o">{</span>sheetId<span class="o">}</span>/rows/emails <span class="se">\</span>
 -H <span class="s2">"Authorization: Bearer ACCESS_TOKEN"</span> <span class="se">\</span>
 -H <span class="s2">"Content-Type: application/json"</span> <span class="se">\</span>
 -X POST <span class="se">\</span>
--d <span class="s1">'{"sendTo" : [{"email": "john.doe@smartsheet.com"}, {"groupId": 2258118617917316}], "subject": "Check these rows out!", "message": "Here are the rows I mentioned in our meeting", "ccMe": false, "includeAttachments": "true", "includeDiscussions": "false"}'</span>
-</code></pre>
-
-<pre class="highlight javascript"><code><span class="c1">// Configure email.</span>
-<span class="kd">var</span> <span class="nx">email</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s2">"sendTo"</span><span class="p">:</span> <span class="p">[</span>
-        <span class="p">{</span>
-            <span class="s2">"email"</span><span class="p">:</span> <span class="s2">"john.doe@smartsheet.com"</span>
-        <span class="p">},</span>
-        <span class="p">{</span>
-            <span class="s2">"groupId"</span><span class="p">:</span> <span class="mi">2258118617917316</span>
-        <span class="p">}</span>
-    <span class="p">],</span>
-    <span class="s2">"subject"</span><span class="p">:</span> <span class="s2">"Check these rows out!"</span><span class="p">,</span>
-    <span class="s2">"message"</span><span class="p">:</span> <span class="s2">"Here are the rows I mentioned in our meeting"</span><span class="p">,</span>
-    <span class="s2">"ccMe"</span><span class="p">:</span> <span class="kc">false</span><span class="p">,</span>
-    <span class="s2">"includeDiscussions"</span><span class="p">:</span> <span class="kc">false</span><span class="p">,</span>
-    <span class="s2">"includeAttachments"</span><span class="p">:</span> <span class="kc">true</span>
-<span class="p">};</span>
-
-<span class="c1">// Set options.</span>
-<span class="kd">var</span> <span class="nx">options</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="na">body</span><span class="p">:</span> <span class="nx">email</span><span class="p">,</span>
-    <span class="na">sheetId</span><span class="p">:</span> <span class="mi">2252168947361668</span><span class="p">,</span>
-    <span class="na">rowId</span><span class="p">:</span> <span class="mi">4293147074291588</span>
-<span class="p">};</span>
-
-<span class="c1">// Send row via email.</span>
-<span class="nx">smartsheet</span><span class="p">.</span><span class="nx">sheets</span><span class="p">.</span><span class="nx">sendRow</span><span class="p">(</span><span class="nx">options</span><span class="p">)</span>
-    <span class="p">.</span><span class="nx">then</span><span class="p">(</span><span class="kd">function</span> <span class="p">(</span><span class="nx">data</span><span class="p">)</span> <span class="p">{</span>
-        <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">data</span><span class="p">);</span>
-    <span class="p">})</span>
-    <span class="p">.</span><span class="k">catch</span><span class="p">(</span><span class="kd">function</span> <span class="p">(</span><span class="nx">error</span><span class="p">)</span> <span class="p">{</span>
-        <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">error</span><span class="p">);</span>
-    <span class="p">});</span>
-</code></pre>
-
-<pre class="highlight csharp"><code><span class="c1">// Specify recipients.
-</span><span class="n">Recipient</span><span class="p">[]</span> <span class="n">recipients</span> <span class="p">=</span> <span class="k">new</span> <span class="n">Recipient</span><span class="p">[]</span> <span class="p">{</span> 
-    <span class="k">new</span> <span class="n">Recipient</span> <span class="p">{</span> <span class="n">Email</span> <span class="p">=</span> <span class="s">"john.doe@smartsheet.com"</span> <span class="p">},</span> 
-    <span class="k">new</span> <span class="n">Recipient</span> <span class="p">{</span> <span class="n">GroupId</span> <span class="p">=</span> <span class="m">2258118617917316</span> <span class="p">}</span> 
-<span class="p">};</span>
-
-<span class="c1">// Configure email.
-</span><span class="n">RowEmail</span> <span class="n">rowEmail</span> <span class="p">=</span> <span class="k">new</span> <span class="n">RowEmail</span> <span class="p">{</span> 
-    <span class="n">SendTo</span> <span class="p">=</span> <span class="n">recipients</span><span class="p">,</span> 
-    <span class="n">Subject</span> <span class="p">=</span> <span class="s">"Check these rows out!"</span><span class="p">,</span> 
-    <span class="n">Message</span> <span class="p">=</span> <span class="s">"Here are the rows I mentioned in our meeting"</span><span class="p">,</span> 
-    <span class="n">CcMe</span> <span class="p">=</span> <span class="k">false</span><span class="p">,</span> 
-    <span class="n">IncludeAttachments</span> <span class="p">=</span> <span class="k">true</span><span class="p">,</span> 
-    <span class="n">IncludeDiscussions</span> <span class="p">=</span> <span class="k">false</span> 
-<span class="p">};</span>
-
-<span class="c1">// Send row via email.
-</span><span class="n">smartsheet</span><span class="p">.</span><span class="n">SheetResources</span><span class="p">.</span><span class="n">RowResources</span><span class="p">.</span><span class="nf">SendRow</span><span class="p">(</span><span class="n">sheetId</span><span class="p">,</span> <span class="n">rowId</span><span class="p">,</span> <span class="n">rowEmail</span><span class="p">);</span>
-</code></pre>
-
-<pre class="highlight java"><code><span class="c1">// Specify individual recipient.</span>
-<span class="n">RecipientEmail</span> <span class="n">recipientEmail</span> <span class="o">=</span> <span class="k">new</span> <span class="n">RecipientEmail</span><span class="o">.</span><span class="na">AddRecipientEmailBuilder</span><span class="o">().</span><span class="na">setEmail</span><span class="o">(</span><span class="s">"john.doe@smartsheet.com"</span><span class="o">).</span><span class="na">build</span><span class="o">();</span>
-
-<span class="c1">// Specify group recipient.</span>
-<span class="n">RecipientGroup</span> <span class="n">recipientGroup</span> <span class="o">=</span> <span class="k">new</span> <span class="n">RecipientGroup</span><span class="o">.</span><span class="na">AddRecipientGroupBuilder</span><span class="o">().</span><span class="na">setGroupId</span><span class="o">(</span><span class="mi">2258118617917316</span><span class="o">).</span><span class="na">build</span><span class="o">();</span>
-
-<span class="c1">// Set recipients.</span>
-<span class="n">List</span><span class="o">&lt;</span><span class="n">Recipient</span><span class="o">&gt;</span> <span class="n">recipients</span> <span class="o">=</span> <span class="n">Arrays</span><span class="o">.</span><span class="na">asList</span><span class="o">(</span><span class="n">recipientEmail</span><span class="o">,</span> <span class="n">recipientGroup</span><span class="o">);</span>
-
-<span class="c1">// Set format details.</span>
-<span class="n">FormatDetails</span> <span class="n">formatDetails</span> <span class="o">=</span> <span class="k">new</span> <span class="n">FormatDetails</span><span class="o">();</span>
-<span class="n">formatDetails</span><span class="o">.</span><span class="na">setPaperSize</span><span class="o">(</span><span class="n">PaperSize</span><span class="o">.</span><span class="na">A0</span><span class="o">);</span> 
-
-<span class="c1">// Configure email.</span>
-<span class="n">RowEmail</span> <span class="n">email</span> <span class="o">=</span> <span class="k">new</span> <span class="n">RowEmail</span><span class="o">.</span><span class="na">AddRowEmailBuilder</span><span class="o">().</span><span class="na">setSendTo</span><span class="o">(</span><span class="n">recipients</span><span class="o">).</span><span class="na">setSubject</span><span class="o">(</span><span class="s">"Check these rows out!"</span><span class="o">).</span><span class="na">setMessage</span><span class="o">(</span><span class="s">"Here are the rows I mentioned in our meeting"</span><span class="o">).</span><span class="na">setCcMe</span><span class="o">(</span><span class="kc">false</span><span class="o">).</span><span class="na">setIncludeAttachments</span><span class="o">(</span><span class="kc">true</span><span class="o">).</span><span class="na">setIncludeDiscussions</span><span class="o">(</span><span class="kc">true</span><span class="o">).</span><span class="na">build</span><span class="o">();</span>
-
-<span class="c1">// Send row via email.</span>
-<span class="n">smartsheet</span><span class="o">.</span><span class="na">sheetResources</span><span class="o">().</span><span class="na">rowResources</span><span class="o">().</span><span class="na">sendRow</span><span class="o">(</span><span class="n">sheetId</span><span class="o">,</span> <span class="n">rowId</span><span class="o">,</span> <span class="n">email</span><span class="o">);</span>
+-d <span class="s1">'{ \
+    "sendTo": [ \
+        {"email": "recipient@smartsheet.com"} \
+    ], \
+    "subject": "some subject", \
+    "message": "some message", \
+    "ccMe": false, \
+    "rowIds": [ \
+        rId1, \
+        rId2 \
+    ], \
+    "columnIds": [ \
+        cId1, \
+        cId2 \
+    ], \
+    "includeAttachments": false, \
+    "includeDiscussions": false \
+}'</span>
 </code></pre>
 
 <blockquote>
@@ -10648,14 +11075,14 @@ Either <strong>email</strong> and <strong>groupId</strong> may be set, but not b
 </blockquote>
 
 <pre class="highlight json"><code><span class="p">{</span><span class="w">
-    </span><span class="s2">"message"</span><span class="p">:</span><span class="w"> </span><span class="s2">"SUCCESS"</span><span class="p">,</span><span class="w">
-    </span><span class="s2">"resultCode"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="w">
+    </span><span class="s2">"resultCode"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"message"</span><span class="p">:</span><span class="w"> </span><span class="s2">"SUCCESS"</span><span class="w">
 </span><span class="p">}</span><span class="w">
 </span></code></pre>
 
-<p><code class="prettyprint">POST /sheets/{sheetId}/rows/{rowId}/emails</code></p>
+<p><code class="prettyprint">POST /sheets/{sheetId}/rows/emails</code></p>
 
-<p>Sends a Row via email.</p>
+<p>Sends one or more Rows via email.</p>
 
 <table><thead>
 <tr>
@@ -10673,7 +11100,7 @@ Either <strong>email</strong> and <strong>groupId</strong> may be set, but not b
 </tr>
 <tr>
 <td><strong>Request Body</strong></td>
-<td><a href="#rowemail-object">RowEmail object</a></td>
+<td><a href="#multirowemail-object">MultiRowEmail object</a>. <br/><br/>The columns included for each row in the email will be populated according to the following rules:<ul><li>If the <strong>columnIds</strong> attribute of the MultiRowEmail object is specified as an array of column IDs, those specific columns will be included.</li><li>If the <strong>columnIds</strong> attribute of the MultiRowEmail object is omitted, all columns except hidden columns shall be included.</li><li>If the <strong>columnIds</strong> attribute of the MultiRowEmail object is specified as <em>empty</em>, no columns shall be included. (Note: In this case, either <strong>includeAttachments</strong>:true or <strong>includeDiscussions</strong>:true must be specified.)</td>
 </tr>
 <tr>
 <td><strong>Returns</strong></td>
@@ -10805,6 +11232,72 @@ Either <strong>email</strong> and <strong>groupId</strong> may be set, but not b
 <tr>
 <td><strong>Returns</strong></td>
 <td><a href="#result-object">Result object</a></td>
+</tr>
+</tbody></table>
+
+<h2 id="send-update-request">Send Update Request</h2>
+
+<blockquote>
+<p>Example Request:</p>
+</blockquote>
+
+<pre class="highlight shell"><code>curl https://api.smartsheet.com/2.0/sheets/<span class="o">{</span>sheetId<span class="o">}</span>/updaterequests <span class="se">\</span>
+-H <span class="s2">"Authorization: Bearer ACCESS_TOKEN"</span> <span class="se">\</span>
+-H <span class="s2">"Content-Type: application/json"</span> <span class="se">\</span>
+-X POST <span class="se">\</span>
+-d <span class="s1">'{ \
+    "sendTo": [ \
+        {"email": "email789@smartsheet.com"}, \
+        {"email": "email0123@smartsheet.com"} \
+    ], \
+    "subject": "some subject", \
+    "message": "some message", \
+    "ccMe": (true|false), \
+    "rowIds": [rowId1], \
+    "columnIds": [colId1, colId2], \
+    "includeAttachments": (true|false), \
+    "includeDiscussions": (true|false) \
+}'</span>
+</code></pre>
+
+<blockquote>
+<p>Example Response:</p>
+</blockquote>
+
+<pre class="highlight json"><code><span class="p">{</span><span class="w">
+    </span><span class="s2">"resultCode"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"result"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+        </span><span class="s2">"id"</span><span class="p">:</span><span class="w"> </span><span class="mi">4583173393803140</span><span class="w">
+    </span><span class="p">},</span><span class="w">
+    </span><span class="s2">"message"</span><span class="p">:</span><span class="w"> </span><span class="s2">"SUCCESS"</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre>
+
+<p><code class="prettyprint">POST /sheets/{sheetId}/updaterequests</code></p>
+
+<p>Creates an Update Request for the specified Row(s) within the Sheet. An email notification (containing a link to the update request) will be asynchronously sent to the specified recipient(s).</p>
+
+<table><thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead><tbody>
+<tr>
+<td><strong>Access Scope</strong></td>
+<td>WRITE_SHEETS</td>
+</tr>
+<tr>
+<td><strong>Headers</strong></td>
+<td><strong>Authorization</strong>: Bearer ACCESS_TOKEN<br/><strong>Content-Type</strong>: application/json</td>
+</tr>
+<tr>
+<td><strong>Request Body</strong></td>
+<td><a href="#multirowemail-object">MultiRowEmail object</a><br/><br/>The MultiRowEmail object in the request body must specify one or more of the following attributes:<ul><li><b>columnIds</b>: number[]</li><li><b>attachments</b>: true</li><li><b>discussions</b>: true</li></ul></td>
+</tr>
+<tr>
+<td><strong>Returns</strong></td>
+<td><a href="#result-object">Result object</a> containing the newly created <a href="#updaterequest-object">UpdateRequest object</a>.</td>
 </tr>
 </tbody></table>
 
@@ -12308,9 +12801,19 @@ Either <strong>email</strong> and <strong>groupId</strong> may be set, but not b
 <td>A SheetUserSettings object containing the current user&rsquo;s sheet-specific settings.</td>
 </tr>
 <tr>
+<td><strong>owner</strong></td>
+<td>string</td>
+<td>Email address of the Sheet owner</td>
+</tr>
+<tr>
+<td><strong>ownerId</strong></td>
+<td>number</td>
+<td>User ID of the Sheet owner</td>
+</tr>
+<tr>
 <td><strong>permalink</strong></td>
 <td>string</td>
-<td>Direct URL to the Sheet</td>
+<td>URL that represents a direct link to the Sheet in Smartsheet</td>
 </tr>
 <tr>
 <td><strong>source</strong></td>
@@ -12366,22 +12869,22 @@ Either <strong>email</strong> and <strong>groupId</strong> may be set, but not b
 <tr>
 <td><strong>readOnlyLiteEnabled</strong></td>
 <td>boolean</td>
-<td>Status of Read-Only HTML</td>
+<td>If <code class="prettyprint">true</code>, a lightweight version of the sheet is published without row attachments or discussions.</td>
 </tr>
 <tr>
 <td><strong>readOnlyFullEnabled</strong></td>
 <td>boolean</td>
-<td>Status of Read-Only Full</td>
+<td>If <code class="prettyprint">true</code>, a rich version of the sheet is published with the ability to download row attachments and discussions.</td>
 </tr>
 <tr>
 <td><strong>readWriteEnabled</strong></td>
 <td>boolean</td>
-<td>Status of Edit by Anyone</td>
+<td>If <code class="prettyprint">true</code>, a rich version of the sheet is published with the ability to edit cells and manage attachments and discussions.</td>
 </tr>
 <tr>
 <td><strong>icalEnabled</strong></td>
 <td>boolean</td>
-<td>Status of iCal</td>
+<td>If <code class="prettyprint">true</code>, a webcal will be available for the calendar in the sheet.</td>
 </tr>
 <tr>
 <td><strong>readOnlyLiteUrl</strong></td>
@@ -12441,6 +12944,69 @@ Either <strong>email</strong> and <strong>groupId</strong> may be set, but not b
 <td><strong>type</strong></td>
 <td>string</td>
 <td>&ldquo;sheet&rdquo; or &ldquo;template&rdquo;</td>
+</tr>
+</tbody></table>
+
+<h2 id="copy-sheet">Copy Sheet</h2>
+
+<blockquote>
+<p>Example Request:</p>
+</blockquote>
+<pre class="highlight shell"><code>curl https://api.smartsheet.com/2.0/sheets/<span class="o">{</span>sheetId<span class="o">}</span>/copy?include<span class="o">=</span>all <span class="se">\</span>
+-H <span class="s2">"Authorization: Bearer ACCESS_TOKEN"</span> <span class="se">\</span>
+-H <span class="s2">"Content-Type: application/json"</span> <span class="se">\</span>
+-d <span class="s1">'{ \
+    "destinationType": "workspace|folder|home", \
+    "destinationId": workspace_or_folder_id, \
+    "newName": "newSheetName" \
+}'</span> <span class="se">\</span>
+-X POST
+</code></pre>
+
+<blockquote>
+<p>Example Response:</p>
+</blockquote>
+<pre class="highlight json"><code><span class="p">{</span><span class="w">
+    </span><span class="s2">"resultCode"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"result"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+        </span><span class="s2">"id"</span><span class="p">:</span><span class="w"> </span><span class="mi">4583173393803140</span><span class="p">,</span><span class="w">
+        </span><span class="s2">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"newSheetName"</span><span class="p">,</span><span class="w">
+        </span><span class="s2">"accessLevel"</span><span class="p">:</span><span class="w"> </span><span class="s2">"OWNER"</span><span class="p">,</span><span class="w">
+        </span><span class="s2">"permalink"</span><span class="p">:</span><span class="w"> </span><span class="s2">"https://{base_url}?lx=lB0JaOh6AX1wGwqxsQIMaA"</span><span class="w">
+    </span><span class="p">},</span><span class="w">
+    </span><span class="s2">"message"</span><span class="p">:</span><span class="w"> </span><span class="s2">"SUCCESS"</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre>
+
+<p><code class="prettyprint">POST /sheets/{sheetId}/copy</code></p>
+
+<p>Creates a copy of the specified Sheet.</p>
+
+<table><thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead><tbody>
+<tr>
+<td><strong>Access Scope</strong></td>
+<td>CREATE_SHEETS</td>
+</tr>
+<tr>
+<td><strong>Headers</strong></td>
+<td><strong>Authorization</strong>: Bearer ACCESS_TOKEN<br/><strong>Content-Type</strong>: application/json</td>
+</tr>
+<tr>
+<td><strong>Parameters</strong></td>
+<td><strong>include</strong> (optional) &ndash; comma-separated list of elements to copy:<ul><li>data</li><li>attachments</li><li>discussions</li><li>cellLinks</li><li>forms</li><li><strong>all</strong> - specify a value of &ldquo;all&rdquo; to include everything (data, attachments, discussions, cellLinks, and forms)</li></ul><i>Note</i>: Cell history will not be copied, regardless of which <strong>include</strong> parameter values are specified.</td>
+</tr>
+<tr>
+<td><strong>Request Body</strong></td>
+<td><a href="#containerdestination-object">ContainerDestination object</a></td>
+</tr>
+<tr>
+<td><strong>Returns</strong></td>
+<td><a href="#result-object">Result object</a> containing a <a href="#sheet-object">Sheet object</a> for the newly created Sheet, limited to the following attributes:<ul><li>id</li><li>name</li><li>accessLevel</li><li>permalink</li></ul></td>
 </tr>
 </tbody></table>
 
@@ -13425,7 +13991,7 @@ Either <strong>email</strong> and <strong>groupId</strong> may be set, but not b
 </tr>
 <tr>
 <td><strong>Parameters</strong></td>
-<td><strong>include</strong> (optional) &ndash; a comma-separated list of optional objects to include in the response.<br/>Supports all <a href="#row-include-flags">Row Include Flags</a> with the following differences:<ul><li><strong>discussions</strong>: includes sheet-level and row-level discussions</li><li><strong>attachments</strong>: includes sheet-level and row-level attachments</li><li><strong>format</strong>: includes column, row, and cell formatting</li><li><strong>filters</strong>: includes <a href="#filter-object">column filters</a>, and <a href="#row-object">row.filteredOut</a> attribute</li></ul>Also supports the <strong>source</strong> include flag, which adds the <a href="#source-object">source object</a> indicating which sheet or template the sheet was created from, if any.</li></td>
+<td><strong>include</strong> (optional) &ndash; a comma-separated list of optional elements to include in the response.<br/>Supports all <a href="#row-include-flags">Row Include Flags</a> with the following differences:<ul><li><strong>discussions</strong>: includes sheet-level and row-level discussions</li><li><strong>attachments</strong>: includes sheet-level and row-level attachments</li><li><strong>format</strong>: includes column, row, and cell formatting</li><li><strong>filters</strong>: includes <a href="#filter-object">column filters</a>, and <a href="#row-object">row.filteredOut</a> attribute</li><li><strong>ownerInfo</strong>: includes owner&rsquo;s email address and user ID</li></ul>Also supports the <strong>source</strong> include flag, which adds the <a href="#source-object">source object</a> indicating which sheet or template the sheet was created from, if any.</td>
 </tr>
 <tr>
 <td></td>
@@ -13738,13 +14304,17 @@ Either <strong>email</strong> and <strong>groupId</strong> may be set, but not b
             </span><span class="s2">"accessLevel"</span><span class="p">:</span><span class="w"> </span><span class="s2">"OWNER"</span><span class="p">,</span><span class="w">
             </span><span class="s2">"id"</span><span class="p">:</span><span class="w"> </span><span class="mi">4583173393803140</span><span class="p">,</span><span class="w">
             </span><span class="s2">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"sheet 1"</span><span class="p">,</span><span class="w">
-            </span><span class="s2">"permalink"</span><span class="p">:</span><span class="w"> </span><span class="s2">"https://app.smartsheet.com/b/home?lx=xUefSOIYmn07iJJesvSHCQ"</span><span class="w">
+            </span><span class="s2">"permalink"</span><span class="p">:</span><span class="w"> </span><span class="s2">"https://app.smartsheet.com/b/home?lx=xUefSOIYmn07iJJesvSHCQ"</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"createdAt"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2015-06-05T20:05:29Z"</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"modifiedAt"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2015-06-05T20:05:43Z"</span><span class="w">
         </span><span class="p">},</span><span class="w">
         </span><span class="p">{</span><span class="w">
             </span><span class="s2">"accessLevel"</span><span class="p">:</span><span class="w"> </span><span class="s2">"OWNER"</span><span class="p">,</span><span class="w">
             </span><span class="s2">"id"</span><span class="p">:</span><span class="w"> </span><span class="mi">2331373580117892</span><span class="p">,</span><span class="w">
             </span><span class="s2">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"sheet 2"</span><span class="p">,</span><span class="w">
-            </span><span class="s2">"permalink"</span><span class="p">:</span><span class="w"> </span><span class="s2">"https://app.smartsheet.com/b/home?lx=xUefSOIYmn07iJJrthEFTG"</span><span class="w">
+            </span><span class="s2">"permalink"</span><span class="p">:</span><span class="w"> </span><span class="s2">"https://app.smartsheet.com/b/home?lx=xUefSOIYmn07iJJrthEFTG"</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"createdAt"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2015-06-05T20:05:29Z"</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"modifiedAt"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2015-06-05T20:05:43Z"</span><span class="w">
         </span><span class="p">}</span><span class="w">
     </span><span class="p">]</span><span class="w">
 </span><span class="p">}</span><span class="w">
@@ -13772,11 +14342,69 @@ Either <strong>email</strong> and <strong>groupId</strong> may be set, but not b
 </tr>
 <tr>
 <td><strong>Parameters</strong></td>
-<td><strong>include</strong> (optional): when specified with a value of &ldquo;source&rdquo;, response will include the <a href="#source-object">source</a> for any sheet that was created from another sheet or template<br/><br/>This operation supports query string parameters for pagination of results. For more information, see <a href="#paging-query-string-parameters">Paging Query String Parameters</a>.</td>
+<td><strong>include</strong> (optional) &ndash; a comma-separated list of optional elements to include in the response:<ul><li>ownerInfo - owner&rsquo;s email address and user ID for each sheet</li><li>source - the <a href="#source-object">source</a> for any sheet that was created from another sheet or template</li></ul>This operation supports query string parameters for pagination of results. For more information, see <a href="#paging-query-string-parameters">Paging Query String Parameters</a>.</td>
 </tr>
 <tr>
 <td><strong>Returns</strong></td>
-<td><a href="#indexresult-object">IndexResult object</a> containing an array of <a href="#sheet-object">Sheet objects</a> limited to the following attributes:<ul><li>id</li><li>name</li><li>accessLevel</li><li>permalink</li><li>source (if <strong>include</strong> parameter specified)</li></ul></td>
+<td><a href="#indexresult-object">IndexResult object</a> containing an array of <a href="#sheet-object">Sheet objects</a> limited to the following attributes:<ul><li>id</li><li>name</li><li>accessLevel</li><li>permalink</li><li>source (included only if &ldquo;source&rdquo; is specified with the <strong>include</strong> parameter)</li><li>owner (included only if &ldquo;ownerInfo&rdquo; is specified with the <strong>include</strong> parameter)</li><li>ownerId (included only if &ldquo;ownerInfo&rdquo; is specified with the <strong>include</strong> parameter)</li><li>createdAt</li><li>modifiedAt</li></ul></td>
+</tr>
+</tbody></table>
+
+<h2 id="move-sheet">Move Sheet</h2>
+
+<blockquote>
+<p>Example Request:</p>
+</blockquote>
+<pre class="highlight shell"><code>curl https://api.smartsheet.com/2.0/sheets/<span class="o">{</span>sheetId<span class="o">}</span>/move <span class="se">\</span>
+-H <span class="s2">"Authorization: Bearer ACCESS_TOKEN"</span> <span class="se">\</span>
+-H <span class="s2">"Content-Type: application/json"</span> <span class="se">\</span>
+-d <span class="s1">'{ \
+    "destinationType": "workspace|folder|home", \
+    "destinationId": workspace_or_folder_id, \
+}'</span> <span class="se">\</span>
+-X POST
+</code></pre>
+
+<blockquote>
+<p>Example Response:</p>
+</blockquote>
+<pre class="highlight json"><code><span class="p">{</span><span class="w">
+    </span><span class="s2">"resultCode"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"result"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+        </span><span class="s2">"id"</span><span class="p">:</span><span class="w"> </span><span class="mi">4583173393803140</span><span class="p">,</span><span class="w">
+        </span><span class="s2">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"moved_sheet_name"</span><span class="p">,</span><span class="w">
+        </span><span class="s2">"accessLevel"</span><span class="p">:</span><span class="w"> </span><span class="s2">"OWNER"</span><span class="p">,</span><span class="w">
+        </span><span class="s2">"permalink"</span><span class="p">:</span><span class="w"> </span><span class="s2">"https://{base_url}?lx=lB0JaOh6AX1wGwqxsQIMaA"</span><span class="w">
+    </span><span class="p">},</span><span class="w">
+    </span><span class="s2">"message"</span><span class="p">:</span><span class="w"> </span><span class="s2">"SUCCESS"</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre>
+
+<p><code class="prettyprint">POST /sheets/{sheetId}/move</code></p>
+
+<p>Moves the specified sheet to a new location.</p>
+
+<table><thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead><tbody>
+<tr>
+<td><strong>Access Scope</strong></td>
+<td>CREATE_SHEETS</td>
+</tr>
+<tr>
+<td><strong>Headers</strong></td>
+<td><strong>Authorization</strong>: Bearer ACCESS_TOKEN<br/><strong>Content-Type</strong>: application/json</td>
+</tr>
+<tr>
+<td><strong>Request Body</strong></td>
+<td><a href="#containerdestination-object">ContainerDestination object</a>, limited to the following required attributes:<ul><li>destinationType</li><li>destinationId</li></ul></td>
+</tr>
+<tr>
+<td><strong>Returns</strong></td>
+<td><a href="#result-object">Result object</a> containing a <a href="#sheet-object">Sheet object</a> for the moved Sheet, limited to the following attributes:<ul><li>id</li><li>name</li><li>accessLevel</li><li>permalink</li></ul></td>
 </tr>
 </tbody></table>
 
@@ -14006,6 +14634,8 @@ Either <strong>email</strong> and <strong>groupId</strong> may be set, but not b
 
 <p>Searches a Sheet for the specified text.</p>
 
+<aside class="notice">Newly-created or recently-updated data may not be immediately discoverable via Search.</aside>
+
 <table><thead>
 <tr>
 <th></th>
@@ -14154,6 +14784,72 @@ Either <strong>email</strong> and <strong>groupId</strong> may be set, but not b
 <tr>
 <td><strong>Returns</strong></td>
 <td><a href="#result-object">Result object</a></td>
+</tr>
+</tbody></table>
+
+<h2 id="send-update-request">Send Update Request</h2>
+
+<blockquote>
+<p>Example Request:</p>
+</blockquote>
+
+<pre class="highlight shell"><code>curl https://api.smartsheet.com/2.0/sheets/<span class="o">{</span>sheetId<span class="o">}</span>/updaterequests <span class="se">\</span>
+-H <span class="s2">"Authorization: Bearer ACCESS_TOKEN"</span> <span class="se">\</span>
+-H <span class="s2">"Content-Type: application/json"</span> <span class="se">\</span>
+-X POST <span class="se">\</span>
+-d <span class="s1">'{ \
+    "sendTo": [ \
+        {"email": "email789@smartsheet.com"}, \
+        {"email": "email0123@smartsheet.com"} \
+    ], \
+    "subject": "some subject", \
+    "message": "some message", \
+    "ccMe": (true|false), \
+    "rowIds": [rowId1], \
+    "columnIds": [colId1, colId2], \
+    "includeAttachments": (true|false), \
+    "includeDiscussions": (true|false) \
+}'</span>
+</code></pre>
+
+<blockquote>
+<p>Example Response:</p>
+</blockquote>
+
+<pre class="highlight json"><code><span class="p">{</span><span class="w">
+    </span><span class="s2">"resultCode"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"result"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+        </span><span class="s2">"id"</span><span class="p">:</span><span class="w"> </span><span class="mi">4583173393803140</span><span class="w">
+    </span><span class="p">},</span><span class="w">
+    </span><span class="s2">"message"</span><span class="p">:</span><span class="w"> </span><span class="s2">"SUCCESS"</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre>
+
+<p><code class="prettyprint">POST /sheets/{sheetId}/updaterequests</code></p>
+
+<p>Creates an Update Request for the specified Row(s) within the Sheet. An email notification (containing a link to the update request) will be asynchronously sent to the specified recipient(s).</p>
+
+<table><thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead><tbody>
+<tr>
+<td><strong>Access Scope</strong></td>
+<td>WRITE_SHEETS</td>
+</tr>
+<tr>
+<td><strong>Headers</strong></td>
+<td><strong>Authorization</strong>: Bearer ACCESS_TOKEN<br/><strong>Content-Type</strong>: application/json</td>
+</tr>
+<tr>
+<td><strong>Request Body</strong></td>
+<td><a href="#multirowemail-object">MultiRowEmail object</a><br/><br/>The MultiRowEmail object in the request body must specify one or more of the following attributes:<ul><li><b>columnIds</b>: number[]</li><li><b>attachments</b>: true</li><li><b>discussions</b>: true</li></ul></td>
+</tr>
+<tr>
+<td><strong>Returns</strong></td>
+<td><a href="#result-object">Result object</a> containing the newly created <a href="#updaterequest-object">UpdateRequest object</a>.</td>
 </tr>
 </tbody></table>
 
@@ -14526,7 +15222,7 @@ only has read-only access to the sheet (i.e. the user has viewer permissions, or
 <p>Example Request:</p>
 </blockquote>
 <pre class="highlight shell"><code>curl https://api.smartsheet.com/2.0/token <span class="se">\</span>
--d <span class="s1">'grant_type=authorization_code&amp;code={your_code}&amp;client_id={your_client_id}&amp;redirect_uri={redirect_uri}&amp;hash={SHA_256(client_secret|code)}'</span> <span class="se">\</span>
+-d <span class="s1">'grant_type=authorization_code&amp;code={your_code}&amp;client_id={your_client_id}&amp;redirect_uri={redirect_uri}&amp;hash={SHA_256(app_secret|code)}'</span> <span class="se">\</span>
 -X POST
 </code></pre>
 <pre class="highlight javascript"><code><span class="c1">// [todo]</span>
@@ -14549,7 +15245,7 @@ only has read-only access to the sheet (i.e. the user has viewer permissions, or
 
 <p><code class="prettyprint">POST /token</code></p>
 
-<p>Gets an access token, as part of the oAuth process. For more information, see <a href="#oauth-flow">oAuth Flow</a>.</p>
+<p>Gets an access token, as part of the OAuth process. For more information, see <a href="#oauth-flow">OAuth Flow</a>.</p>
 
 <table><thead>
 <tr>
@@ -14575,7 +15271,7 @@ only has read-only access to the sheet (i.e. the user has viewer permissions, or
 </tr>
 <tr>
 <td></td>
-<td><strong>hash</strong> (required) &ndash; SHA-256 hash of your client secret concatenated with a pipe and the authorization code.  The client_secret is never sent with the request.</td>
+<td><strong>hash</strong> (required) &ndash; SHA-256 hash of your App secret concatenated with a pipe and the authorization code.  The app_secret is never sent with the request.</td>
 </tr>
 </tbody></table>
 
@@ -14587,7 +15283,7 @@ only has read-only access to the sheet (i.e. the user has viewer permissions, or
 <pre class="highlight shell"><code>curl https://api.smartsheet.com/2.0/token <span class="se">\</span>
 -d <span class="s1">'grant_type=refresh_token&amp;refresh_token={your_refresh_token}
 &amp;client_id={your_client_id}&amp;redirect_uri={redirect_uri}
-&amp;hash={SHA_256(client_secret|refresh_token)}'</span> <span class="se">\</span>
+&amp;hash={SHA_256(app_secret|refresh_token)}'</span> <span class="se">\</span>
 -X POST
 </code></pre>
 <pre class="highlight javascript"><code><span class="c1">// [todo]</span>
@@ -14610,7 +15306,7 @@ only has read-only access to the sheet (i.e. the user has viewer permissions, or
 
 <p><code class="prettyprint">POST /token</code></p>
 
-<p>Refreshes an access token, as part of the oAuth process. For more information, see <a href="#oauth-flow">oAuth Flow</a>.</p>
+<p>Refreshes an access token, as part of the OAuth process. For more information, see <a href="#oauth-flow">OAuth Flow</a>.</p>
 
 <table><thead>
 <tr>
@@ -14636,7 +15332,7 @@ only has read-only access to the sheet (i.e. the user has viewer permissions, or
 </tr>
 <tr>
 <td></td>
-<td><strong>hash</strong> (required) &ndash; SHA-256 hash of your client secret concatenated with a pipe and the refresh token value</td>
+<td><strong>hash</strong> (required) &ndash; SHA-256 hash of your App secret concatenated with a pipe and the refresh token value</td>
 </tr>
 </tbody></table>
 
@@ -14682,6 +15378,92 @@ only has read-only access to the sheet (i.e. the user has viewer permissions, or
 <tr>
 <td><strong>Returns</strong></td>
 <td><a href="#result-object">Result object</a></td>
+</tr>
+</tbody></table>
+
+<h1 id="update-requests">Update Requests</h1>
+
+<h2 id="objects">Objects</h2>
+
+<h3 id="updaterequest-object">UpdateRequest Object</h3>
+
+<table><thead>
+<tr>
+<th></th>
+<th></th>
+<th></th>
+</tr>
+</thead><tbody>
+<tr>
+<td><strong>id</strong></td>
+<td>number</td>
+<td>ID of the update request.</td>
+</tr>
+</tbody></table>
+
+<h2 id="create-update-request">Create Update Request</h2>
+
+<blockquote>
+<p>Example Request:</p>
+</blockquote>
+
+<pre class="highlight shell"><code>curl https://api.smartsheet.com/2.0/sheets/<span class="o">{</span>sheetId<span class="o">}</span>/updaterequests <span class="se">\</span>
+-H <span class="s2">"Authorization: Bearer ACCESS_TOKEN"</span> <span class="se">\</span>
+-H <span class="s2">"Content-Type: application/json"</span> <span class="se">\</span>
+-X POST <span class="se">\</span>
+-d <span class="s1">'{ \
+    "sendTo": [ \
+        {"email": "email789@smartsheet.com"}, \
+        {"email": "email0123@smartsheet.com"} \
+    ], \
+    "subject": "some subject", \
+    "message": "some message", \
+    "ccMe": (true|false), \
+    "rowIds": [rowId1], \
+    "columnIds": [colId1, colId2], \
+    "includeAttachments": (true|false), \
+    "includeDiscussions": (true|false) \
+}'</span>
+</code></pre>
+
+<blockquote>
+<p>Example Response:</p>
+</blockquote>
+
+<pre class="highlight json"><code><span class="p">{</span><span class="w">
+    </span><span class="s2">"resultCode"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"result"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+        </span><span class="s2">"id"</span><span class="p">:</span><span class="w"> </span><span class="mi">4583173393803140</span><span class="w">
+    </span><span class="p">},</span><span class="w">
+    </span><span class="s2">"message"</span><span class="p">:</span><span class="w"> </span><span class="s2">"SUCCESS"</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre>
+
+<p><code class="prettyprint">POST /sheets/{sheetId}/updaterequests</code></p>
+
+<p>Creates an Update Request for the specified Row(s) within the Sheet. An email notification (containing a link to the update request) will be asynchronously sent to the specified recipient(s).</p>
+
+<table><thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead><tbody>
+<tr>
+<td><strong>Access Scope</strong></td>
+<td>WRITE_SHEETS</td>
+</tr>
+<tr>
+<td><strong>Headers</strong></td>
+<td><strong>Authorization</strong>: Bearer ACCESS_TOKEN<br/><strong>Content-Type</strong>: application/json</td>
+</tr>
+<tr>
+<td><strong>Request Body</strong></td>
+<td><a href="#multirowemail-object">MultiRowEmail object</a><br/><br/>The MultiRowEmail object in the request body must specify one or more of the following attributes:<ul><li><b>columnIds</b>: number[]</li><li><b>attachments</b>: true</li><li><b>discussions</b>: true</li></ul></td>
+</tr>
+<tr>
+<td><strong>Returns</strong></td>
+<td><a href="#result-object">Result object</a> containing the newly created <a href="#updaterequest-object">UpdateRequest object</a>.</td>
 </tr>
 </tbody></table>
 
@@ -14793,6 +15575,31 @@ only has read-only access to the sheet (i.e. the user has viewer permissions, or
 <td><strong>account</strong></td>
 <td><a href="#account-object">Account</a></td>
 <td>Account object representing the current user&rsquo;s customer account</td>
+</tr>
+<tr>
+<td><strong>admin</strong></td>
+<td>boolean</td>
+<td>Flag indicating whether the user is a system admin (can manage users and account)</td>
+</tr>
+<tr>
+<td><strong>licensedSheetCreator</strong></td>
+<td>boolean</td>
+<td>Flag indicating whether the user is a licensed user (can create and own sheets)</td>
+</tr>
+<tr>
+<td><strong>groupAdmin</strong></td>
+<td>boolean</td>
+<td>Flag indicating whether the user is a group admin (can create and edit groups)</td>
+</tr>
+<tr>
+<td><strong>resourceViewer</strong></td>
+<td>boolean</td>
+<td>Flag indicating whether the user is a resource viewer (can access resource views)</td>
+</tr>
+<tr>
+<td><strong>status</strong></td>
+<td>string</td>
+<td>User status, set to one of the following values: <ul><li>ACTIVE</li><li>PENDING</li><li>DECLINED</li></ul></td>
 </tr>
 </tbody></table>
 
@@ -14948,7 +15755,11 @@ only has read-only access to the sheet (i.e. the user has viewer permissions, or
     </span><span class="s2">"email"</span><span class="p">:</span><span class="w"> </span><span class="s2">"john.doe@smartsheet.com"</span><span class="p">,</span><span class="w">
     </span><span class="s2">"firstName"</span><span class="p">:</span><span class="w"> </span><span class="s2">"John"</span><span class="p">,</span><span class="w">
     </span><span class="s2">"lastName"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Doe"</span><span class="p">,</span><span class="w">
-    </span><span class="s2">"id"</span><span class="p">:</span><span class="w"> </span><span class="mi">48569348493401200</span><span class="w">
+    </span><span class="s2">"id"</span><span class="p">:</span><span class="w"> </span><span class="mi">48569348493401200</span><span class="p">,</span><span class="w"> 
+    </span><span class="s2">"admin"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"licensedSheetCreator"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"groupAdmin"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"resourceViewer"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="w">
 </span><span class="p">}</span><span class="w">
 </span></code></pre>
 
@@ -15012,13 +15823,18 @@ only has read-only access to the sheet (i.e. the user has viewer permissions, or
     </span><span class="s2">"email"</span><span class="p">:</span><span class="w"> </span><span class="s2">"john.doe@smartsheet.com"</span><span class="p">,</span><span class="w">
     </span><span class="s2">"firstName"</span><span class="p">:</span><span class="w"> </span><span class="s2">"John"</span><span class="p">,</span><span class="w">
     </span><span class="s2">"lastName"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Doe"</span><span class="p">,</span><span class="w">
-    </span><span class="s2">"id"</span><span class="p">:</span><span class="w"> </span><span class="mi">48569348493401200</span><span class="w">
+    </span><span class="s2">"id"</span><span class="p">:</span><span class="w"> </span><span class="mi">48569348493401200</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"status"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ACTIVE"</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"admin"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"licensedSheetCreator"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"groupAdmin"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"resourceViewer"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="w">
 </span><span class="p">}</span><span class="w">
 </span></code></pre>
 
 <p><code class="prettyprint">GET /users/{userId}</code></p>
 
-<p>Gets the User specified in the URL.</p>
+<p>Gets the User specified in the URL. </p>
 
 <table><thead>
 <tr>
@@ -15036,7 +15852,7 @@ only has read-only access to the sheet (i.e. the user has viewer permissions, or
 </tr>
 <tr>
 <td><strong>Returns</strong></td>
-<td><a href="#userprofile-object">UserProfile object</a></td>
+<td><a href="#userprofile-object">UserProfile object</a><br/><br/><b>Note</b>: If the API request is submitted by a system administrator, the following UserProfile attributes will be included in the response (else, they will be omitted from the response):<ul><li>status</li><li>admin</li><li>licensedSheetCreator</li><li>groupAdmin</li><li>resourceViewer</li></ul></td>
 </tr>
 </tbody></table>
 
@@ -15163,8 +15979,11 @@ only has read-only access to the sheet (i.e. the user has viewer permissions, or
             </span><span class="s2">"admin"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w">
             </span><span class="s2">"email"</span><span class="p">:</span><span class="w"> </span><span class="s2">"john.doe@smartsheet.com"</span><span class="p">,</span><span class="w">
             </span><span class="s2">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"John Doe"</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"status"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ACTIVE"</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"admin"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w">
             </span><span class="s2">"licensedSheetCreator"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w">
-            </span><span class="s2">"status"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ACTIVE"</span><span class="w">
+            </span><span class="s2">"groupAdmin"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"resourceViewer"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="w">
         </span><span class="p">}</span><span class="w">
     </span><span class="p">]</span><span class="w">
 </span><span class="p">}</span><span class="w">
@@ -15172,7 +15991,7 @@ only has read-only access to the sheet (i.e. the user has viewer permissions, or
 
 <p><code class="prettyprint">GET /users</code></p>
 
-<p>Gets the list of Users in the organization. To filter by email, use the optional <strong>email</strong> query string parameter to specify a list of users&rsquo; email addresses.</p>
+<p>Gets the list of Users in the organization. To filter by email, use the optional <strong>email</strong> query string parameter to specify a list of users&rsquo; email addresses. </p>
 
 <aside class="notice">This operation supports pagination of results. For more information, see <a href="#paging">Paging</a>.</aside>
 
@@ -15196,7 +16015,7 @@ only has read-only access to the sheet (i.e. the user has viewer permissions, or
 </tr>
 <tr>
 <td><strong>Returns</strong></td>
-<td><a href="#indexresult-object">IndexResult object</a> containing an array of <a href="#user-object">User objects</a></td>
+<td><a href="#indexresult-object">IndexResult object</a> containing an array of <a href="#user-object">User objects</a><br/><br/><b>Note</b>: If the API request is submitted by a system administrator, the following User attributes will be included in the response (else, they will be omitted from the response):<ul><li>status</li><li>admin</li><li>licensedSheetCreator</li><li>groupAdmin</li><li>resourceViewer</li></ul></td>
 </tr>
 </tbody></table>
 
@@ -15399,7 +16218,7 @@ only has read-only access to the sheet (i.e. the user has viewer permissions, or
 <tr>
 <td><strong>permalink</strong></td>
 <td>string</td>
-<td>Direct URL to the Workspace</td>
+<td>URL that represents a direct link to the Workspace in Smartsheet</td>
 </tr>
 <tr>
 <td><strong>sheets</strong></td>
@@ -15420,6 +16239,69 @@ only has read-only access to the sheet (i.e. the user has viewer permissions, or
 <td><strong>templates</strong></td>
 <td><a href="#template-object">Template</a>[]</td>
 <td>Array of Template objects</td>
+</tr>
+</tbody></table>
+
+<h2 id="copy-workspace">Copy Workspace</h2>
+
+<blockquote>
+<p>Example Request:</p>
+</blockquote>
+<pre class="highlight shell"><code>curl https://api.smartsheet.com/2.0/workspaces/<span class="o">{</span>workspaceId<span class="o">}</span>/copy?include<span class="o">=</span>all <span class="se">\</span>
+-H <span class="s2">"Authorization: Bearer ACCESS_TOKEN"</span> <span class="se">\</span>
+-H <span class="s2">"Content-Type: application/json"</span> <span class="se">\</span>
+-d <span class="s1">'{"newName": "newWorkspaceName"}'</span> <span class="se">\</span>
+-X POST
+</code></pre>
+
+<blockquote>
+<p>Example Response:</p>
+</blockquote>
+<pre class="highlight json"><code><span class="p">{</span><span class="w">
+    </span><span class="s2">"resultCode"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"result"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+        </span><span class="s2">"id"</span><span class="p">:</span><span class="w"> </span><span class="mi">7116448184199044</span><span class="p">,</span><span class="w">
+        </span><span class="s2">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"newWorkspaceName"</span><span class="p">,</span><span class="w">
+        </span><span class="s2">"accessLevel"</span><span class="p">:</span><span class="w"> </span><span class="s2">"OWNER"</span><span class="p">,</span><span class="w">
+        </span><span class="s2">"permalink"</span><span class="p">:</span><span class="w"> </span><span class="s2">"https://{url}?lx=VL4YlIUnyYgASeX02grbLQ"</span><span class="w">
+    </span><span class="p">},</span><span class="w">
+    </span><span class="s2">"message"</span><span class="p">:</span><span class="w"> </span><span class="s2">"SUCCESS"</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre>
+
+<p><code class="prettyprint">POST /workspaces/{workspaceId}/copy</code></p>
+
+<p>Creates a copy of the specified Workspace.</p>
+
+<table><thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead><tbody>
+<tr>
+<td><strong>Access Scope</strong></td>
+<td>ADMIN_WORKSPACES</td>
+</tr>
+<tr>
+<td><strong>Headers</strong></td>
+<td><strong>Authorization</strong>: Bearer ACCESS_TOKEN<br/><strong>Content-Type</strong>: application/json</td>
+</tr>
+<tr>
+<td><strong>Parameters</strong></td>
+<td><strong>include</strong> (optional) &ndash; a comma-separated list of optional elements to include in the response:<ul><li>data</li><li>attachments</li><li>discussions</li><li>cellLinks</li><li>forms</li><li>brand</li><li>shares</li><li><strong>all</strong> - specify a value of &ldquo;all&rdquo; to include everything (data, attachments, discussions, cellLinks, forms, brand, and shares)</li></ul><i>Note</i>: Cell history will not be copied, regardless of which <strong>include</strong> parameter values are specified.</td>
+</tr>
+<tr>
+<td></td>
+<td><strong>skipRemap</strong> (optional) &ndash;  &ndash; comma-separated list of references to NOT re-map for the newly created workspace:<ul><li>cellLinks</li><li>reports</li></ul>By default, all cell links and reports that reference sheets in the source workspace will be re-mapped to reference corresponding sheets in the newly created workspace. The <strong>skipRemap</strong> parameter can be specified to change that default behavior:<ul><li>If &ldquo;cellLinks&rdquo; is specified in the <b>skipRemap</b> parameter value, the cell links within the newly created workspace will continue to point to the original source sheets.</li><li>If &ldquo;reports&rdquo; is specified in the <b>skipRemap</b> parameter value, the reports within the newly created workspace will continue to point to the original source sheets.</li></ul></td>
+</tr>
+<tr>
+<td><strong>Request Body</strong></td>
+<td><a href="#containerdestination-object">ContainerDestination object</a>, limited to the following attribute:<ul><li>newName (string) - required</li></ul></td>
+</tr>
+<tr>
+<td><strong>Returns</strong></td>
+<td><a href="#result-object">Result object</a> containing a <a href="#workspace-object">Workspace object</a> for the newly created Workspace</td>
 </tr>
 </tbody></table>
 
@@ -15614,7 +16496,9 @@ only has read-only access to the sheet (i.e. the user has viewer permissions, or
             </span><span class="s2">"id"</span><span class="p">:</span><span class="w"> </span><span class="mi">4583173393803140</span><span class="p">,</span><span class="w">
             </span><span class="s2">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"sheet 1"</span><span class="p">,</span><span class="w">
             </span><span class="s2">"accessLevel"</span><span class="p">:</span><span class="w"> </span><span class="s2">"OWNER"</span><span class="p">,</span><span class="w">
-            </span><span class="s2">"permalink"</span><span class="p">:</span><span class="w"> </span><span class="s2">"https://app.smartsheet.com/b/home?lx=8Z0XuFUEAkxmHCSsMw4Zg1"</span><span class="w">
+            </span><span class="s2">"permalink"</span><span class="p">:</span><span class="w"> </span><span class="s2">"https://app.smartsheet.com/b/home?lx=8Z0XuFUEAkxmHCSsMw4Zg1"</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"createdAt"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2015-06-05T20:05:29Z"</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"modifiedAt"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2015-06-05T20:05:43Z"</span><span class="w">
        </span><span class="p">}</span><span class="w">
     </span><span class="p">],</span><span class="w">
     </span><span class="s2">"accessLevel"</span><span class="p">:</span><span class="w"> </span><span class="s2">"OWNER"</span><span class="p">,</span><span class="w">
@@ -15652,11 +16536,11 @@ only has read-only access to the sheet (i.e. the user has viewer permissions, or
 </tr>
 <tr>
 <td></td>
-<td><strong>include</strong> (optional): when specified with a value of &ldquo;source&rdquo;, response will include the <a href="#source-object">source</a> for any sheet that was created from another sheet or template</td>
+<td><strong>include</strong> (optional) &ndash; a comma-separated list of optional elements to include in the response:<ul><li>ownerInfo - owner&rsquo;s email address and user ID for each sheet</li><li>source - the <a href="#source-object">source</a> for any sheet that was created from another sheet or template</li></ul></td>
 </tr>
 <tr>
 <td><strong>Returns</strong></td>
-<td><a href="#workspace-object">Workspace object</a></td>
+<td><a href="#workspace-object">Workspace object</a>, populated according to the <strong>include</strong> parameter</td>
 </tr>
 </tbody></table>
 
@@ -15881,6 +16765,34 @@ only has read-only access to the sheet (i.e. the user has viewer permissions, or
 <td><strong>startingNumber</strong></td>
 <td>number</td>
 <td>The starting number for the auto-id</td>
+</tr>
+</tbody></table>
+
+<h2 id="containerdestination-object">ContainerDestination Object</h2>
+
+<p>Object that describes the destination container when a Sheet or Folder is moved, or when a Sheet, Folder, or Workspace is copied.</p>
+
+<table><thead>
+<tr>
+<th></th>
+<th></th>
+<th></th>
+</tr>
+</thead><tbody>
+<tr>
+<td><strong>destinationType</strong></td>
+<td>string</td>
+<td>Type of the destination container (when copying or moving a Sheet or a Folder). One of the following values:<ul><li>home</li><li>workspace</li><li>folder</li></ul></td>
+</tr>
+<tr>
+<td><strong>destinationId</strong></td>
+<td>number</td>
+<td>ID of the destination container (when copying or moving a Sheet or a Folder). Required if <strong>destinationType</strong> is &ldquo;folder&rdquo; or &ldquo;workspace&rdquo; If <strong>destinationType</strong> is &ldquo;home&rdquo;, this value must be null.</td>
+</tr>
+<tr>
+<td><strong>newName</strong></td>
+<td>string</td>
+<td>Name of the newly created object (when creating a copy of a Sheet, Folder, or Workspace). This attribute is not supported for &ldquo;move&rdquo; operations (i.e., a moved Sheet, Folder or Workspace retains its original name).</td>
 </tr>
 </tbody></table>
 
@@ -16202,7 +17114,94 @@ only has read-only access to the sheet (i.e. the user has viewer permissions, or
 Deprecated APIs typically remain present and usable for a reasonable period of time following the release in which they were deprecated, but may be removed entirely from a future version of the API. 
 You should never use deprecated APIs in new development, and if you have existing code that uses deprecated APIs, we recommend that you update that code as soon as possible. </p>
 
-<aside class="notice">There are currently no deprecations for version 2.0 of the Smartsheet API.</aside>
+<h1 id="endpoints">Endpoints</h1>
+
+<p>This section specifies the endpoints and parameters that have been deprecated in version 2.0 of the Smartsheet API.</p>
+
+<h2 id="deprecated-endpoints">Deprecated Endpoints</h2>
+
+<p>The following endpoints have been deprecated in version 2.0 of the Smartsheet API.</p>
+
+<table><thead>
+<tr>
+<th>Operation</th>
+<th>Deprecated Endpoint</th>
+<th>Replaced by</th>
+</tr>
+</thead><tbody>
+<tr>
+<td>Delete Row (singular)</td>
+<td>DELETE /sheets/{sheetId}/rows/{rowId}</td>
+<td>new endpoint for <a href="#delete-row(s)">Delete Row(s)</a></td>
+</tr>
+<tr>
+<td>Send Row (singular)</td>
+<td>POST /sheets/{sheetId}/rows/{rowId}/emails</td>
+<td>new endpoint for <a href="#send-row(s)">Send Row(s)</a></td>
+</tr>
+</tbody></table>
+
+<h2 id="deprecated-parameters">Deprecated Parameters</h2>
+
+<table><thead>
+<tr>
+<th>Operation</th>
+<th>Deprecated Parameter</th>
+<th>Replaced by</th>
+</tr>
+</thead><tbody>
+<tr>
+<td><a href="#create-child-folder">Create Child Folder</a></td>
+<td>include</td>
+<td>new endpoint for <a href="#copy-folder">Copy Folder</a></td>
+</tr>
+<tr>
+<td><a href="#create-sheet">Create Sheet</a></td>
+<td>include</td>
+<td>new endpoint for <a href="#copy-sheet">Copy Sheet</a></td>
+</tr>
+<tr>
+<td><a href="#create-workspace">Create Workspace</a></td>
+<td>include</td>
+<td>new endpoint for <a href="#copy-workspace">Copy Workspace</a></td>
+</tr>
+</tbody></table>
+
+<h1 id="objects">Objects</h1>
+
+<p>This section specifies the objects and attributes that have been deprecated in version 2.0 of the Smartsheet API.</p>
+
+<h2 id="deprecated-objects">Deprecated Objects</h2>
+
+<p>No objects have been deprecated in version 2.0 of the Smartsheet API.</p>
+
+<h2 id="deprecated-attributes">Deprecated Attributes</h2>
+
+<p>The following attributes have been deprecated in version 2.0 of the Smartsheet API.</p>
+
+<table><thead>
+<tr>
+<th>Object</th>
+<th>Deprecated Attribute</th>
+<th>Replaced by</th>
+</tr>
+</thead><tbody>
+<tr>
+<td><a href="#folder-object">Folder object</a></td>
+<td>fromId</td>
+<td>new endpoint for <a href="#copy-folder">Copy Folder</a></td>
+</tr>
+<tr>
+<td><a href="#sheet-object">Sheet object</a></td>
+<td>fromId</td>
+<td>new endpoint for <a href="#copy-sheet">Copy Sheet</a></td>
+</tr>
+<tr>
+<td><a href="#workspace-object">Workspace object</a></td>
+<td>fromId</td>
+<td>new endpoint for <a href="#copy-workspace">Copy Workspace</a></td>
+</tr>
+</tbody></table>
 
 		  </div>
 		  <div class="dark-box">
