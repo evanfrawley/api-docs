@@ -1488,7 +1488,15 @@ See the corresponding section below for more information about using the sample 
 <h3 id="c#-sample-code">C# Sample Code</h3>
 
 <p>The C# code samples included in this API documentation demonstrate how to execute operations using the <a href="https://github.com/smartsheet-platform/smartsheet-csharp-sdk">Smartsheet C# SDK</a>. 
-Each code sample uses a <strong>SmartsheetClient</strong> object called &ldquo;smartsheet&rdquo; that can be created as follows:</p>
+To use the C# SDK, you&rsquo;ll need to include the appropriate <strong>using</strong> directives in your code. For example:</p>
+
+<p><code>
+using Smartsheet.Api;<br/>
+using Smartsheet.Api.Models;<br/>
+using Smartsheet.Api.OAuth;<br/>
+</code></p>
+
+<p>Each code sample uses a <strong>SmartsheetClient</strong> object called &ldquo;smartsheet&rdquo; that can be created as follows:</p>
 
 <p><code>
 // Set the Access Token<br/>
@@ -1512,7 +1520,16 @@ For example, in the following code example, <strong>sheetId</strong> should be r
 <h3 id="java-sample-code">Java Sample Code</h3>
 
 <p>The Java code samples included in this API documentation demonstrate how to execute operations using the <a href="https://github.com/smartsheet-platform/smartsheet-java-sdk">Smartsheet Java SDK</a>. 
-Each code sample uses a <strong>Smartsheet</strong> object called &ldquo;smartsheet&rdquo; that can be created as follows:</p>
+To use the Java SDK, you&rsquo;ll need to include the appropriate <strong>import</strong> directives in your code. For example:</p>
+
+<p><code>
+import com.smartsheet.api.&#42;;<br/>
+import com.smartsheet.api.models.&#42;;<br/>
+import com.smartsheet.api.models.enums.&#42;;<br/>
+import com.smartsheet.api.oauth.&#42;;<br/>
+</code></p>
+
+<p>Each code sample uses a <strong>Smartsheet</strong> object called &ldquo;smartsheet&rdquo; that can be created as follows:</p>
 
 <p><code>
 // Set the Access Token<br/>
@@ -5117,6 +5134,12 @@ If null, the cell&rsquo;s value will be derived from the hyperlink:
 <pre class="highlight shell"><code>curl https://api.smartsheet.com/2.0/contacts/<span class="o">{</span>contactId<span class="o">}</span> <span class="se">\</span>
 -H <span class="s2">"Authorization: Bearer ACCESS_TOKEN"</span>
 </code></pre>
+<pre class="highlight csharp"><code><span class="c1">// Get contact.
+</span><span class="n">smartsheet</span><span class="p">.</span><span class="n">ContactResources</span><span class="p">.</span><span class="nf">GetContact</span><span class="p">(</span><span class="n">contactId</span><span class="p">);</span>
+</code></pre>
+<pre class="highlight java"><code><span class="c1">// Get contact.</span>
+<span class="n">smartsheet</span><span class="o">.</span><span class="na">contactResources</span><span class="o">().</span><span class="na">getContact</span><span class="o">(</span><span class="n">contactId</span><span class="o">);</span>
+</code></pre>
 
 <blockquote>
 <p>Example Response:</p>
@@ -5159,6 +5182,21 @@ If null, the cell&rsquo;s value will be derived from the hyperlink:
 </blockquote>
 <pre class="highlight shell"><code>curl https://api.smartsheet.com/2.0/contacts <span class="se">\</span>
 -H <span class="s2">"Authorization: Bearer ACCESS_TOKEN"</span>
+</code></pre>
+<pre class="highlight csharp"><code><span class="c1">// List contacts (omit pagination parameters).
+</span><span class="n">smartsheet</span><span class="p">.</span><span class="n">ContactResources</span><span class="p">.</span><span class="nf">ListContacts</span><span class="p">(</span><span class="k">null</span><span class="p">);</span>
+
+<span class="c1">// List contacts (specify 'includeAll' parameter with value of "true").
+</span><span class="n">smartsheet</span><span class="p">.</span><span class="n">ContactResources</span><span class="p">.</span><span class="nf">ListContacts</span><span class="p">(</span><span class="k">new</span> <span class="nf">PaginationParameters</span><span class="p">(</span><span class="k">true</span><span class="p">,</span> <span class="k">null</span><span class="p">,</span> <span class="k">null</span><span class="p">));</span>
+</code></pre>
+<pre class="highlight java"><code><span class="c1">// Specify pagination parameter 'includeAll'</span>
+<span class="n">PaginationParameters</span> <span class="n">parameters</span> <span class="o">=</span> <span class="k">new</span> <span class="n">PaginationParameters</span><span class="o">.</span><span class="na">PaginationParametersBuilder</span><span class="o">().</span><span class="na">setIncludeAll</span><span class="o">(</span><span class="kc">true</span><span class="o">).</span><span class="na">build</span><span class="o">();</span>
+
+<span class="c1">// List contacts (specify 'includeAll' parameter with value of "true").</span>
+<span class="n">smartsheet</span><span class="o">.</span><span class="na">contactResources</span><span class="o">().</span><span class="na">listContacts</span><span class="o">(</span><span class="n">parameters</span><span class="o">);</span>
+
+<span class="c1">// List contacts (omit pagination parameters).</span>
+<span class="n">smartsheet</span><span class="o">.</span><span class="na">contactResources</span><span class="o">().</span><span class="na">listContacts</span><span class="o">(</span><span class="kc">null</span><span class="o">);</span>
 </code></pre>
 
 <blockquote>
@@ -5362,9 +5400,26 @@ If null, the cell&rsquo;s value will be derived from the hyperlink:
 </code></pre>
 <pre class="highlight javascript"><code><span class="c1">// [todo]</span>
 </code></pre>
-<pre class="highlight csharp"><code><span class="c1">// [todo]
-</span></code></pre>
-<pre class="highlight java"><code><span class="c1">// [todo]</span>
+<pre class="highlight csharp"><code><span class="c1">// Create comment.
+</span><span class="n">Comment</span> <span class="n">comment</span> <span class="p">=</span> <span class="k">new</span> <span class="n">Comment</span><span class="p">.</span><span class="nf">AddCommentBuilder</span><span class="p">(</span><span class="s">"This text is the body of the first comment"</span><span class="p">).</span><span class="nf">Build</span><span class="p">();</span>
+
+<span class="c1">// Create discussion (including the comment).
+</span><span class="n">Discussion</span> <span class="n">discussion</span> <span class="p">=</span> <span class="k">new</span> <span class="n">Discussion</span><span class="p">.</span><span class="nf">CreateDiscussionBuilder</span><span class="p">(</span><span class="s">"This is a new discussion"</span><span class="p">,</span> <span class="n">comment</span><span class="p">).</span><span class="nf">Build</span><span class="p">();</span>
+
+<span class="c1">// Add discussion to row.
+</span><span class="n">smartsheet</span><span class="p">.</span><span class="n">SheetResources</span><span class="p">.</span><span class="n">RowResources</span><span class="p">.</span><span class="n">DiscussionResources</span><span class="p">.</span><span class="nf">CreateDiscussionWithAttachment</span><span class="p">(</span><span class="n">sheetId</span><span class="p">,</span> <span class="n">rowId</span><span class="p">,</span> <span class="n">discussion</span><span class="p">,</span> <span class="n">filePath</span><span class="p">,</span> <span class="s">"application/octet-stream"</span><span class="p">);</span>
+</code></pre>
+<pre class="highlight java"><code><span class="c1">// Create comment.</span>
+<span class="n">Comment</span> <span class="n">comment</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Comment</span><span class="o">.</span><span class="na">AddCommentBuilder</span><span class="o">().</span><span class="na">setText</span><span class="o">(</span><span class="s">"This text is the body of the first comment"</span><span class="o">).</span><span class="na">build</span><span class="o">();</span>
+
+<span class="c1">// Create discussion (including the comment).</span>
+<span class="n">Discussion</span> <span class="n">discussion</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Discussion</span><span class="o">.</span><span class="na">CreateDiscussionBuilder</span><span class="o">().</span><span class="na">setTitle</span><span class="o">(</span><span class="s">"This is a new discussion"</span><span class="o">).</span><span class="na">setComment</span><span class="o">(</span><span class="n">comment</span><span class="o">).</span><span class="na">build</span><span class="o">();</span>
+
+<span class="c1">// Set file path</span>
+<span class="n">File</span> <span class="n">file</span> <span class="o">=</span> <span class="k">new</span> <span class="n">File</span><span class="o">(</span><span class="n">filePath</span><span class="o">);</span>
+
+<span class="c1">// Add discussion to row.</span>
+<span class="n">smartsheet</span><span class="o">.</span><span class="na">sheetResources</span><span class="o">().</span><span class="na">rowResources</span><span class="o">().</span><span class="na">discussionResources</span><span class="o">().</span><span class="na">createDiscussionWithAttachment</span><span class="o">(</span><span class="n">sheetId</span><span class="o">,</span> <span class="n">rowId</span><span class="o">,</span> <span class="n">discussion</span><span class="o">,</span> <span class="n">file</span><span class="o">,</span> <span class="s">"application/octet-stream"</span><span class="o">);</span>
 </code></pre>
 
 <blockquote>
@@ -6989,6 +7044,33 @@ These API operations allow you to access the user&rsquo;s favorite API-supported
 }'</span> <span class="se">\</span>
 -X POST
 </code></pre>
+<pre class="highlight csharp"><code><span class="c1">// Specify destination.
+</span><span class="n">ContainerDestination</span> <span class="n">destination</span> <span class="p">=</span> <span class="k">new</span> <span class="n">ContainerDestination</span>
+<span class="p">{</span>
+    <span class="n">DestinationId</span> <span class="p">=</span> <span class="n">destinationFolderId</span><span class="p">,</span>
+    <span class="n">DestinationType</span> <span class="p">=</span> <span class="n">DestinationType</span><span class="p">.</span><span class="n">FOLDER</span><span class="p">,</span>
+    <span class="n">NewName</span> <span class="p">=</span> <span class="s">"newFolderName"</span>
+<span class="p">};</span>
+
+<span class="c1">// Copy folder (omit 'include' and 'skipRemap' parameters).
+</span><span class="n">smartsheet</span><span class="p">.</span><span class="n">FolderResources</span><span class="p">.</span><span class="nf">CopyFolder</span><span class="p">(</span><span class="n">folderId</span><span class="p">,</span> <span class="n">destination</span><span class="p">,</span> <span class="k">null</span><span class="p">,</span> <span class="k">null</span><span class="p">);</span>
+
+<span class="c1">// Copy folder (specify 'include' parameter with value of "all", and 'skipRemap' parameter with value of "cellLinks").
+</span><span class="n">smartsheet</span><span class="p">.</span><span class="n">FolderResources</span><span class="p">.</span><span class="nf">CopyFolder</span><span class="p">(</span><span class="n">folderId</span><span class="p">,</span> <span class="n">destination</span><span class="p">,</span> <span class="k">new</span> <span class="n">FolderCopyInclusion</span><span class="p">[]</span> <span class="p">{</span> <span class="n">FolderCopyInclusion</span><span class="p">.</span><span class="n">ALL</span> <span class="p">},</span> <span class="k">new</span> <span class="n">FolderRemapExclusion</span><span class="p">[]</span> <span class="p">{</span> <span class="n">FolderRemapExclusion</span><span class="p">.</span><span class="n">CELL_LINKS</span> <span class="p">});</span>
+</code></pre>
+<pre class="highlight java"><code><span class="c1">// Specify destination.</span>
+<span class="n">ContainerDestination</span> <span class="n">destination</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ContainerDestination</span><span class="o">.</span><span class="na">AddContainerDestinationBuilder</span><span class="o">()</span>
+        <span class="o">.</span><span class="na">setDestinationType</span><span class="o">(</span><span class="n">DestinationType</span><span class="o">.</span><span class="na">FOLDER</span><span class="o">)</span>
+        <span class="o">.</span><span class="na">setDestinationId</span><span class="o">(</span><span class="n">destinationFolderId</span><span class="o">)</span>
+        <span class="o">.</span><span class="na">setNewName</span><span class="o">(</span><span class="s">"newFolderName"</span><span class="o">)</span>
+        <span class="o">.</span><span class="na">build</span><span class="o">();</span>
+
+<span class="c1">// Copy folder (omit 'include' and 'skipRemap' parameters).</span>
+<span class="n">smartsheet</span><span class="o">.</span><span class="na">folderResources</span><span class="o">().</span><span class="na">copyFolder</span><span class="o">(</span><span class="n">folderId</span><span class="o">,</span> <span class="n">destination</span><span class="o">,</span> <span class="kc">null</span><span class="o">,</span> <span class="kc">null</span><span class="o">);</span>
+
+<span class="c1">// Copy folder (specify 'include' parameter with value of "all", and 'skipRemap' parameter with value of "cellLinks").</span>
+<span class="n">smartsheet</span><span class="o">.</span><span class="na">folderResources</span><span class="o">().</span><span class="na">copyFolder</span><span class="o">(</span><span class="n">folderId</span><span class="o">,</span> <span class="n">destination</span><span class="o">,</span> <span class="n">EnumSet</span><span class="o">.</span><span class="na">of</span><span class="o">(</span><span class="n">FolderCopyInclusion</span><span class="o">.</span><span class="na">ALL</span><span class="o">),</span> <span class="n">EnumSet</span><span class="o">.</span><span class="na">of</span><span class="o">(</span><span class="n">FolderRemapExclusion</span><span class="o">.</span><span class="na">CELLLINKS</span><span class="o">));</span>
+</code></pre>
 
 <blockquote>
 <p>Example Response:</p>
@@ -7738,6 +7820,25 @@ These API operations allow you to access the user&rsquo;s favorite API-supported
     "destinationId": workspace_or_folder_id \
 }'</span> <span class="se">\</span>
 -X POST
+</code></pre>
+<pre class="highlight csharp"><code><span class="c1">// Specify destination.
+</span><span class="n">ContainerDestination</span> <span class="n">destination</span> <span class="p">=</span> <span class="k">new</span> <span class="n">ContainerDestination</span>
+<span class="p">{</span>
+    <span class="n">DestinationId</span> <span class="p">=</span> <span class="n">destinationFolderId</span><span class="p">,</span>
+    <span class="n">DestinationType</span> <span class="p">=</span> <span class="n">DestinationType</span><span class="p">.</span><span class="n">FOLDER</span><span class="p">,</span>
+<span class="p">};</span>
+
+<span class="c1">// Move folder.
+</span><span class="n">smartsheet</span><span class="p">.</span><span class="n">FolderResources</span><span class="p">.</span><span class="nf">MoveFolder</span><span class="p">(</span><span class="n">folderId</span><span class="p">,</span> <span class="n">destination</span><span class="p">);</span>
+</code></pre>
+<pre class="highlight java"><code><span class="c1">// Specify destination.</span>
+<span class="n">ContainerDestination</span> <span class="n">destination</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ContainerDestination</span><span class="o">.</span><span class="na">AddContainerDestinationBuilder</span><span class="o">()</span>
+        <span class="o">.</span><span class="na">setDestinationType</span><span class="o">(</span><span class="n">DestinationType</span><span class="o">.</span><span class="na">FOLDER</span><span class="o">)</span>
+        <span class="o">.</span><span class="na">setDestinationId</span><span class="o">(</span><span class="n">destinationFolderId</span><span class="o">)</span>
+        <span class="o">.</span><span class="na">build</span><span class="o">();</span>
+
+<span class="c1">// Move folder.</span>
+<span class="n">smartsheet</span><span class="o">.</span><span class="na">folderResources</span><span class="o">().</span><span class="na">moveFolder</span><span class="o">(</span><span class="n">folderId</span><span class="o">,</span> <span class="n">destination</span><span class="o">);</span>
 </code></pre>
 
 <blockquote>
@@ -9218,7 +9319,14 @@ of <a href="#groupmember-object">GroupMember objects</a> any users specified in 
 <span class="n">formatDetails</span><span class="o">.</span><span class="na">setPaperSize</span><span class="o">(</span><span class="n">PaperSize</span><span class="o">.</span><span class="na">A0</span><span class="o">);</span> 
 
 <span class="c1">// Configure email.</span>
-<span class="n">SheetEmail</span> <span class="n">email</span> <span class="o">=</span> <span class="k">new</span> <span class="n">SheetEmail</span><span class="o">.</span><span class="na">AddSheetEmailBuilder</span><span class="o">().</span><span class="na">setSendTo</span><span class="o">(</span><span class="n">recipients</span><span class="o">).</span><span class="na">setSubject</span><span class="o">(</span><span class="s">"Check this report out!"</span><span class="o">).</span><span class="na">setMessage</span><span class="o">(</span><span class="s">"Here is the report I mentioned in our meeting"</span><span class="o">).</span><span class="na">setCcMe</span><span class="o">(</span><span class="kc">false</span><span class="o">).</span><span class="na">setFormat</span><span class="o">(</span><span class="n">SheetEmailFormat</span><span class="o">.</span><span class="na">PDF</span><span class="o">).</span><span class="na">setFormatDetails</span><span class="o">(</span><span class="n">formatDetails</span><span class="o">).</span><span class="na">build</span><span class="o">();</span>
+<span class="n">SheetEmail</span> <span class="n">email</span> <span class="o">=</span> <span class="k">new</span> <span class="n">SheetEmail</span><span class="o">.</span><span class="na">AddSheetEmailBuilder</span><span class="o">()</span>
+    <span class="o">.</span><span class="na">setSendTo</span><span class="o">(</span><span class="n">recipients</span><span class="o">)</span>
+    <span class="o">.</span><span class="na">setSubject</span><span class="o">(</span><span class="s">"Check this report out!"</span><span class="o">)</span>
+    <span class="o">.</span><span class="na">setMessage</span><span class="o">(</span><span class="s">"Here is the report I mentioned in our meeting"</span><span class="o">)</span>
+    <span class="o">.</span><span class="na">setCcMe</span><span class="o">(</span><span class="kc">false</span><span class="o">)</span>
+    <span class="o">.</span><span class="na">setFormat</span><span class="o">(</span><span class="n">SheetEmailFormat</span><span class="o">.</span><span class="na">PDF</span><span class="o">)</span>
+    <span class="o">.</span><span class="na">setFormatDetails</span><span class="o">(</span><span class="n">formatDetails</span><span class="o">)</span>
+    <span class="o">.</span><span class="na">build</span><span class="o">();</span>
 
 <span class="c1">// Send report via email.</span>
 <span class="n">smartsheet</span><span class="o">.</span><span class="na">reportResources</span><span class="o">().</span><span class="na">sendReport</span><span class="o">(</span><span class="n">reportId</span><span class="o">,</span> <span class="n">email</span><span class="o">)</span>
@@ -9818,11 +9926,11 @@ of <a href="#groupmember-object">GroupMember objects</a> any users specified in 
         <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">error</span><span class="p">);</span>
     <span class="p">});</span>
 </code></pre>
-<pre class="highlight csharp"><code><span class="c1">// Delete row.
-</span><span class="n">smartsheet</span><span class="p">.</span><span class="n">SheetResources</span><span class="p">.</span><span class="n">RowResources</span><span class="p">.</span><span class="nf">DeleteRow</span><span class="p">(</span><span class="n">sheetId</span><span class="p">,</span> <span class="n">rowId</span><span class="p">);</span>
+<pre class="highlight csharp"><code><span class="c1">// Delete rows (specify 'ignoreRowsNotFound' parameter with value of "true").
+</span><span class="n">smartsheet</span><span class="p">.</span><span class="n">SheetResources</span><span class="p">.</span><span class="n">RowResources</span><span class="p">.</span><span class="nf">DeleteRows</span><span class="p">(</span><span class="n">sheetId</span><span class="p">,</span> <span class="k">new</span> <span class="kt">long</span><span class="p">[]</span> <span class="p">{</span> <span class="n">rowId1</span><span class="p">,</span> <span class="n">rowId2</span><span class="p">,</span> <span class="n">rowId3</span> <span class="p">},</span> <span class="k">true</span><span class="p">);</span>
 </code></pre>
-<pre class="highlight java"><code><span class="c1">// Delete row.</span>
-<span class="n">smartsheet</span><span class="o">.</span><span class="na">sheetResources</span><span class="o">().</span><span class="na">rowResources</span><span class="o">().</span><span class="na">deleteRow</span><span class="o">(</span><span class="n">sheetId</span><span class="o">,</span> <span class="n">rowId</span><span class="o">);</span>
+<pre class="highlight java"><code><span class="c1">// Delete rows (specify 'ignoreRowsNotFound' parameter with value of "true").</span>
+<span class="n">smartsheet</span><span class="o">.</span><span class="na">sheetResources</span><span class="o">().</span><span class="na">rowResources</span><span class="o">().</span><span class="na">deleteRows</span><span class="o">(</span><span class="n">sheetId</span><span class="o">,</span> <span class="k">new</span> <span class="n">HashSet</span><span class="o">(</span><span class="n">Arrays</span><span class="o">.</span><span class="na">asList</span><span class="o">(</span><span class="n">rowId1</span><span class="o">,</span> <span class="n">rowId2</span><span class="o">,</span> <span class="n">rowId3</span><span class="o">),</span> <span class="kc">true</span><span class="o">);</span>
 </code></pre>
 
 <blockquote>
@@ -10111,6 +10219,49 @@ of <a href="#groupmember-object">GroupMember objects</a> any users specified in 
 }'</span>
 </code></pre>
 
+<pre class="highlight csharp"><code><span class="c1">// Specify recipients.
+</span><span class="n">Recipient</span><span class="p">[]</span> <span class="n">recipients</span> <span class="p">=</span> <span class="k">new</span> <span class="n">Recipient</span><span class="p">[]</span> <span class="p">{</span> 
+    <span class="k">new</span> <span class="n">Recipient</span> <span class="p">{</span> <span class="n">Email</span> <span class="p">=</span> <span class="s">"recipient@smartsheet.com"</span> <span class="p">},</span> 
+<span class="p">};</span>
+
+<span class="c1">// Configure email.
+</span><span class="n">MultiRowEmail</span> <span class="n">multiRowEmail</span> <span class="p">=</span> <span class="k">new</span> <span class="n">MultiRowEmail</span> <span class="p">{</span>
+    <span class="n">SendTo</span> <span class="p">=</span> <span class="n">recipients</span><span class="p">,</span>
+    <span class="n">Subject</span> <span class="p">=</span> <span class="s">"some subject"</span><span class="p">,</span>
+    <span class="n">Message</span> <span class="p">=</span> <span class="s">"some message"</span><span class="p">,</span>
+    <span class="n">CcMe</span> <span class="p">=</span> <span class="k">false</span><span class="p">,</span>
+    <span class="n">RowIds</span> <span class="p">=</span> <span class="k">new</span> <span class="kt">long</span><span class="p">[]</span> <span class="p">{</span> <span class="n">rowId1</span><span class="p">,</span> <span class="n">rowId2</span> <span class="p">},</span>
+    <span class="n">ColumnIds</span> <span class="p">=</span> <span class="k">new</span> <span class="kt">long</span><span class="p">[]</span> <span class="p">{</span> <span class="n">columnId1</span><span class="p">,</span> <span class="n">columnId2</span> <span class="p">},</span>
+    <span class="n">IncludeAttachments</span> <span class="p">=</span> <span class="k">false</span><span class="p">,</span>
+    <span class="n">IncludeDiscussions</span> <span class="p">=</span> <span class="k">false</span>
+<span class="p">};</span>
+
+<span class="c1">// Send rows via email.
+</span><span class="n">smartsheet</span><span class="p">.</span><span class="n">SheetResources</span><span class="p">.</span><span class="n">RowResources</span><span class="p">.</span><span class="nf">SendRows</span><span class="p">(</span><span class="n">sheetId</span><span class="p">,</span> <span class="n">multiRowEmail</span><span class="p">);</span>
+</code></pre>
+
+<pre class="highlight java"><code><span class="c1">// Specify recipients.</span>
+<span class="n">RecipientEmail</span> <span class="n">recipientEmail</span> <span class="o">=</span> <span class="k">new</span> <span class="n">RecipientEmail</span><span class="o">.</span><span class="na">AddRecipientEmailBuilder</span><span class="o">().</span><span class="na">setEmail</span><span class="o">(</span><span class="s">"recipient@smartsheet.com"</span><span class="o">).</span><span class="na">build</span><span class="o">();</span>
+
+<span class="n">List</span><span class="o">&lt;</span><span class="n">Recipient</span><span class="o">&gt;</span> <span class="n">recipients</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ArrayList</span><span class="o">&lt;</span><span class="n">Recipient</span><span class="o">&gt;();</span>
+<span class="n">recipients</span><span class="o">.</span><span class="na">add</span><span class="o">(</span><span class="n">recipientEmail</span><span class="o">);</span>
+
+<span class="c1">// Configure email.</span>
+<span class="n">MultiRowEmail</span> <span class="n">multiRowEmail</span> <span class="o">=</span> <span class="k">new</span> <span class="n">MultiRowEmail</span><span class="o">.</span><span class="na">AddMultiRowEmailBuilder</span><span class="o">()</span>
+    <span class="o">.</span><span class="na">setSendTo</span><span class="o">(</span><span class="n">recipients</span><span class="o">)</span>
+    <span class="o">.</span><span class="na">setSubject</span><span class="o">(</span><span class="s">"some subject"</span><span class="o">)</span>
+    <span class="o">.</span><span class="na">setMessage</span><span class="o">(</span><span class="s">"some message"</span><span class="o">)</span>
+    <span class="o">.</span><span class="na">setCcMe</span><span class="o">(</span><span class="kc">false</span><span class="o">)</span>
+    <span class="o">.</span><span class="na">setRowIds</span><span class="o">(</span><span class="n">Arrays</span><span class="o">.</span><span class="na">asList</span><span class="o">(</span><span class="n">rowId1</span><span class="o">,</span> <span class="n">rowId2</span><span class="o">)</span>
+    <span class="o">.</span><span class="na">setColumnIds</span><span class="o">(</span><span class="n">Arrays</span><span class="o">.</span><span class="na">asList</span><span class="o">(</span><span class="n">columnId1</span><span class="o">,</span> <span class="n">columnId2</span><span class="o">)</span>
+    <span class="o">.</span><span class="na">setIncludeAttachments</span><span class="o">(</span><span class="kc">false</span><span class="o">)</span>
+    <span class="o">.</span><span class="na">setIncludeDiscussions</span><span class="o">(</span><span class="kc">false</span><span class="o">)</span>
+    <span class="o">.</span><span class="na">build</span><span class="o">();</span>
+
+<span class="c1">// Send rows via email.</span>
+<span class="n">smartsheet</span><span class="o">.</span><span class="na">sheetResources</span><span class="o">().</span><span class="na">rowResources</span><span class="o">().</span><span class="na">sendRows</span><span class="o">(</span><span class="n">sheetId</span><span class="o">,</span> <span class="n">multiRowEmail</span><span class="o">);</span>
+</code></pre>
+
 <blockquote>
 <p>Example Response:</p>
 </blockquote>
@@ -10167,11 +10318,58 @@ of <a href="#groupmember-object">GroupMember objects</a> any users specified in 
     "subject": "some subject", \
     "message": "some message", \
     "ccMe": (true|false), \
-    "rowIds": [rowId1], \
+    "rowIds": [rowId1, rowId2], \
     "columnIds": [colId1, colId2], \
     "includeAttachments": (true|false), \
     "includeDiscussions": (true|false) \
 }'</span>
+</code></pre>
+
+<pre class="highlight csharp"><code><span class="c1">// Specify recipients.
+</span><span class="n">Recipient</span><span class="p">[]</span> <span class="n">recipients</span> <span class="p">=</span> <span class="k">new</span> <span class="n">Recipient</span><span class="p">[]</span> <span class="p">{</span> 
+    <span class="k">new</span> <span class="n">Recipient</span> <span class="p">{</span> <span class="n">Email</span> <span class="p">=</span> <span class="s">"email789@smartsheet.com"</span> <span class="p">},</span>
+    <span class="k">new</span> <span class="n">Recipient</span> <span class="p">{</span> <span class="n">Email</span> <span class="p">=</span> <span class="s">"email0123@smartsheet.com"</span> <span class="p">}</span>
+<span class="p">};</span>
+
+<span class="c1">// Configure email.
+</span><span class="n">MultiRowEmail</span> <span class="n">multiEmail</span> <span class="p">=</span> <span class="k">new</span> <span class="n">MultiRowEmail</span> <span class="p">{</span>
+    <span class="n">SendTo</span> <span class="p">=</span> <span class="n">recipients</span><span class="p">,</span>
+    <span class="n">Subject</span> <span class="p">=</span> <span class="s">"some subject"</span><span class="p">,</span>
+    <span class="n">Message</span> <span class="p">=</span> <span class="s">"some message"</span><span class="p">,</span>
+    <span class="n">CcMe</span> <span class="p">=</span> <span class="k">true</span><span class="p">,</span>
+    <span class="n">RowIds</span> <span class="p">=</span> <span class="k">new</span> <span class="kt">long</span><span class="p">[]</span> <span class="p">{</span> <span class="n">rowId1</span><span class="p">,</span> <span class="n">rowId2</span> <span class="p">},</span>
+    <span class="n">ColumnIds</span> <span class="p">=</span> <span class="k">new</span> <span class="kt">long</span><span class="p">[]</span> <span class="p">{</span> <span class="n">colId1</span><span class="p">,</span> <span class="n">colId2</span> <span class="p">},</span>
+    <span class="n">IncludeAttachments</span> <span class="p">=</span> <span class="k">true</span><span class="p">,</span>
+    <span class="n">IncludeDiscussions</span> <span class="p">=</span> <span class="k">true</span>
+<span class="p">};</span>
+
+<span class="c1">// Send update request via email.
+</span><span class="n">smartsheet</span><span class="p">.</span><span class="n">SheetResources</span><span class="p">.</span><span class="nf">SendUpdateRequest</span><span class="p">(</span><span class="n">sheetId</span><span class="p">,</span> <span class="n">multiEmail</span><span class="p">);</span>
+</code></pre>
+
+<pre class="highlight java"><code><span class="c1">// Specify recipients.</span>
+<span class="n">RecipientEmail</span> <span class="n">recipientEmail</span> <span class="o">=</span> <span class="k">new</span> <span class="n">RecipientEmail</span><span class="o">.</span><span class="na">AddRecipientEmailBuilder</span><span class="o">()</span>
+                <span class="o">.</span><span class="na">setEmail</span><span class="o">(</span><span class="s">"email789@smartsheet.com"</span><span class="o">)</span>
+                <span class="o">.</span><span class="na">setEmail</span><span class="o">(</span><span class="s">"email0123@smartsheet.com"</span><span class="o">)</span>
+                <span class="o">.</span><span class="na">build</span><span class="o">();</span>
+
+<span class="n">List</span><span class="o">&lt;</span><span class="n">Recipient</span><span class="o">&gt;</span> <span class="n">recipients</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ArrayList</span><span class="o">&lt;</span><span class="n">Recipient</span><span class="o">&gt;();</span>
+<span class="n">recipients</span><span class="o">.</span><span class="na">add</span><span class="o">(</span><span class="n">recipientEmail</span><span class="o">);</span>
+
+<span class="c1">// Configure email.</span>
+<span class="n">MultiRowEmail</span> <span class="n">multiRowEmail</span> <span class="o">=</span> <span class="k">new</span> <span class="n">MultiRowEmail</span><span class="o">.</span><span class="na">AddMultiRowEmailBuilder</span><span class="o">()</span>
+    <span class="o">.</span><span class="na">setSendTo</span><span class="o">(</span><span class="n">recipients</span><span class="o">)</span>
+    <span class="o">.</span><span class="na">setSubject</span><span class="o">(</span><span class="s">"some subject"</span><span class="o">)</span>
+    <span class="o">.</span><span class="na">setMessage</span><span class="o">(</span><span class="s">"some message"</span><span class="o">)</span>
+    <span class="o">.</span><span class="na">setCcMe</span><span class="o">(</span><span class="kc">false</span><span class="o">)</span>
+    <span class="o">.</span><span class="na">setRowIds</span><span class="o">(</span><span class="n">Arrays</span><span class="o">.</span><span class="na">asList</span><span class="o">(</span><span class="n">rowId1</span><span class="o">,</span> <span class="n">rowId2</span><span class="o">)</span>
+    <span class="o">.</span><span class="na">setColumnIds</span><span class="o">(</span><span class="n">Arrays</span><span class="o">.</span><span class="na">asList</span><span class="o">(</span><span class="n">columnId1</span><span class="o">,</span> <span class="n">columnId2</span><span class="o">)</span>
+    <span class="o">.</span><span class="na">setIncludeAttachments</span><span class="o">(</span><span class="kc">false</span><span class="o">)</span>
+    <span class="o">.</span><span class="na">setIncludeDiscussions</span><span class="o">(</span><span class="kc">false</span><span class="o">)</span>
+    <span class="o">.</span><span class="na">build</span><span class="o">();</span>
+
+<span class="c1">// Send update request via email.</span>
+<span class="n">smartsheet</span><span class="o">.</span><span class="na">sheetResources</span><span class="o">().</span><span class="na">createUpdateRequest</span><span class="o">(</span><span class="n">sheetId</span><span class="o">,</span> <span class="n">multiRowEmail</span><span class="o">);</span>
 </code></pre>
 
 <blockquote>
@@ -10996,7 +11194,14 @@ Either <strong>email</strong> and <strong>groupId</strong> may be set, but not b
 <span class="n">formatDetails</span><span class="o">.</span><span class="na">setPaperSize</span><span class="o">(</span><span class="n">PaperSize</span><span class="o">.</span><span class="na">A0</span><span class="o">);</span> 
 
 <span class="c1">// Configure email.</span>
-<span class="n">SheetEmail</span> <span class="n">email</span> <span class="o">=</span> <span class="k">new</span> <span class="n">SheetEmail</span><span class="o">.</span><span class="na">AddSheetEmailBuilder</span><span class="o">().</span><span class="na">setSendTo</span><span class="o">(</span><span class="n">recipients</span><span class="o">).</span><span class="na">setSubject</span><span class="o">(</span><span class="s">"Check this report out!"</span><span class="o">).</span><span class="na">setMessage</span><span class="o">(</span><span class="s">"Here is the report I mentioned in our meeting"</span><span class="o">).</span><span class="na">setCcMe</span><span class="o">(</span><span class="kc">false</span><span class="o">).</span><span class="na">setFormat</span><span class="o">(</span><span class="n">SheetEmailFormat</span><span class="o">.</span><span class="na">PDF</span><span class="o">).</span><span class="na">setFormatDetails</span><span class="o">(</span><span class="n">formatDetails</span><span class="o">).</span><span class="na">build</span><span class="o">();</span>
+<span class="n">SheetEmail</span> <span class="n">email</span> <span class="o">=</span> <span class="k">new</span> <span class="n">SheetEmail</span><span class="o">.</span><span class="na">AddSheetEmailBuilder</span><span class="o">()</span>
+    <span class="o">.</span><span class="na">setSendTo</span><span class="o">(</span><span class="n">recipients</span><span class="o">)</span>
+    <span class="o">.</span><span class="na">setSubject</span><span class="o">(</span><span class="s">"Check this report out!"</span><span class="o">)</span>
+    <span class="o">.</span><span class="na">setMessage</span><span class="o">(</span><span class="s">"Here is the report I mentioned in our meeting"</span><span class="o">)</span>
+    <span class="o">.</span><span class="na">setCcMe</span><span class="o">(</span><span class="kc">false</span><span class="o">)</span>
+    <span class="o">.</span><span class="na">setFormat</span><span class="o">(</span><span class="n">SheetEmailFormat</span><span class="o">.</span><span class="na">PDF</span><span class="o">)</span>
+    <span class="o">.</span><span class="na">setFormatDetails</span><span class="o">(</span><span class="n">formatDetails</span><span class="o">)</span>
+    <span class="o">.</span><span class="na">build</span><span class="o">();</span>
 
 <span class="c1">// Send report via email.</span>
 <span class="n">smartsheet</span><span class="o">.</span><span class="na">reportResources</span><span class="o">().</span><span class="na">sendReport</span><span class="o">(</span><span class="n">reportId</span><span class="o">,</span> <span class="n">email</span><span class="o">)</span>
@@ -11068,6 +11273,49 @@ Either <strong>email</strong> and <strong>groupId</strong> may be set, but not b
     "includeAttachments": false, \
     "includeDiscussions": false \
 }'</span>
+</code></pre>
+
+<pre class="highlight csharp"><code><span class="c1">// Specify recipients.
+</span><span class="n">Recipient</span><span class="p">[]</span> <span class="n">recipients</span> <span class="p">=</span> <span class="k">new</span> <span class="n">Recipient</span><span class="p">[]</span> <span class="p">{</span> 
+    <span class="k">new</span> <span class="n">Recipient</span> <span class="p">{</span> <span class="n">Email</span> <span class="p">=</span> <span class="s">"recipient@smartsheet.com"</span> <span class="p">},</span> 
+<span class="p">};</span>
+
+<span class="c1">// Configure email.
+</span><span class="n">MultiRowEmail</span> <span class="n">multiRowEmail</span> <span class="p">=</span> <span class="k">new</span> <span class="n">MultiRowEmail</span> <span class="p">{</span>
+    <span class="n">SendTo</span> <span class="p">=</span> <span class="n">recipients</span><span class="p">,</span>
+    <span class="n">Subject</span> <span class="p">=</span> <span class="s">"some subject"</span><span class="p">,</span>
+    <span class="n">Message</span> <span class="p">=</span> <span class="s">"some message"</span><span class="p">,</span>
+    <span class="n">CcMe</span> <span class="p">=</span> <span class="k">false</span><span class="p">,</span>
+    <span class="n">RowIds</span> <span class="p">=</span> <span class="k">new</span> <span class="kt">long</span><span class="p">[]</span> <span class="p">{</span> <span class="n">rowId1</span><span class="p">,</span> <span class="n">rowId2</span> <span class="p">},</span>
+    <span class="n">ColumnIds</span> <span class="p">=</span> <span class="k">new</span> <span class="kt">long</span><span class="p">[]</span> <span class="p">{</span> <span class="n">columnId1</span><span class="p">,</span> <span class="n">columnId2</span> <span class="p">},</span>
+    <span class="n">IncludeAttachments</span> <span class="p">=</span> <span class="k">false</span><span class="p">,</span>
+    <span class="n">IncludeDiscussions</span> <span class="p">=</span> <span class="k">false</span>
+<span class="p">};</span>
+
+<span class="c1">// Send rows via email.
+</span><span class="n">smartsheet</span><span class="p">.</span><span class="n">SheetResources</span><span class="p">.</span><span class="n">RowResources</span><span class="p">.</span><span class="nf">SendRows</span><span class="p">(</span><span class="n">sheetId</span><span class="p">,</span> <span class="n">multiRowEmail</span><span class="p">);</span>
+</code></pre>
+
+<pre class="highlight java"><code><span class="c1">// Specify recipients.</span>
+<span class="n">RecipientEmail</span> <span class="n">recipientEmail</span> <span class="o">=</span> <span class="k">new</span> <span class="n">RecipientEmail</span><span class="o">.</span><span class="na">AddRecipientEmailBuilder</span><span class="o">().</span><span class="na">setEmail</span><span class="o">(</span><span class="s">"recipient@smartsheet.com"</span><span class="o">).</span><span class="na">build</span><span class="o">();</span>
+
+<span class="n">List</span><span class="o">&lt;</span><span class="n">Recipient</span><span class="o">&gt;</span> <span class="n">recipients</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ArrayList</span><span class="o">&lt;</span><span class="n">Recipient</span><span class="o">&gt;();</span>
+<span class="n">recipients</span><span class="o">.</span><span class="na">add</span><span class="o">(</span><span class="n">recipientEmail</span><span class="o">);</span>
+
+<span class="c1">// Configure email.</span>
+<span class="n">MultiRowEmail</span> <span class="n">multiRowEmail</span> <span class="o">=</span> <span class="k">new</span> <span class="n">MultiRowEmail</span><span class="o">.</span><span class="na">AddMultiRowEmailBuilder</span><span class="o">()</span>
+    <span class="o">.</span><span class="na">setSendTo</span><span class="o">(</span><span class="n">recipients</span><span class="o">)</span>
+    <span class="o">.</span><span class="na">setSubject</span><span class="o">(</span><span class="s">"some subject"</span><span class="o">)</span>
+    <span class="o">.</span><span class="na">setMessage</span><span class="o">(</span><span class="s">"some message"</span><span class="o">)</span>
+    <span class="o">.</span><span class="na">setCcMe</span><span class="o">(</span><span class="kc">false</span><span class="o">)</span>
+    <span class="o">.</span><span class="na">setRowIds</span><span class="o">(</span><span class="n">Arrays</span><span class="o">.</span><span class="na">asList</span><span class="o">(</span><span class="n">rowId1</span><span class="o">,</span> <span class="n">rowId2</span><span class="o">)</span>
+    <span class="o">.</span><span class="na">setColumnIds</span><span class="o">(</span><span class="n">Arrays</span><span class="o">.</span><span class="na">asList</span><span class="o">(</span><span class="n">columnId1</span><span class="o">,</span> <span class="n">columnId2</span><span class="o">)</span>
+    <span class="o">.</span><span class="na">setIncludeAttachments</span><span class="o">(</span><span class="kc">false</span><span class="o">)</span>
+    <span class="o">.</span><span class="na">setIncludeDiscussions</span><span class="o">(</span><span class="kc">false</span><span class="o">)</span>
+    <span class="o">.</span><span class="na">build</span><span class="o">();</span>
+
+<span class="c1">// Send rows via email.</span>
+<span class="n">smartsheet</span><span class="o">.</span><span class="na">sheetResources</span><span class="o">().</span><span class="na">rowResources</span><span class="o">().</span><span class="na">sendRows</span><span class="o">(</span><span class="n">sheetId</span><span class="o">,</span> <span class="n">multiRowEmail</span><span class="o">);</span>
 </code></pre>
 
 <blockquote>
@@ -11191,7 +11439,14 @@ Either <strong>email</strong> and <strong>groupId</strong> may be set, but not b
 <span class="n">formatDetails</span><span class="o">.</span><span class="na">setPaperSize</span><span class="o">(</span><span class="n">PaperSize</span><span class="o">.</span><span class="na">A0</span><span class="o">);</span> 
 
 <span class="c1">// Configure email.</span>
-<span class="n">RowEmail</span> <span class="n">email</span> <span class="o">=</span> <span class="k">new</span> <span class="n">RowEmail</span><span class="o">.</span><span class="na">AddRowEmailBuilder</span><span class="o">().</span><span class="na">setSendTo</span><span class="o">(</span><span class="n">recipients</span><span class="o">).</span><span class="na">setSubject</span><span class="o">(</span><span class="s">"Check these rows out!"</span><span class="o">).</span><span class="na">setMessage</span><span class="o">(</span><span class="s">"Here are the rows I mentioned in our meeting"</span><span class="o">).</span><span class="na">setCcMe</span><span class="o">(</span><span class="kc">false</span><span class="o">).</span><span class="na">setIncludeAttachments</span><span class="o">(</span><span class="kc">true</span><span class="o">).</span><span class="na">setIncludeDiscussions</span><span class="o">(</span><span class="kc">true</span><span class="o">).</span><span class="na">build</span><span class="o">();</span>
+<span class="n">SheetEmail</span> <span class="n">email</span> <span class="o">=</span> <span class="k">new</span> <span class="n">SheetEmail</span><span class="o">.</span><span class="na">AddSheetEmailBuilder</span><span class="o">()</span>
+    <span class="o">.</span><span class="na">setSendTo</span><span class="o">(</span><span class="n">recipients</span><span class="o">)</span>
+    <span class="o">.</span><span class="na">setSubject</span><span class="o">(</span><span class="s">"Check these rows out!"</span><span class="o">)</span>
+    <span class="o">.</span><span class="na">setMessage</span><span class="o">(</span><span class="s">"Here are the rows I mentioned in our meeting"</span><span class="o">)</span>
+    <span class="o">.</span><span class="na">setCcMe</span><span class="o">(</span><span class="kc">false</span><span class="o">)</span>
+    <span class="o">.</span><span class="na">setFormat</span><span class="o">(</span><span class="n">SheetEmailFormat</span><span class="o">.</span><span class="na">PDF</span><span class="o">)</span>
+    <span class="o">.</span><span class="na">setFormatDetails</span><span class="o">(</span><span class="n">formatDetails</span><span class="o">)</span>
+    <span class="o">.</span><span class="na">build</span><span class="o">();</span>
 
 <span class="c1">// Send sheet via email.</span>
 <span class="n">smartsheet</span><span class="o">.</span><span class="na">sheetResources</span><span class="o">().</span><span class="na">sendSheet</span><span class="o">(</span><span class="n">sheetId</span><span class="o">,</span> <span class="n">email</span><span class="o">);</span>
@@ -11253,11 +11508,58 @@ Either <strong>email</strong> and <strong>groupId</strong> may be set, but not b
     "subject": "some subject", \
     "message": "some message", \
     "ccMe": (true|false), \
-    "rowIds": [rowId1], \
+    "rowIds": [rowId1, rowId2], \
     "columnIds": [colId1, colId2], \
     "includeAttachments": (true|false), \
     "includeDiscussions": (true|false) \
 }'</span>
+</code></pre>
+
+<pre class="highlight csharp"><code><span class="c1">// Specify recipients.
+</span><span class="n">Recipient</span><span class="p">[]</span> <span class="n">recipients</span> <span class="p">=</span> <span class="k">new</span> <span class="n">Recipient</span><span class="p">[]</span> <span class="p">{</span> 
+    <span class="k">new</span> <span class="n">Recipient</span> <span class="p">{</span> <span class="n">Email</span> <span class="p">=</span> <span class="s">"email789@smartsheet.com"</span> <span class="p">},</span>
+    <span class="k">new</span> <span class="n">Recipient</span> <span class="p">{</span> <span class="n">Email</span> <span class="p">=</span> <span class="s">"email0123@smartsheet.com"</span> <span class="p">}</span>
+<span class="p">};</span>
+
+<span class="c1">// Configure email.
+</span><span class="n">MultiRowEmail</span> <span class="n">multiEmail</span> <span class="p">=</span> <span class="k">new</span> <span class="n">MultiRowEmail</span> <span class="p">{</span>
+    <span class="n">SendTo</span> <span class="p">=</span> <span class="n">recipients</span><span class="p">,</span>
+    <span class="n">Subject</span> <span class="p">=</span> <span class="s">"some subject"</span><span class="p">,</span>
+    <span class="n">Message</span> <span class="p">=</span> <span class="s">"some message"</span><span class="p">,</span>
+    <span class="n">CcMe</span> <span class="p">=</span> <span class="k">true</span><span class="p">,</span>
+    <span class="n">RowIds</span> <span class="p">=</span> <span class="k">new</span> <span class="kt">long</span><span class="p">[]</span> <span class="p">{</span> <span class="n">rowId1</span><span class="p">,</span> <span class="n">rowId2</span> <span class="p">},</span>
+    <span class="n">ColumnIds</span> <span class="p">=</span> <span class="k">new</span> <span class="kt">long</span><span class="p">[]</span> <span class="p">{</span> <span class="n">colId1</span><span class="p">,</span> <span class="n">colId2</span> <span class="p">},</span>
+    <span class="n">IncludeAttachments</span> <span class="p">=</span> <span class="k">true</span><span class="p">,</span>
+    <span class="n">IncludeDiscussions</span> <span class="p">=</span> <span class="k">true</span>
+<span class="p">};</span>
+
+<span class="c1">// Send update request via email.
+</span><span class="n">smartsheet</span><span class="p">.</span><span class="n">SheetResources</span><span class="p">.</span><span class="nf">SendUpdateRequest</span><span class="p">(</span><span class="n">sheetId</span><span class="p">,</span> <span class="n">multiEmail</span><span class="p">);</span>
+</code></pre>
+
+<pre class="highlight java"><code><span class="c1">// Specify recipients.</span>
+<span class="n">RecipientEmail</span> <span class="n">recipientEmail</span> <span class="o">=</span> <span class="k">new</span> <span class="n">RecipientEmail</span><span class="o">.</span><span class="na">AddRecipientEmailBuilder</span><span class="o">()</span>
+                <span class="o">.</span><span class="na">setEmail</span><span class="o">(</span><span class="s">"email789@smartsheet.com"</span><span class="o">)</span>
+                <span class="o">.</span><span class="na">setEmail</span><span class="o">(</span><span class="s">"email0123@smartsheet.com"</span><span class="o">)</span>
+                <span class="o">.</span><span class="na">build</span><span class="o">();</span>
+
+<span class="n">List</span><span class="o">&lt;</span><span class="n">Recipient</span><span class="o">&gt;</span> <span class="n">recipients</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ArrayList</span><span class="o">&lt;</span><span class="n">Recipient</span><span class="o">&gt;();</span>
+<span class="n">recipients</span><span class="o">.</span><span class="na">add</span><span class="o">(</span><span class="n">recipientEmail</span><span class="o">);</span>
+
+<span class="c1">// Configure email.</span>
+<span class="n">MultiRowEmail</span> <span class="n">multiRowEmail</span> <span class="o">=</span> <span class="k">new</span> <span class="n">MultiRowEmail</span><span class="o">.</span><span class="na">AddMultiRowEmailBuilder</span><span class="o">()</span>
+    <span class="o">.</span><span class="na">setSendTo</span><span class="o">(</span><span class="n">recipients</span><span class="o">)</span>
+    <span class="o">.</span><span class="na">setSubject</span><span class="o">(</span><span class="s">"some subject"</span><span class="o">)</span>
+    <span class="o">.</span><span class="na">setMessage</span><span class="o">(</span><span class="s">"some message"</span><span class="o">)</span>
+    <span class="o">.</span><span class="na">setCcMe</span><span class="o">(</span><span class="kc">false</span><span class="o">)</span>
+    <span class="o">.</span><span class="na">setRowIds</span><span class="o">(</span><span class="n">Arrays</span><span class="o">.</span><span class="na">asList</span><span class="o">(</span><span class="n">rowId1</span><span class="o">,</span> <span class="n">rowId2</span><span class="o">)</span>
+    <span class="o">.</span><span class="na">setColumnIds</span><span class="o">(</span><span class="n">Arrays</span><span class="o">.</span><span class="na">asList</span><span class="o">(</span><span class="n">columnId1</span><span class="o">,</span> <span class="n">columnId2</span><span class="o">)</span>
+    <span class="o">.</span><span class="na">setIncludeAttachments</span><span class="o">(</span><span class="kc">false</span><span class="o">)</span>
+    <span class="o">.</span><span class="na">setIncludeDiscussions</span><span class="o">(</span><span class="kc">false</span><span class="o">)</span>
+    <span class="o">.</span><span class="na">build</span><span class="o">();</span>
+
+<span class="c1">// Send update request via email.</span>
+<span class="n">smartsheet</span><span class="o">.</span><span class="na">sheetResources</span><span class="o">().</span><span class="na">createUpdateRequest</span><span class="o">(</span><span class="n">sheetId</span><span class="o">,</span> <span class="n">multiRowEmail</span><span class="o">);</span>
 </code></pre>
 
 <blockquote>
@@ -11816,10 +12118,10 @@ Either <strong>email</strong> and <strong>groupId</strong> may be set, but not b
     <span class="p">});</span>
 </code></pre>
 <pre class="highlight csharp"><code><span class="c1">// Set the access level to Viewer.
-</span><span class="n">Share</span> <span class="n">share</span> <span class="p">=</span> <span class="k">new</span> <span class="n">Share</span><span class="p">.</span><span class="nf">UpdateShareBuilder</span><span class="p">(</span><span class="n">AccessLevel</span><span class="p">.</span><span class="n">VIEWER</span><span class="p">).</span><span class="nf">Build</span><span class="p">();</span>
+</span><span class="n">Share</span> <span class="n">share</span> <span class="p">=</span> <span class="k">new</span> <span class="n">Share</span><span class="p">.</span><span class="nf">UpdateShareBuilder</span><span class="p">(</span><span class="n">shareId</span><span class="p">,</span> <span class="n">AccessLevel</span><span class="p">.</span><span class="n">VIEWER</span><span class="p">).</span><span class="nf">Build</span><span class="p">();</span>
 
 <span class="c1">// Update report share.
-</span><span class="n">smartsheet</span><span class="p">.</span><span class="n">ReportResources</span><span class="p">.</span><span class="n">ShareResources</span><span class="p">.</span><span class="nf">UpdateShare</span><span class="p">(</span><span class="n">reportId</span><span class="p">,</span> <span class="n">shareId</span><span class="p">,</span> <span class="n">share</span><span class="p">);</span>
+</span><span class="n">smartsheet</span><span class="p">.</span><span class="n">ReportResources</span><span class="p">.</span><span class="n">ShareResources</span><span class="p">.</span><span class="nf">UpdateShare</span><span class="p">(</span><span class="n">reportId</span><span class="p">,</span> <span class="n">share</span><span class="p">);</span>
 </code></pre>
 <pre class="highlight java"><code><span class="c1">// Set the access level to Viewer.</span>
 <span class="n">Share</span> <span class="n">share</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Share</span><span class="o">.</span><span class="na">UpdateShareBuilder</span><span class="o">().</span><span class="na">setShareId</span><span class="o">(</span><span class="n">shareId</span><span class="o">).</span><span class="na">setAccessLevel</span><span class="o">(</span><span class="n">AccessLevel</span><span class="o">.</span><span class="na">VIEWER</span><span class="o">).</span><span class="na">build</span><span class="o">();</span>
@@ -12239,10 +12541,10 @@ Either <strong>email</strong> and <strong>groupId</strong> may be set, but not b
     <span class="p">});</span>
 </code></pre>
 <pre class="highlight csharp"><code><span class="c1">// Set access level to Viewer.
-</span><span class="n">Share</span> <span class="n">share</span> <span class="p">=</span> <span class="k">new</span> <span class="n">Share</span><span class="p">.</span><span class="nf">UpdateShareBuilder</span><span class="p">(</span><span class="n">AccessLevel</span><span class="p">.</span><span class="n">VIEWER</span><span class="p">).</span><span class="nf">Build</span><span class="p">();</span>
+</span><span class="n">Share</span> <span class="n">share</span> <span class="p">=</span> <span class="k">new</span> <span class="n">Share</span><span class="p">.</span><span class="nf">UpdateShareBuilder</span><span class="p">(</span><span class="n">shareId</span><span class="p">,</span> <span class="n">AccessLevel</span><span class="p">.</span><span class="n">VIEWER</span><span class="p">).</span><span class="nf">Build</span><span class="p">();</span>
 
 <span class="c1">// Update sheet share.
-</span><span class="n">smartsheet</span><span class="p">.</span><span class="n">SheetResources</span><span class="p">.</span><span class="n">ShareResources</span><span class="p">.</span><span class="nf">UpdateShare</span><span class="p">(</span><span class="n">sheetId</span><span class="p">,</span> <span class="n">shareId</span><span class="p">,</span> <span class="n">share</span><span class="p">);</span>
+</span><span class="n">smartsheet</span><span class="p">.</span><span class="n">SheetResources</span><span class="p">.</span><span class="n">ShareResources</span><span class="p">.</span><span class="nf">UpdateShare</span><span class="p">(</span><span class="n">sheetId</span><span class="p">,</span> <span class="n">share</span><span class="p">);</span>
 </code></pre>
 <pre class="highlight java"><code><span class="c1">// Set the access level to Viewer.</span>
 <span class="n">Share</span> <span class="n">share</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Share</span><span class="o">.</span><span class="na">UpdateShareBuilder</span><span class="o">().</span><span class="na">setShareId</span><span class="o">(</span><span class="n">shareId</span><span class="o">).</span><span class="na">setAccessLevel</span><span class="o">(</span><span class="n">AccessLevel</span><span class="o">.</span><span class="na">VIEWER</span><span class="o">).</span><span class="na">build</span><span class="o">();</span>
@@ -12662,10 +12964,10 @@ Either <strong>email</strong> and <strong>groupId</strong> may be set, but not b
     <span class="p">});</span>
 </code></pre>
 <pre class="highlight csharp"><code><span class="c1">// Set access level to Viewer.
-</span><span class="n">Share</span> <span class="n">share</span> <span class="p">=</span> <span class="k">new</span> <span class="n">Share</span><span class="p">.</span><span class="nf">UpdateShareBuilder</span><span class="p">(</span><span class="n">AccessLevel</span><span class="p">.</span><span class="n">VIEWER</span><span class="p">).</span><span class="nf">Build</span><span class="p">();</span>
+</span><span class="n">Share</span> <span class="n">share</span> <span class="p">=</span> <span class="k">new</span> <span class="n">Share</span><span class="p">.</span><span class="nf">UpdateShareBuilder</span><span class="p">(</span><span class="n">shareId</span><span class="p">,</span> <span class="n">AccessLevel</span><span class="p">.</span><span class="n">VIEWER</span><span class="p">).</span><span class="nf">Build</span><span class="p">();</span>
 
 <span class="c1">// Update workspace share.
-</span><span class="n">smartsheet</span><span class="p">.</span><span class="n">WorkspaceResources</span><span class="p">.</span><span class="n">ShareResources</span><span class="p">.</span><span class="nf">UpdateShare</span><span class="p">(</span><span class="n">workspaceId</span><span class="p">,</span> <span class="n">shareId</span><span class="p">,</span> <span class="n">share</span><span class="p">);</span>
+</span><span class="n">smartsheet</span><span class="p">.</span><span class="n">WorkspaceResources</span><span class="p">.</span><span class="n">ShareResources</span><span class="p">.</span><span class="nf">UpdateShare</span><span class="p">(</span><span class="n">workspaceId</span><span class="p">,</span> <span class="n">share</span><span class="p">);</span>
 </code></pre>
 <pre class="highlight java"><code><span class="c1">// Set the access level to Viewer.</span>
 <span class="n">Share</span> <span class="n">share</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Share</span><span class="o">.</span><span class="na">UpdateShareBuilder</span><span class="o">().</span><span class="na">setShareId</span><span class="o">(</span><span class="n">shareId</span><span class="o">).</span><span class="na">setAccessLevel</span><span class="o">(</span><span class="n">AccessLevel</span><span class="o">.</span><span class="na">VIEWER</span><span class="o">).</span><span class="na">build</span><span class="o">();</span>
@@ -12961,6 +13263,33 @@ Either <strong>email</strong> and <strong>groupId</strong> may be set, but not b
     "newName": "newSheetName" \
 }'</span> <span class="se">\</span>
 -X POST
+</code></pre>
+<pre class="highlight csharp"><code><span class="c1">// Specify destination.
+</span><span class="n">ContainerDestination</span> <span class="n">destination</span> <span class="p">=</span> <span class="k">new</span> <span class="n">ContainerDestination</span>
+<span class="p">{</span>
+    <span class="n">DestinationId</span> <span class="p">=</span> <span class="n">destinationFolderId</span><span class="p">,</span>
+    <span class="n">DestinationType</span> <span class="p">=</span> <span class="n">DestinationType</span><span class="p">.</span><span class="n">FOLDER</span><span class="p">,</span>
+    <span class="n">NewName</span> <span class="p">=</span> <span class="s">"newSheetName"</span>
+<span class="p">};</span>
+
+<span class="c1">// Copy sheet (omit 'include' parameter).
+</span><span class="n">smartsheet</span><span class="p">.</span><span class="n">SheetResources</span><span class="p">.</span><span class="nf">CopySheet</span><span class="p">(</span><span class="n">sheetId</span><span class="p">,</span> <span class="n">destination</span><span class="p">,</span> <span class="k">null</span><span class="p">);</span>
+
+<span class="c1">// Copy sheet (specify 'include' parameter with value of "all").
+</span><span class="n">smartsheet</span><span class="p">.</span><span class="n">SheetResources</span><span class="p">.</span><span class="nf">CopySheet</span><span class="p">(</span><span class="n">sheetId</span><span class="p">,</span> <span class="n">destination</span><span class="p">,</span> <span class="k">new</span> <span class="n">SheetCopyInclusion</span><span class="p">[]</span> <span class="p">{</span> <span class="n">SheetCopyInclusion</span><span class="p">.</span><span class="n">ALL</span> <span class="p">});</span>
+</code></pre>
+<pre class="highlight java"><code><span class="c1">// Specify destination.</span>
+<span class="n">ContainerDestination</span> <span class="n">destination</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ContainerDestination</span><span class="o">.</span><span class="na">AddContainerDestinationBuilder</span><span class="o">()</span>
+        <span class="o">.</span><span class="na">setDestinationType</span><span class="o">(</span><span class="n">DestinationType</span><span class="o">.</span><span class="na">FOLDER</span><span class="o">)</span>
+        <span class="o">.</span><span class="na">setDestinationId</span><span class="o">(</span><span class="n">destinationFolderId</span><span class="o">)</span>
+        <span class="o">.</span><span class="na">setNewName</span><span class="o">(</span><span class="s">"newSheetName"</span><span class="o">)</span>
+        <span class="o">.</span><span class="na">build</span><span class="o">();</span>
+
+<span class="c1">// Copy sheet (omit 'include' parameter).</span>
+<span class="n">smartsheet</span><span class="o">.</span><span class="na">sheetResources</span><span class="o">().</span><span class="na">copySheet</span><span class="o">(</span><span class="n">sheetId</span><span class="o">,</span> <span class="n">destination</span><span class="o">,</span> <span class="kc">null</span><span class="o">);</span>
+
+<span class="c1">// Copy sheet (specify 'include' parameter with value of "all").</span>
+<span class="n">smartsheet</span><span class="o">.</span><span class="na">sheetResources</span><span class="o">().</span><span class="na">copySheet</span><span class="o">(</span><span class="n">sheetId</span><span class="o">,</span> <span class="n">destination</span><span class="o">,</span> <span class="n">EnumSet</span><span class="o">.</span><span class="na">of</span><span class="o">(</span><span class="n">SheetCopyInclusion</span><span class="o">.</span><span class="na">ALL</span><span class="o">));</span>
 </code></pre>
 
 <blockquote>
@@ -14364,6 +14693,25 @@ Either <strong>email</strong> and <strong>groupId</strong> may be set, but not b
 }'</span> <span class="se">\</span>
 -X POST
 </code></pre>
+<pre class="highlight csharp"><code><span class="c1">// Specify destination.
+</span><span class="n">ContainerDestination</span> <span class="n">destination</span> <span class="p">=</span> <span class="k">new</span> <span class="n">ContainerDestination</span>
+<span class="p">{</span>
+    <span class="n">DestinationId</span> <span class="p">=</span> <span class="n">destinationFolderId</span><span class="p">,</span>
+    <span class="n">DestinationType</span> <span class="p">=</span> <span class="n">DestinationType</span><span class="p">.</span><span class="n">FOLDER</span><span class="p">,</span>
+<span class="p">};</span>
+
+<span class="c1">// Move sheet.
+</span><span class="n">smartsheet</span><span class="p">.</span><span class="n">SheetResources</span><span class="p">.</span><span class="nf">MoveSheet</span><span class="p">(</span><span class="n">sheetId</span><span class="p">,</span> <span class="n">destination</span><span class="p">);</span>
+</code></pre>
+<pre class="highlight java"><code><span class="c1">// Specify destination.</span>
+<span class="n">ContainerDestination</span> <span class="n">destination</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ContainerDestination</span><span class="o">.</span><span class="na">AddContainerDestinationBuilder</span><span class="o">()</span>
+        <span class="o">.</span><span class="na">setDestinationType</span><span class="o">(</span><span class="n">DestinationType</span><span class="o">.</span><span class="na">FOLDER</span><span class="o">)</span>
+        <span class="o">.</span><span class="na">setDestinationId</span><span class="o">(</span><span class="n">destinationFolderId</span><span class="o">)</span>
+        <span class="o">.</span><span class="na">build</span><span class="o">();</span>
+
+<span class="c1">// Move sheet.</span>
+<span class="n">smartsheet</span><span class="o">.</span><span class="na">sheetResources</span><span class="o">().</span><span class="na">moveSheet</span><span class="o">(</span><span class="n">sheetId</span><span class="o">,</span> <span class="n">destination</span><span class="o">);</span>
+</code></pre>
 
 <blockquote>
 <p>Example Response:</p>
@@ -14743,7 +15091,14 @@ Either <strong>email</strong> and <strong>groupId</strong> may be set, but not b
 <span class="n">formatDetails</span><span class="o">.</span><span class="na">setPaperSize</span><span class="o">(</span><span class="n">PaperSize</span><span class="o">.</span><span class="na">A0</span><span class="o">);</span> 
 
 <span class="c1">// Configure email.</span>
-<span class="n">RowEmail</span> <span class="n">email</span> <span class="o">=</span> <span class="k">new</span> <span class="n">RowEmail</span><span class="o">.</span><span class="na">AddRowEmailBuilder</span><span class="o">().</span><span class="na">setSendTo</span><span class="o">(</span><span class="n">recipients</span><span class="o">).</span><span class="na">setSubject</span><span class="o">(</span><span class="s">"Check these rows out!"</span><span class="o">).</span><span class="na">setMessage</span><span class="o">(</span><span class="s">"Here are the rows I mentioned in our meeting"</span><span class="o">).</span><span class="na">setCcMe</span><span class="o">(</span><span class="kc">false</span><span class="o">).</span><span class="na">setIncludeAttachments</span><span class="o">(</span><span class="kc">true</span><span class="o">).</span><span class="na">setIncludeDiscussions</span><span class="o">(</span><span class="kc">true</span><span class="o">).</span><span class="na">build</span><span class="o">();</span>
+<span class="n">SheetEmail</span> <span class="n">email</span> <span class="o">=</span> <span class="k">new</span> <span class="n">SheetEmail</span><span class="o">.</span><span class="na">AddSheetEmailBuilder</span><span class="o">()</span>
+    <span class="o">.</span><span class="na">setSendTo</span><span class="o">(</span><span class="n">recipients</span><span class="o">)</span>
+    <span class="o">.</span><span class="na">setSubject</span><span class="o">(</span><span class="s">"Check these rows out!"</span><span class="o">)</span>
+    <span class="o">.</span><span class="na">setMessage</span><span class="o">(</span><span class="s">"Here are the rows I mentioned in our meeting"</span><span class="o">)</span>
+    <span class="o">.</span><span class="na">setCcMe</span><span class="o">(</span><span class="kc">false</span><span class="o">)</span>
+    <span class="o">.</span><span class="na">setFormat</span><span class="o">(</span><span class="n">SheetEmailFormat</span><span class="o">.</span><span class="na">PDF</span><span class="o">)</span>
+    <span class="o">.</span><span class="na">setFormatDetails</span><span class="o">(</span><span class="n">formatDetails</span><span class="o">)</span>
+    <span class="o">.</span><span class="na">build</span><span class="o">();</span>
 
 <span class="c1">// Send sheet via email.</span>
 <span class="n">smartsheet</span><span class="o">.</span><span class="na">sheetResources</span><span class="o">().</span><span class="na">sendSheet</span><span class="o">(</span><span class="n">sheetId</span><span class="o">,</span> <span class="n">email</span><span class="o">);</span>
@@ -14805,11 +15160,58 @@ Either <strong>email</strong> and <strong>groupId</strong> may be set, but not b
     "subject": "some subject", \
     "message": "some message", \
     "ccMe": (true|false), \
-    "rowIds": [rowId1], \
+    "rowIds": [rowId1, rowId2], \
     "columnIds": [colId1, colId2], \
     "includeAttachments": (true|false), \
     "includeDiscussions": (true|false) \
 }'</span>
+</code></pre>
+
+<pre class="highlight csharp"><code><span class="c1">// Specify recipients.
+</span><span class="n">Recipient</span><span class="p">[]</span> <span class="n">recipients</span> <span class="p">=</span> <span class="k">new</span> <span class="n">Recipient</span><span class="p">[]</span> <span class="p">{</span> 
+    <span class="k">new</span> <span class="n">Recipient</span> <span class="p">{</span> <span class="n">Email</span> <span class="p">=</span> <span class="s">"email789@smartsheet.com"</span> <span class="p">},</span>
+    <span class="k">new</span> <span class="n">Recipient</span> <span class="p">{</span> <span class="n">Email</span> <span class="p">=</span> <span class="s">"email0123@smartsheet.com"</span> <span class="p">}</span>
+<span class="p">};</span>
+
+<span class="c1">// Configure email.
+</span><span class="n">MultiRowEmail</span> <span class="n">multiEmail</span> <span class="p">=</span> <span class="k">new</span> <span class="n">MultiRowEmail</span> <span class="p">{</span>
+    <span class="n">SendTo</span> <span class="p">=</span> <span class="n">recipients</span><span class="p">,</span>
+    <span class="n">Subject</span> <span class="p">=</span> <span class="s">"some subject"</span><span class="p">,</span>
+    <span class="n">Message</span> <span class="p">=</span> <span class="s">"some message"</span><span class="p">,</span>
+    <span class="n">CcMe</span> <span class="p">=</span> <span class="k">true</span><span class="p">,</span>
+    <span class="n">RowIds</span> <span class="p">=</span> <span class="k">new</span> <span class="kt">long</span><span class="p">[]</span> <span class="p">{</span> <span class="n">rowId1</span><span class="p">,</span> <span class="n">rowId2</span> <span class="p">},</span>
+    <span class="n">ColumnIds</span> <span class="p">=</span> <span class="k">new</span> <span class="kt">long</span><span class="p">[]</span> <span class="p">{</span> <span class="n">colId1</span><span class="p">,</span> <span class="n">colId2</span> <span class="p">},</span>
+    <span class="n">IncludeAttachments</span> <span class="p">=</span> <span class="k">true</span><span class="p">,</span>
+    <span class="n">IncludeDiscussions</span> <span class="p">=</span> <span class="k">true</span>
+<span class="p">};</span>
+
+<span class="c1">// Send update request via email.
+</span><span class="n">smartsheet</span><span class="p">.</span><span class="n">SheetResources</span><span class="p">.</span><span class="nf">SendUpdateRequest</span><span class="p">(</span><span class="n">sheetId</span><span class="p">,</span> <span class="n">multiEmail</span><span class="p">);</span>
+</code></pre>
+
+<pre class="highlight java"><code><span class="c1">// Specify recipients.</span>
+<span class="n">RecipientEmail</span> <span class="n">recipientEmail</span> <span class="o">=</span> <span class="k">new</span> <span class="n">RecipientEmail</span><span class="o">.</span><span class="na">AddRecipientEmailBuilder</span><span class="o">()</span>
+                <span class="o">.</span><span class="na">setEmail</span><span class="o">(</span><span class="s">"email789@smartsheet.com"</span><span class="o">)</span>
+                <span class="o">.</span><span class="na">setEmail</span><span class="o">(</span><span class="s">"email0123@smartsheet.com"</span><span class="o">)</span>
+                <span class="o">.</span><span class="na">build</span><span class="o">();</span>
+
+<span class="n">List</span><span class="o">&lt;</span><span class="n">Recipient</span><span class="o">&gt;</span> <span class="n">recipients</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ArrayList</span><span class="o">&lt;</span><span class="n">Recipient</span><span class="o">&gt;();</span>
+<span class="n">recipients</span><span class="o">.</span><span class="na">add</span><span class="o">(</span><span class="n">recipientEmail</span><span class="o">);</span>
+
+<span class="c1">// Configure email.</span>
+<span class="n">MultiRowEmail</span> <span class="n">multiRowEmail</span> <span class="o">=</span> <span class="k">new</span> <span class="n">MultiRowEmail</span><span class="o">.</span><span class="na">AddMultiRowEmailBuilder</span><span class="o">()</span>
+    <span class="o">.</span><span class="na">setSendTo</span><span class="o">(</span><span class="n">recipients</span><span class="o">)</span>
+    <span class="o">.</span><span class="na">setSubject</span><span class="o">(</span><span class="s">"some subject"</span><span class="o">)</span>
+    <span class="o">.</span><span class="na">setMessage</span><span class="o">(</span><span class="s">"some message"</span><span class="o">)</span>
+    <span class="o">.</span><span class="na">setCcMe</span><span class="o">(</span><span class="kc">false</span><span class="o">)</span>
+    <span class="o">.</span><span class="na">setRowIds</span><span class="o">(</span><span class="n">Arrays</span><span class="o">.</span><span class="na">asList</span><span class="o">(</span><span class="n">rowId1</span><span class="o">,</span> <span class="n">rowId2</span><span class="o">)</span>
+    <span class="o">.</span><span class="na">setColumnIds</span><span class="o">(</span><span class="n">Arrays</span><span class="o">.</span><span class="na">asList</span><span class="o">(</span><span class="n">columnId1</span><span class="o">,</span> <span class="n">columnId2</span><span class="o">)</span>
+    <span class="o">.</span><span class="na">setIncludeAttachments</span><span class="o">(</span><span class="kc">false</span><span class="o">)</span>
+    <span class="o">.</span><span class="na">setIncludeDiscussions</span><span class="o">(</span><span class="kc">false</span><span class="o">)</span>
+    <span class="o">.</span><span class="na">build</span><span class="o">();</span>
+
+<span class="c1">// Send update request via email.</span>
+<span class="n">smartsheet</span><span class="o">.</span><span class="na">sheetResources</span><span class="o">().</span><span class="na">createUpdateRequest</span><span class="o">(</span><span class="n">sheetId</span><span class="o">,</span> <span class="n">multiRowEmail</span><span class="o">);</span>
 </code></pre>
 
 <blockquote>
@@ -15419,11 +15821,58 @@ only has read-only access to the sheet (i.e. the user has viewer permissions, or
     "subject": "some subject", \
     "message": "some message", \
     "ccMe": (true|false), \
-    "rowIds": [rowId1], \
+    "rowIds": [rowId1, rowId2], \
     "columnIds": [colId1, colId2], \
     "includeAttachments": (true|false), \
     "includeDiscussions": (true|false) \
 }'</span>
+</code></pre>
+
+<pre class="highlight csharp"><code><span class="c1">// Specify recipients.
+</span><span class="n">Recipient</span><span class="p">[]</span> <span class="n">recipients</span> <span class="p">=</span> <span class="k">new</span> <span class="n">Recipient</span><span class="p">[]</span> <span class="p">{</span> 
+    <span class="k">new</span> <span class="n">Recipient</span> <span class="p">{</span> <span class="n">Email</span> <span class="p">=</span> <span class="s">"email789@smartsheet.com"</span> <span class="p">},</span>
+    <span class="k">new</span> <span class="n">Recipient</span> <span class="p">{</span> <span class="n">Email</span> <span class="p">=</span> <span class="s">"email0123@smartsheet.com"</span> <span class="p">}</span>
+<span class="p">};</span>
+
+<span class="c1">// Configure email.
+</span><span class="n">MultiRowEmail</span> <span class="n">multiEmail</span> <span class="p">=</span> <span class="k">new</span> <span class="n">MultiRowEmail</span> <span class="p">{</span>
+    <span class="n">SendTo</span> <span class="p">=</span> <span class="n">recipients</span><span class="p">,</span>
+    <span class="n">Subject</span> <span class="p">=</span> <span class="s">"some subject"</span><span class="p">,</span>
+    <span class="n">Message</span> <span class="p">=</span> <span class="s">"some message"</span><span class="p">,</span>
+    <span class="n">CcMe</span> <span class="p">=</span> <span class="k">true</span><span class="p">,</span>
+    <span class="n">RowIds</span> <span class="p">=</span> <span class="k">new</span> <span class="kt">long</span><span class="p">[]</span> <span class="p">{</span> <span class="n">rowId1</span><span class="p">,</span> <span class="n">rowId2</span> <span class="p">},</span>
+    <span class="n">ColumnIds</span> <span class="p">=</span> <span class="k">new</span> <span class="kt">long</span><span class="p">[]</span> <span class="p">{</span> <span class="n">colId1</span><span class="p">,</span> <span class="n">colId2</span> <span class="p">},</span>
+    <span class="n">IncludeAttachments</span> <span class="p">=</span> <span class="k">true</span><span class="p">,</span>
+    <span class="n">IncludeDiscussions</span> <span class="p">=</span> <span class="k">true</span>
+<span class="p">};</span>
+
+<span class="c1">// Send update request via email.
+</span><span class="n">smartsheet</span><span class="p">.</span><span class="n">SheetResources</span><span class="p">.</span><span class="nf">SendUpdateRequest</span><span class="p">(</span><span class="n">sheetId</span><span class="p">,</span> <span class="n">multiEmail</span><span class="p">);</span>
+</code></pre>
+
+<pre class="highlight java"><code><span class="c1">// Specify recipients.</span>
+<span class="n">RecipientEmail</span> <span class="n">recipientEmail</span> <span class="o">=</span> <span class="k">new</span> <span class="n">RecipientEmail</span><span class="o">.</span><span class="na">AddRecipientEmailBuilder</span><span class="o">()</span>
+                <span class="o">.</span><span class="na">setEmail</span><span class="o">(</span><span class="s">"email789@smartsheet.com"</span><span class="o">)</span>
+                <span class="o">.</span><span class="na">setEmail</span><span class="o">(</span><span class="s">"email0123@smartsheet.com"</span><span class="o">)</span>
+                <span class="o">.</span><span class="na">build</span><span class="o">();</span>
+
+<span class="n">List</span><span class="o">&lt;</span><span class="n">Recipient</span><span class="o">&gt;</span> <span class="n">recipients</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ArrayList</span><span class="o">&lt;</span><span class="n">Recipient</span><span class="o">&gt;();</span>
+<span class="n">recipients</span><span class="o">.</span><span class="na">add</span><span class="o">(</span><span class="n">recipientEmail</span><span class="o">);</span>
+
+<span class="c1">// Configure email.</span>
+<span class="n">MultiRowEmail</span> <span class="n">multiRowEmail</span> <span class="o">=</span> <span class="k">new</span> <span class="n">MultiRowEmail</span><span class="o">.</span><span class="na">AddMultiRowEmailBuilder</span><span class="o">()</span>
+    <span class="o">.</span><span class="na">setSendTo</span><span class="o">(</span><span class="n">recipients</span><span class="o">)</span>
+    <span class="o">.</span><span class="na">setSubject</span><span class="o">(</span><span class="s">"some subject"</span><span class="o">)</span>
+    <span class="o">.</span><span class="na">setMessage</span><span class="o">(</span><span class="s">"some message"</span><span class="o">)</span>
+    <span class="o">.</span><span class="na">setCcMe</span><span class="o">(</span><span class="kc">false</span><span class="o">)</span>
+    <span class="o">.</span><span class="na">setRowIds</span><span class="o">(</span><span class="n">Arrays</span><span class="o">.</span><span class="na">asList</span><span class="o">(</span><span class="n">rowId1</span><span class="o">,</span> <span class="n">rowId2</span><span class="o">)</span>
+    <span class="o">.</span><span class="na">setColumnIds</span><span class="o">(</span><span class="n">Arrays</span><span class="o">.</span><span class="na">asList</span><span class="o">(</span><span class="n">columnId1</span><span class="o">,</span> <span class="n">columnId2</span><span class="o">)</span>
+    <span class="o">.</span><span class="na">setIncludeAttachments</span><span class="o">(</span><span class="kc">false</span><span class="o">)</span>
+    <span class="o">.</span><span class="na">setIncludeDiscussions</span><span class="o">(</span><span class="kc">false</span><span class="o">)</span>
+    <span class="o">.</span><span class="na">build</span><span class="o">();</span>
+
+<span class="c1">// Send update request via email.</span>
+<span class="n">smartsheet</span><span class="o">.</span><span class="na">sheetResources</span><span class="o">().</span><span class="na">createUpdateRequest</span><span class="o">(</span><span class="n">sheetId</span><span class="o">,</span> <span class="n">multiRowEmail</span><span class="o">);</span>
 </code></pre>
 
 <blockquote>
@@ -16252,6 +16701,27 @@ only has read-only access to the sheet (i.e. the user has viewer permissions, or
 -H <span class="s2">"Content-Type: application/json"</span> <span class="se">\</span>
 -d <span class="s1">'{"newName": "newWorkspaceName"}'</span> <span class="se">\</span>
 -X POST
+</code></pre>
+<pre class="highlight csharp"><code><span class="c1">// Specify name for the new workspace.
+</span><span class="n">ContainerDestination</span> <span class="n">destination</span> <span class="p">=</span> <span class="k">new</span> <span class="n">ContainerDestination</span>
+<span class="p">{</span>
+    <span class="n">NewName</span> <span class="p">=</span> <span class="s">"newWorkspaceName"</span>
+<span class="p">};</span>
+
+<span class="c1">// Copy workspace (omit 'include' and 'skipRemap' parameters).
+</span><span class="n">smartsheet</span><span class="p">.</span><span class="n">WorkspaceResources</span><span class="p">.</span><span class="nf">CopyWorkspace</span><span class="p">(</span><span class="n">workspaceId</span><span class="p">,</span> <span class="n">destination</span><span class="p">,</span> <span class="k">null</span><span class="p">,</span> <span class="k">null</span><span class="p">);</span>
+
+<span class="c1">// Copy workspace (specify 'include' parameter with value of "all", and 'skipRemap' parameter with value of "cellLinks").
+</span><span class="n">smartsheet</span><span class="p">.</span><span class="n">WorkspaceResources</span><span class="p">.</span><span class="nf">CopyWorkspace</span><span class="p">(</span><span class="n">workspaceId</span><span class="p">,</span> <span class="n">destination</span><span class="p">,</span> <span class="k">new</span> <span class="n">WorkspaceCopyInclusion</span><span class="p">[]</span> <span class="p">{</span> <span class="n">WorkspaceCopyInclusion</span><span class="p">.</span><span class="n">ALL</span> <span class="p">},</span> <span class="k">new</span> <span class="n">WorkspaceRemapExclusion</span><span class="p">[]</span> <span class="p">{</span> <span class="n">WorkspaceRemapExclusion</span><span class="p">.</span><span class="n">CELL_LINKS</span> <span class="p">});</span>
+</code></pre>
+<pre class="highlight java"><code><span class="c1">// Specify name for the new workspace.</span>
+<span class="n">ContainerDestination</span> <span class="n">destination</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ContainerDestination</span><span class="o">.</span><span class="na">AddContainerDestinationBuilder</span><span class="o">().</span><span class="na">setNewName</span><span class="o">(</span><span class="s">"newWorkspaceName"</span><span class="o">).</span><span class="na">build</span><span class="o">();</span>
+
+<span class="c1">// Copy workspace (omit 'include' and 'skipRemap' parameters).</span>
+<span class="n">smartsheet</span><span class="o">.</span><span class="na">workspaceResources</span><span class="o">().</span><span class="na">copyWorkspace</span><span class="o">(</span><span class="n">workspaceId</span><span class="o">,</span> <span class="n">destination</span><span class="o">,</span> <span class="kc">null</span><span class="o">,</span> <span class="kc">null</span><span class="o">);</span>
+
+<span class="c1">// Copy workspace (specify 'include' parameter with value of "all", and 'skipRemap' parameter with value of "cellLinks").</span>
+<span class="n">smartsheet</span><span class="o">.</span><span class="na">workspaceResources</span><span class="o">().</span><span class="na">copyWorkspace</span><span class="o">(</span><span class="n">workspaceId</span><span class="o">,</span> <span class="n">destination</span><span class="o">,</span> <span class="n">EnumSet</span><span class="o">.</span><span class="na">of</span><span class="o">(</span><span class="n">WorkspaceCopyInclusion</span><span class="o">.</span><span class="na">ALL</span><span class="o">),</span> <span class="n">EnumSet</span><span class="o">.</span><span class="na">of</span><span class="o">(</span><span class="n">WorkspaceRemapExclusion</span><span class="o">.</span><span class="na">CELLLINKS</span><span class="o">));</span>
 </code></pre>
 
 <blockquote>
