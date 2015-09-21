@@ -123,7 +123,7 @@ This API assumes a good working knowledge of the Smartsheet application UI, conc
 /sheets/{id}/columns
 /sheets/{id}/attachments
 /sheets/{id}/discussions
-/sheets/{id}/updateRequests
+/sheets/{id}/updaterequests
 /templates
 /token
 /users
@@ -279,7 +279,7 @@ Please design your applications assuming that the stated limit will be enforced.
 </tr>
 <tr>
 <td>5xx</td>
-<td>Request was properly formatted, but the operation failed on Smartsheet’s end</td>
+<td>Request was properly formatted, but the operation failed on Smartsheet&rsquo;s end</td>
 </tr>
 </tbody></table>
 
@@ -314,6 +314,14 @@ Please design your applications assuming that the stated limit will be enforced.
 <tr>
 <td>405</td>
 <td>METHOD NOT SUPPORTED</td>
+</tr>
+<tr>
+<td>406</td>
+<td>NOT ACCEPTABLE</td>
+</tr>
+<tr>
+<td>415</td>
+<td>UNSUPPORTED MEDIA TYPE</td>
 </tr>
 <tr>
 <td>500</td>
@@ -970,7 +978,7 @@ Please design your applications assuming that the stated limit will be enforced.
 </tr>
 <tr>
 <td>4000</td>
-<td>An unexpected error has occurred. Please contact Smartsheet support at support@smartsheet.com for assistance.</td>
+<td>An unexpected error has occurred. Please contact api@smartsheet.com for assistance.</td>
 </tr>
 <tr>
 <td>4001</td>
@@ -983,6 +991,10 @@ Please design your applications assuming that the stated limit will be enforced.
 <tr>
 <td>4003</td>
 <td>Rate limit exceeded.</td>
+</tr>
+<tr>
+<td>4004</td>
+<td>An unexpected error has occurred. Please retry your request. If you encounter this error repeatedly, please contact api@smartsheet.com for assistance.</td>
 </tr>
 <tr>
 <td>5xxx</td>
@@ -4079,16 +4091,14 @@ For example, you can perform a simple upload to upload a file to a <a href="#att
 
 <h3 id="cell-links">Cell Links</h3>
 
-<p>You can create and modify <a href="#celllink-object">cell links</a> by using any API operation that creates or updates cell data. 
-Creating or updating cell links via the <strong>cell.linkInFromCell</strong> attribute is a special operation. 
+<p>Creating or updating cell links via the <strong>cell.linkInFromCell</strong> attribute is a special operation. 
 A given row or cell update operation may contain only link updates, or no link updates. 
-Attempting to mix row/cell updates with cell link updates will result in error code 1115.</p>
+Attempting to mix row/cell updates with cell link updates will result in error code 1115. 
+Additionally, a <a href="#celllink-object">cell link</a> can only be added to an <em>existing</em> cell, so the <strong>cell.linkInFromCell</strong> attribute is not allowed when POSTing a new row to a sheet.</p>
 
 <p>When creating a cell link, <strong>cell.value</strong> must be null (the data will be pulled from the linked cell).</p>
 
 <p>A cell may not contain both a hyperlink and a cell link, so <strong>hyperlink</strong> and <strong>linkInFromCell</strong> may never both be non-null at the same time.</p>
-
-<p>A cell link can only be added to an <em>existing</em> cell, so the <strong>cell.linkInFromCell</strong> attribute is not allowed when POSTing a new row to a sheet.</p>
 
 <h3 id="hyperlinks">Hyperlinks</h3>
 
@@ -10389,6 +10399,8 @@ of <a href="#groupmember-object">GroupMember objects</a> any users specified in 
 
 <p>Creates an Update Request for the specified Row(s) within the Sheet. An email notification (containing a link to the update request) will be asynchronously sent to the specified recipient(s).</p>
 
+<aside class="notice" >The recipient(s) of an update request must be specified using email address(es) only. Sending an update request to a <a href="#groups">Group</a> is not supported.</aside>
+
 <table><thead>
 <tr>
 <th></th>
@@ -10594,7 +10606,7 @@ of <a href="#groupmember-object">GroupMember objects</a> any users specified in 
 </tr>
 <tr>
 <td><strong>Request Body</strong></td>
-<td><a href="#row-object">Row object</a> or an array of Row objects, with the following attributes:<ul><li>One or more <a href="#row-location"><em>location-specifier</em> attributes</a> (optional)</li><li><strong>expanded</strong> (optional)</li><li><strong>format</strong> (optional)</li><li><strong>cells</strong> (optional) &ndash; if specified, must be an array of <a href="#cell-object">Cell objects</a>, where each object is limited to the following attributes:<ul><li>columnId (required)</li><li>value (required)</li><li>strict (optional)</li><li>format (optional)</li><li>hyperlink (optional) with exactly one of the following attributes set:<ul><li>url</li><li>sheetId</li><li>reportId</li></ul></li><li>linkInFromCell (optional) with all of the following attributes set:<ul><li>sheetId</li><li>rowId</li><li>columnId</li></ul></li></ul></li><li><strong>locked</strong> (optional) - <strong>true</strong> to lock the row or <strong>false</strong> to unlock the row.</li></ul>See <a href="#column-types">Column Types</a> for more information.<br/><br/>Please note the following:<ul><li>Column Ids must be valid for the sheet to which the row belongs, and must only be used once for each row in the operation.</li><li>Cells containing formulas cannot be updated.</li><li>Cells of a project sheet in the  &ldquo;Predecessor&rdquo; or &ldquo;Finish Date&rdquo; columns cannot be updated at this time.</li><li>Max length for a cell value is 4000 characters after which truncation will occur without warning. Empty string values are converted to null.</li></ul></td>
+<td><a href="#row-object">Row object</a> or an array of Row objects, with the following attributes:<ul><li><strong>id</strong> (required)</li><li>One or more <a href="#row-location"><em>location-specifier</em> attributes</a> (optional)</li><li><strong>expanded</strong> (optional)</li><li><strong>format</strong> (optional)</li><li><strong>cells</strong> (optional) &ndash; if specified, must be an array of <a href="#cell-object">Cell objects</a>, where each object is limited to the following attributes:<ul><li>columnId (required)</li><li>value (required)</li><li>strict (optional)</li><li>format (optional)</li><li><a href="#hyperlink-object">hyperlink</a> (optional) with exactly one of the following attributes set:<ul><li>url</li><li>sheetId</li><li>reportId</li></ul></li><li><a href="#celllink-object">linkInFromCell</a> (optional) with all of the following attributes set:<ul><li>sheetId</li><li>rowId</li><li>columnId</li></ul></li></ul></li><li><strong>locked</strong> (optional) - <strong>true</strong> to lock the row or <strong>false</strong> to unlock the row.</li></ul>See <a href="#column-types">Column Types</a> for more information.<br/><br/>Please note the following:<ul><li>Column Ids must be valid for the sheet to which the row belongs, and must only be used once for each row in the operation.</li><li>Cells containing formulas cannot be updated.</li><li>Cells of a project sheet in the  &ldquo;Predecessor&rdquo; or &ldquo;Finish Date&rdquo; columns cannot be updated at this time.</li><li>Max length for a cell value is 4000 characters after which truncation will occur without warning. Empty string values are converted to null.</li></ul></td>
 </tr>
 <tr>
 <td><strong>Returns</strong></td>
@@ -11366,7 +11378,7 @@ Either <strong>email</strong> and <strong>groupId</strong> may be set, but not b
 -H <span class="s2">"Authorization: Bearer ACCESS_TOKEN"</span> <span class="se">\</span>
 -H <span class="s2">"Content-Type: application/json"</span> <span class="se">\</span>
 -X POST <span class="se">\</span>
--d <span class="s1">'{"sendTo" : [{"email": "john.doe@smartsheet.com"}, {"groupId": 2258118617917316}], "subject": "Check these rows out!", "message": "Here are the rows I mentioned in our meeting", "ccMe": false, "format": "PDF", formatDetails": {"paperSize": "A4"}}'</span>
+-d <span class="s1">'{"sendTo" : [{"email": "john.doe@smartsheet.com"}, {"groupId": 2258118617917316}], "subject": "Check these rows out!", "message": "Here is the Sheet I mentioned in our meeting.", "ccMe": false, "format": "PDF", "formatDetails": {"paperSize": "A4"}}'</span>
 
 </code></pre>
 
@@ -11578,6 +11590,8 @@ Either <strong>email</strong> and <strong>groupId</strong> may be set, but not b
 <p><code class="prettyprint">POST /sheets/{sheetId}/updaterequests</code></p>
 
 <p>Creates an Update Request for the specified Row(s) within the Sheet. An email notification (containing a link to the update request) will be asynchronously sent to the specified recipient(s).</p>
+
+<aside class="notice" >The recipient(s) of an update request must be specified using email address(es) only. Sending an update request to a <a href="#groups">Group</a> is not supported.</aside>
 
 <table><thead>
 <tr>
@@ -15018,7 +15032,7 @@ Either <strong>email</strong> and <strong>groupId</strong> may be set, but not b
 -H <span class="s2">"Authorization: Bearer ACCESS_TOKEN"</span> <span class="se">\</span>
 -H <span class="s2">"Content-Type: application/json"</span> <span class="se">\</span>
 -X POST <span class="se">\</span>
--d <span class="s1">'{"sendTo" : [{"email": "john.doe@smartsheet.com"}, {"groupId": 2258118617917316}], "subject": "Check these rows out!", "message": "Here are the rows I mentioned in our meeting", "ccMe": false, "format": "PDF", formatDetails": {"paperSize": "A4"}}'</span>
+-d <span class="s1">'{"sendTo" : [{"email": "john.doe@smartsheet.com"}, {"groupId": 2258118617917316}], "subject": "Check these rows out!", "message": "Here is the Sheet I mentioned in our meeting.", "ccMe": false, "format": "PDF", "formatDetails": {"paperSize": "A4"}}'</span>
 
 </code></pre>
 
@@ -15230,6 +15244,8 @@ Either <strong>email</strong> and <strong>groupId</strong> may be set, but not b
 <p><code class="prettyprint">POST /sheets/{sheetId}/updaterequests</code></p>
 
 <p>Creates an Update Request for the specified Row(s) within the Sheet. An email notification (containing a link to the update request) will be asynchronously sent to the specified recipient(s).</p>
+
+<aside class="notice" >The recipient(s) of an update request must be specified using email address(es) only. Sending an update request to a <a href="#groups">Group</a> is not supported.</aside>
 
 <table><thead>
 <tr>
@@ -15892,6 +15908,8 @@ only has read-only access to the sheet (i.e. the user has viewer permissions, or
 
 <p>Creates an Update Request for the specified Row(s) within the Sheet. An email notification (containing a link to the update request) will be asynchronously sent to the specified recipient(s).</p>
 
+<aside class="notice" >The recipient(s) of an update request must be specified using email address(es) only. Sending an update request to a <a href="#groups">Group</a> is not supported.</aside>
+
 <table><thead>
 <tr>
 <th></th>
@@ -16530,11 +16548,11 @@ only has read-only access to the sheet (i.e. the user has viewer permissions, or
 </tr>
 <tr>
 <td><strong>Parameters</strong></td>
-<td><strong>transferTo</strong> (required if user owns groups): The ID of the user to transfer ownership to.  If the user being deleted owns groups, they will be transferred to this user.  If the user owns sheets, <em>and</em> <strong>transferSheets</strong> is true, then the deleted user&rsquo;s sheets will be transferred to this user.</td>
+<td><strong>transferTo</strong> (required if user owns groups): The ID of the user to transfer ownership to.  If the user being removed owns groups, they will be transferred to this user.  If the user owns sheets, <em>and</em> <strong>transferSheets</strong> is true, then the removed user&rsquo;s sheets will be transferred to this user.</td>
 </tr>
 <tr>
 <td></td>
-<td><strong>transferSheets</strong> (optional): If <code class="prettyprint">true</code>, and <strong>transferTo</strong> is specified, the deleted user&rsquo;s sheets will be transferred.  Else, sheets will not be transferred.  Defaults to <code class="prettyprint">false</code>.</td>
+<td><strong>transferSheets</strong> (optional): If <code class="prettyprint">true</code>, and <strong>transferTo</strong> is specified, the removed user&rsquo;s sheets will be transferred.  Else, sheets will not be transferred.  Defaults to <code class="prettyprint">false</code>.</td>
 </tr>
 <tr>
 <td></td>
@@ -16545,6 +16563,10 @@ only has read-only access to the sheet (i.e. the user has viewer permissions, or
 <td><a href="#result-object">Result object</a></td>
 </tr>
 </tbody></table>
+
+<aside class="notice">If the <b>transferTo</b> parameter is specified and the removed user owns Groups, the user specified via the <b>transferTo</b> parameter must have Group Admin rights.</aside>
+
+<aside class="notice">The <b>transferTo</b> and <b>transferSheets</b> parameters cannot be specified for a user who has not yet accepted an invitation to join the organization (i.e., if user <b>status</b> = &ldquo;PENDING&rdquo;).</aside>
 
 <h2 id="update-user">Update User</h2>
 
@@ -16759,7 +16781,7 @@ only has read-only access to the sheet (i.e. the user has viewer permissions, or
 </tr>
 <tr>
 <td><strong>Parameters</strong></td>
-<td><strong>include</strong> (optional) &ndash; a comma-separated list of optional elements to include in the response:<ul><li>data</li><li>attachments</li><li>discussions</li><li>cellLinks</li><li>forms</li><li>brand</li><li>shares</li><li><strong>all</strong> - specify a value of &ldquo;all&rdquo; to include everything (data, attachments, discussions, cellLinks, forms, brand, and shares)</li></ul><i>Note</i>: Cell history will not be copied, regardless of which <strong>include</strong> parameter values are specified.</td>
+<td><strong>include</strong> (optional) &ndash; a comma-separated list of optional elements to copy:<ul><li>data</li><li>attachments</li><li>discussions</li><li>cellLinks</li><li>forms</li><li>brand</li><li>shares</li><li><strong>all</strong> - specify a value of &ldquo;all&rdquo; to include everything (data, attachments, discussions, cellLinks, forms, brand, and shares)</li></ul><i>Note</i>: Cell history will not be copied, regardless of which <strong>include</strong> parameter values are specified.</td>
 </tr>
 <tr>
 <td></td>
