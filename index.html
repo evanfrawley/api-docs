@@ -227,20 +227,7 @@ For example, if you need to update 10 rows within a sheet, do so using a single 
 <li>Lightening the load on our systems, making your requests more likely to complete in a timely manner</li>
 </ul>
 
-<p>The following API operations currently allow you to do things in bulk:</p>
-
-<ul>
-<li><a href="#add-column(s)">Add Column(s)</a></li>
-<li><a href="#add-favorite(s)">Add Favorite(s)</a></li>
-<li><a href="#remove-favorites-(in-bulk)">Remove Favorite(s)</a></li>
-<li><a href="#add-group-member(s)">Add Group Member(s)</a></li>
-<li><a href="#add-row(s)">Add Row(s)</a></li>
-<li><a href="#copy-row(s)-to-another-sheet">Copy Row(s) to Another Sheet</a></li>
-<li><a href="#delete-row(s)">Delete Row(s)</a></li>
-<li><a href="#move-row(s)-to-another-sheet">Move Row(s) to Another Sheet</a></li>
-<li><a href="#send-row(s)">Send Row(s) via Email</a></li>
-<li><a href="#update-row(s)">Update Row(s)</a></li>
-</ul>
+<p>See the section on <a href="#bulk-operations">Bulk Operations</a> for more details, including a list of bulk-enabled operations.</p>
 
 <p><br/>
 <span class="inSectionSubheading">Be practical: Adhere to rate limiting guidelines</span></p>
@@ -267,8 +254,10 @@ To avoid this scenario, design your integration such that API requests are never
 For maximum efficiency, consider batching up changes and submitting them in a single request using a <a href="#bulk-insert-operations">bulk-enabled operation</a> (for example, <a href="#update-row(s)">Update Row(s)</a> or <a href="#add-column(s)">Add Column(s)</a>).</p>
 
 <p><strong>Execute requests serially</strong><br/>
-Executing multiple API requests in parallel to update a specific Smartsheet object will result in reduced performance and will most likely result in errors due to save collisions. 
+Executing multiple API requests in parallel to update a specific Smartsheet object will result in reduced performance and will often result in errors due to save collisions. 
 To avoid this scenario, design your integration such that API requests to update a specific Smartsheet object are always executed serially (i.e., execute one request at time, not beginning the next request until the previous request has completed).</p>
+
+<aside class="notice">Attempts to perform multiple concurrent updates to a sheet may result in <a href="#error-handling">error code 4004</a>.</aside>
 
 <p><br/>
 <span class="inSectionSubheading">Be smart: Handle errors appropriately</span></p>
@@ -466,8 +455,10 @@ To avoid this scenario, design your integration such that API requests are never
 For maximum efficiency, consider batching up changes and submitting them in a single request using a <a href="#bulk-insert-operations">bulk-enabled operation</a> (for example, <a href="#update-row(s)">Update Row(s)</a> or <a href="#add-column(s)">Add Column(s)</a>).</p>
 
 <p><strong>Execute requests serially</strong><br/>
-Executing multiple API requests in parallel to update a specific Smartsheet object will result in reduced performance and will most likely result in errors due to save collisions. 
+Executing multiple API requests in parallel to update a specific Smartsheet object will result in reduced performance and will often result in errors due to save collisions. 
 To avoid this scenario, design your integration such that API requests to update a specific Smartsheet object are always executed serially (i.e., execute one request at time, not beginning the next request until the previous request has completed).</p>
+
+<aside class="notice">Attempts to perform multiple concurrent updates to a sheet may result in <a href="#error-handling">error code 4004</a>.</aside>
 
 <h2 id="errors">Errors</h2>
 
@@ -842,7 +833,7 @@ Use this information to implement error handling logic according to the followin
 <td>406</td>
 <td>1052</td>
 <td>Invalid Accept header. Media type not supported.</td>
-<td>Do not retry without fixing the problem.<br/><br/>Hint: Verify that <b>Accept</b> header is set to the <a href="#input-/-output-format">proper value</a> (to match the output of the invoked endpoint &ndash; typically “application/json”).</td>
+<td>Do not retry without fixing the problem.<br/><br/>Hint: Verify that <b>Accept</b> header is set to the <a href="#input-/-output-format">proper value</a> (to match the output of the invoked endpoint &ndash; typically &ldquo;application/json&rdquo;).</td>
 </tr>
 <tr>
 <td>400</td>
@@ -938,7 +929,7 @@ Use this information to implement error handling logic according to the followin
 <td>400</td>
 <td>1068</td>
 <td>Unsupported grant type.</td>
-<td>Do not retry without fixing the problem.<br/><br/>Hint: Verify that the value of the <b>grant_type</b> querystring parameter is “authorization_code”.</td>
+<td>Do not retry without fixing the problem.<br/><br/>Hint: Verify that the value of the <b>grant_type</b> querystring parameter is &ldquo;authorization_code&rdquo;.</td>
 </tr>
 <tr>
 <td>400</td>
@@ -1142,7 +1133,7 @@ Use this information to implement error handling logic according to the followin
 <td>403</td>
 <td>1104</td>
 <td>You must be a group administrator to create a group.</td>
-<td>Do not retry without fixing the problem.<br/><br/>Hint: Verify that the requester has “Group Admin” permissions in Smartsheet.</td>
+<td>Do not retry without fixing the problem.<br/><br/>Hint: Verify that the requester has &ldquo;Group Admin&rdquo; permissions in Smartsheet.</td>
 </tr>
 <tr>
 <td>400</td>
@@ -1410,6 +1401,12 @@ Use this information to implement error handling logic according to the followin
 </tr>
 <tr>
 <td>400</td>
+<td>1155</td>
+<td>You cannot set the &rsquo;{0}&rsquo; attribute for a cell in a &#39;Project Settings&rsquo; column of a dependency-enabled sheet.</td>
+<td><span class="doNotRetry">Do not retry.</span></td>
+</tr>
+<tr>
+<td>400</td>
 <td>1156</td>
 <td>Invalid email</td>
 <td>Do not retry without fixing the problem.<br/><br/>Hint: Verify that the email address is properly formatted.</td>
@@ -1439,6 +1436,36 @@ Use this information to implement error handling logic according to the followin
 <td>Do not retry without fixing the problem.<br/><br/>Hint: Examine the <strong>detail</strong> attribute within the error response for details about the issue(s).</td>
 </tr>
 <tr>
+<td>400</td>
+<td>1161</td>
+<td>Cannot set altText for a cell that does not contain an image: row {0}, column {1}.</td>
+<td><span class="doNotRetry">Do not retry.</span></td>
+</tr>
+<tr>
+<td>400</td>
+<td>1163</td>
+<td>If cell.image is non-null then value, objectValue, hyperlink, and linkInFromCell must all be null.</td>
+<td>Do not retry without fixing the problem.</td>
+</tr>
+<tr>
+<td>400</td>
+<td>1164</td>
+<td>Cannot add image to cell because this feature has been disabled by the org administrator.</td>
+<td><span class="doNotRetry">Do not retry.</span></td>
+</tr>
+<tr>
+<td>400</td>
+<td>1165</td>
+<td>Cannot add image to cell with alt text larger than 100 characters.</td>
+<td><span class="doNotRetry">Do not retry.</span></td>
+</tr>
+<tr>
+<td>400</td>
+<td>1167</td>
+<td>The resource you are attempting to access has expired.</td>
+<td><span class="doNotRetry">Do not retry.</span></td>
+</tr>
+<tr>
 <td>500</td>
 <td>4000</td>
 <td>An unexpected error has occurred. Please contact api@smartsheet.com for assistance.</td>
@@ -1465,7 +1492,7 @@ Use this information to implement error handling logic according to the followin
 <tr>
 <td>500</td>
 <td>4004</td>
-<td>An unexpected error has occurred. Please retry your request. If you encounter this error repeatedly, please contact api@smartsheet.com for assistance.</td>
+<td>An unexpected error has occurred. Please retry your request. If you encounter this error repeatedly, please contact api@smartsheet.com for assistance.<br/><br/><strong>Or</strong><br/><br/>Request failed because sheetId {0} is currently being updated by another request that uses the same access token. Please retry your request once the previous request has completed.</td>
 <td><span class="retryAgainLater">Retry using <a href="https://en.wikipedia.org/wiki/Exponential_backoff" target="_blank">exponential backoff</a>.</span></td>
 </tr>
 <tr>
@@ -1836,7 +1863,7 @@ sense of it. To enable lenient parsing simply include <code class="prettyprint">
 
 <h4 id="contact-list-columns">Contact List Columns</h4>
 
-<p>With columns of type CONTACT_LIST, cells’ “value” and “displayValue” attributes are treated independently. 
+<p>With columns of type CONTACT_LIST, cells’ &ldquo;value&rdquo; and &ldquo;displayValue&rdquo; attributes are treated independently. 
 The contact’s email address is represented by <strong>value</strong>, while the contact’s name (and the value displayed in the cell in the Smartsheet app) is represented by <strong>displayValue</strong>.</p>
 
 <p>When creating or updating cells for a contact list column, the <strong>displayValue</strong> attribute works as follows:
@@ -1920,9 +1947,29 @@ you can retrieve paged subsets of results, enabling you to process potentially l
 </tr>
 </tbody></table>
 
-<h2 id="bulk-insert-operations">Bulk-insert Operations</h2>
+<h2 id="bulk-operations">Bulk Operations</h2>
 
-<p>Several endpoints support optional bulk <code class="prettyprint">POST</code> operations which exist alongside the standard single-object <code class="prettyprint">POST</code>.  For these endpoints, you may pass in either a single object, or an array of objects.
+<p>The Smartsheet API supports a number of bulk operations that can operate on multiple objects.  Unlike single-object operations, bulk operations allow you to create, update, or delete
+mulitple objects in a single request, which we recommend as a <a href="#api-best-practices">best practice</a> for optimal performance.</p>
+
+<p>The following API operations currently allow you to do things in bulk:</p>
+
+<ul>
+<li><a href="#add-column(s)">Add Column(s)</a></li>
+<li><a href="#add-favorite(s)">Add Favorite(s)</a></li>
+<li><a href="#remove-favorites-(in-bulk)">Remove Favorite(s)</a></li>
+<li><a href="#add-group-member(s)">Add Group Member(s)</a></li>
+<li><a href="#add-row(s)">Add Row(s)</a></li>
+<li><a href="#copy-row(s)-to-another-sheet">Copy Row(s) to Another Sheet</a></li>
+<li><a href="#delete-row(s)">Delete Row(s)</a></li>
+<li><a href="#move-row(s)-to-another-sheet">Move Row(s) to Another Sheet</a></li>
+<li><a href="#send-row(s)">Send Row(s) via Email</a></li>
+<li><a href="#update-row(s)">Update Row(s)</a></li>
+</ul>
+
+<h3 id="optional-bulk-operations">Optional Bulk Operations</h3>
+
+<p>Several endpoints support <em>optional</em> bulk <code class="prettyprint">POST</code> operations which exist alongside the standard single-object <code class="prettyprint">POST</code>.  For these endpoints, you may pass in either a single object, or an array of objects.
 Depending on what was passed in, the <a href="#result-object">Result object</a> returned will contain either a single object, or an array.  An example optional bulk operation is <a href="#add-favorite(s)">POST /favorites</a>: you can
 pass in a single <a href="#favorite-object">Favorite object</a> to create a single favorite, or an array of Favorite objects to create multiple favorites in a single request.  Endpoints which support bulk operations will be
 noted as such in their API reference documentation.</p>
@@ -1932,6 +1979,17 @@ return an error if one or more items in the array already exist.  Existing items
 
 <aside class="notice">As we make future updates to the API, we may add bulk support to additional endpoints.  Because the endpoints will continue to support single-object semantics, this will not result in a breaking change,
 and existing code will continue to function.</aside>
+
+<h3 id="partial-success">Partial Success</h3>
+
+<p>In general, the default behavior for bulk operations is to fail outright if any of the objects in the request are invalid for some reason.  If successful, all objects in the request will be created/updated/deleted;
+if not, none of them will be.</p>
+
+<p>However, there are some operations that support <em>partial success</em>, which means the operation will still succeed even if one or more of the objects in the request failed for some reason (e.g. an object is invalid).  Partial success is typically
+<em>not</em> the default mode for an operation, and instead must be explicitly enabled by using a query string parameter.  This will be noted in the documentation for operations that support partial success.</p>
+
+<p>When partial success is enabled, and one or more of the objects in the request fail to be added/updated/deleted, a standard <a href="#result-object">Result object</a> is returned, but with a <strong>message</strong> of &ldquo;PARTIAL_SUCCESS&rdquo; (instead of &ldquo;SUCCESS&rdquo;),
+and a <strong>resultCode</strong> of 3. Additionally, the object will contain a <strong>failedItems</strong> attribute &ndash; an array of <a href="#bulkitemfailure-object">BulkItemFailure objects</a> that contains an item for each object in the request that failed to be added/updated/deleted.</p>
 
 <h2 id="dates-and-times">Dates and Times</h2>
 
@@ -1974,10 +2032,31 @@ Each <a href="#c#-sample-code">C#</a>, <a href="#java-sample-code">Java</a>, and
 See the corresponding section below for more information about using the sample code in a specific language.</p>
 
 <h3 id="curl-sample-code">cURL Sample Code</h3>
+<pre class="highlight shell"><code><span class="c"># For cURL code samples, see each operation in the API REFERENCE section.</span>
+</code></pre>
 
 <p>The cURL code samples included in this API documentation demonstrate how to execute operations using the command line data transfer tool <a href="http://en.wikipedia.org/wiki/CURL">cURL</a>. </p>
 
 <h3 id="c#-sample-code">C# Sample Code</h3>
+<pre class="highlight csharp"><code><span class="k">using</span> <span class="nn">Smartsheet.Api</span><span class="p">;</span>
+<span class="k">using</span> <span class="nn">Smartsheet.Api.Models</span><span class="p">;</span>
+<span class="k">using</span> <span class="nn">Smartsheet.Api.OAuth</span><span class="p">;</span>
+
+<span class="c1">// Set the Access Token.
+</span><span class="n">Token</span> <span class="n">token</span> <span class="p">=</span> <span class="k">new</span> <span class="nf">Token</span><span class="p">();</span>
+<span class="n">token</span><span class="p">.</span><span class="n">AccessToken</span> <span class="p">=</span> <span class="s">"INSERT_YOUR_TOKEN_HERE"</span><span class="p">;</span>
+
+<span class="c1">// Use the Smartsheet Builder to create an instance of SmartsheetClient.
+</span><span class="n">SmartsheetClient</span> <span class="n">smartsheet</span> <span class="p">=</span> <span class="k">new</span> <span class="nf">SmartsheetBuilder</span><span class="p">().</span><span class="nf">SetAccessToken</span><span class="p">(</span><span class="n">token</span><span class="p">.</span><span class="n">AccessToken</span><span class="p">).</span><span class="nf">Build</span><span class="p">();</span>
+
+<span class="c1">// Get current user.
+</span><span class="n">smartsheet</span><span class="p">.</span><span class="n">UserResources</span><span class="p">.</span><span class="nf">GetCurrentUser</span><span class="p">();</span>
+
+<span class="c1">// Get server info.
+</span><span class="n">smartsheet</span><span class="p">.</span><span class="n">ServerInfoResources</span><span class="p">.</span><span class="nf">GetServerInfo</span><span class="p">();</span>
+
+<span class="c1">// For additional C# code samples, see each operation in the API REFERENCE section.
+</span></code></pre>
 
 <p>The C# code samples included in this API documentation demonstrate how to execute operations using the <a href="https://github.com/smartsheet-platform/smartsheet-csharp-sdk">Smartsheet C# SDK</a>. 
 To use the C# SDK, you&rsquo;ll need to include the appropriate <strong>using</strong> directives in your code. For example:</p>
@@ -1997,7 +2076,7 @@ token.AccessToken = &quot;INSERT_YOUR_TOKEN_HERE&quot;;<br/>
 </code></p>
 
 <p><code>
-// Use the Smartsheet Builder to create a Smartsheet<br/>
+// Use the Smartsheet Builder to create an instance of SmartsheetClient<br/>
 SmartsheetClient smartsheet = new SmartsheetBuilder().SetAccessToken(token.AccessToken).Build();
 </code></p>
 
@@ -2010,6 +2089,26 @@ For example, in the following code example, <strong>sheetId</strong> should be r
 <p><code>smartsheet.SheetResources.RowResources.DiscussionResources.CreateDiscussion(sheetId, rowId, discussion);</code></p>
 
 <h3 id="java-sample-code">Java Sample Code</h3>
+<pre class="highlight java"><code><span class="kn">import</span> <span class="nn">com.smartsheet.api.*</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">com.smartsheet.api.models.*</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">com.smartsheet.api.models.enums.*</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">com.smartsheet.api.oauth.*</span><span class="o">;</span>
+
+<span class="c1">// Set the Access Token.</span>
+<span class="n">Token</span> <span class="n">token</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Token</span><span class="o">();</span>
+<span class="n">token</span><span class="o">.</span><span class="na">setAccessToken</span><span class="o">(</span><span class="s">"INSERT_YOUR_TOKEN_HERE"</span><span class="o">);</span>
+
+<span class="c1">// Use the Smartsheet Builder to create an instance of Smartsheet.</span>
+<span class="n">Smartsheet</span> <span class="n">smartsheet</span> <span class="o">=</span> <span class="k">new</span> <span class="n">SmartsheetBuilder</span><span class="o">().</span><span class="na">setAccessToken</span><span class="o">(</span><span class="n">token</span><span class="o">.</span><span class="na">getAccessToken</span><span class="o">()).</span><span class="na">build</span><span class="o">();</span>
+
+<span class="c1">// Get current user.</span>
+<span class="n">smartsheet</span><span class="o">.</span><span class="na">userResources</span><span class="o">().</span><span class="na">getCurrentUser</span><span class="o">();</span>
+
+<span class="c1">// Get server info.</span>
+<span class="n">smartsheet</span><span class="o">.</span><span class="na">serverInfoResources</span><span class="o">().</span><span class="na">getServerInfo</span><span class="o">();</span>
+
+<span class="c1">// For additional Java code samples, see each operation in the API REFERENCE section.</span>
+</code></pre>
 
 <p>The Java code samples included in this API documentation demonstrate how to execute operations using the <a href="https://github.com/smartsheet-platform/smartsheet-java-sdk">Smartsheet Java SDK</a>. 
 To use the Java SDK, you&rsquo;ll need to include the appropriate <strong>import</strong> directives in your code. For example:</p>
@@ -2030,7 +2129,7 @@ token.setAccessToken(&quot;INSERT_YOUR_TOKEN_HERE&quot;);<br/>
 </code></p>
 
 <p><code>
-// Use the Smartsheet Builder to create a Smartsheet<br/>
+// Use the Smartsheet Builder to create an instance of Smartsheet<br/>
 Smartsheet smartsheet = new SmartsheetBuilder().setAccessToken(token.getAccessToken()).build();<br/>
 </code></p>
 
@@ -2043,6 +2142,29 @@ For example, in the following code example, <strong>sheetId</strong> should be r
 <p><code>smartsheet.sheetResources().rowResources().discussionResources().createDiscussion(sheetId, rowId, discussion);</code></p>
 
 <h3 id="node.js-sample-code">Node.js Sample Code</h3>
+<pre class="highlight javascript"><code><span class="kd">var</span> <span class="nx">client</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">'smartsheet'</span><span class="p">);</span>
+<span class="kd">var</span> <span class="nx">smartsheet</span> <span class="o">=</span> <span class="nx">client</span><span class="p">.</span><span class="nx">createClient</span><span class="p">({</span><span class="na">accessToken</span><span class="p">:</span><span class="s1">'INSERT_YOUR_TOKEN_HERE'</span><span class="p">});</span>
+
+<span class="c1">// Get current user.</span>
+<span class="nx">smartsheet</span><span class="p">.</span><span class="nx">users</span><span class="p">.</span><span class="nx">getCurrentUser</span><span class="p">()</span>
+    <span class="p">.</span><span class="nx">then</span><span class="p">(</span><span class="kd">function</span><span class="p">(</span><span class="nx">data</span><span class="p">)</span> <span class="p">{</span>
+        <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">data</span><span class="p">);</span>
+    <span class="p">})</span>
+    <span class="p">.</span><span class="k">catch</span><span class="p">(</span><span class="kd">function</span><span class="p">(</span><span class="nx">error</span><span class="p">)</span> <span class="p">{</span>
+        <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">error</span><span class="p">);</span>
+    <span class="p">});</span>
+
+<span class="c1">// Get server info.</span>
+<span class="nx">smartsheet</span><span class="p">.</span><span class="nx">server</span><span class="p">.</span><span class="nx">getInfo</span><span class="p">()</span>
+    <span class="p">.</span><span class="nx">then</span><span class="p">(</span><span class="kd">function</span> <span class="p">(</span><span class="nx">data</span><span class="p">)</span> <span class="p">{</span>
+        <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">data</span><span class="p">);</span>
+    <span class="p">})</span>
+    <span class="p">.</span><span class="k">catch</span><span class="p">(</span><span class="kd">function</span> <span class="p">(</span><span class="nx">error</span><span class="p">)</span> <span class="p">{</span>
+        <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">error</span><span class="p">);</span>
+    <span class="p">});</span>
+
+<span class="c1">// For additional Node.js code samples, see each operation in the API REFERENCE section.</span>
+</code></pre>
 
 <p>The Node.js code samples included in this API documentation demonstrate how to execute operations using the <a href="https://github.com/smartsheet-platform/smartsheet-javascript-sdk">Smartsheet JavaScript SDK</a>, with promises. 
 Each code sample uses a root module called &ldquo;smartsheet&rdquo; that can be created as follows:</p>
@@ -2350,7 +2472,7 @@ After a successful login, your user will be prompted to allow or deny the access
 
 <h4 id="obtaining-the-authorization-code">Obtaining the authorization code</h4>
 
-<p>If the user clicks “Allow”, he/she will be redirected to the <strong>redirect_uri</strong> with the following parameters:</p>
+<p>If the user clicks &ldquo;Allow&rdquo;, he/she will be redirected to the <strong>redirect_uri</strong> with the following parameters:</p>
 
 <table><thead>
 <tr>
@@ -2372,7 +2494,7 @@ After a successful login, your user will be prompted to allow or deny the access
 </tr>
 </tbody></table>
 
-<p>If the user clicks “Deny”, he/she will be redirected to the <strong>redirect_uri</strong> with the following parameters:</p>
+<p>If the user clicks &ldquo;Deny&rdquo;, he/she will be redirected to the <strong>redirect_uri</strong> with the following parameters:</p>
 
 <table><thead>
 <tr>
@@ -2400,7 +2522,7 @@ After a successful login, your user will be prompted to allow or deny the access
 </thead><tbody>
 <tr>
 <td>unsupported_response_type</td>
-<td>response_type must be set to “code”</td>
+<td>response_type must be set to &ldquo;code&rdquo;</td>
 </tr>
 <tr>
 <td>invalid_scope</td>
@@ -2502,7 +2624,7 @@ To do so, you’ll need to make a <code class="prettyprint">POST</code> request 
 </tr>
 <tr>
 <td>unsupported_grant_type</td>
-<td>grant_type must equal “authorization_code” or “refresh_token”.</td>
+<td>grant_type must equal &ldquo;authorization_code&rdquo; or &ldquo;refresh_token&rdquo;.</td>
 </tr>
 </tbody></table>
 
@@ -2839,6 +2961,19 @@ curl https://api.smartsheet.com/2.0/users/sheets <span class="se">\</span>
 <p>This section documents the evolution of Smartsheet API 2.0 over time. 
 To stay informed about changes to the API, we recommend that you periodically review this list for new information, subscribe to our Developer Newsletter (using the <em>Get Developer Updates</em> form on the <a href="http://www.smartsheet.com/developers">Smartsheet Developer Portal</a>) or follow us via <a href="https://twitter.com/smartsheetapi">Twitter</a>.</p>
 
+<h2 id="january-15,-2016">January 15, 2016</h2>
+
+<p>Backward-compatible updates to Smartsheet API 2.0. </p>
+
+<ul>
+<li><p>New endpoints for <a href="#add-image-to-cell">adding an image to a cell</a> within a sheet and <a href="#get-image-urls">getting URLs</a> for images that are stored in sheet cells.</p></li>
+<li><p>API enhancements that add support for enabling <a href="#partial-success">partial success</a> of a (bulk) <a href="#add-row(s)">Add Row(s)</a> or <a href="#update-row(s)">Update Row(s)</a> operation, provide additional information for each object in <a href="#list-public-templates">List Public Templates</a> response, and return a new <a href="#sheetusersettings-object">user setting</a> for sheets where Calendar View has been configured.</p></li>
+<li><p>Errors: Several new <a href="#error-handling">error codes</a> and a new (alternate) message for error code 4004.</p></li>
+<li><p>Bug fix: Operations that contain <a href="#column-object">Column</a> objects in the response will now include <strong>tags</strong> CALENDAR_START_DATE and CALENDAR_END_DATE if the Sheet&rsquo;s Calendar View has been configured, even if Gantt is disabled for the sheet.</p></li>
+</ul>
+
+<p>For more detailed information about this release, see the <a href="https://www.smartsheet.com/blog/january-2016-api-update">release notes</a>.</p>
+
 <h2 id="december-11,-2015">December 11, 2015</h2>
 
 <p>Backward-compatible updates to Smartsheet API 2.0. </p>
@@ -2942,7 +3077,7 @@ For detailed information about API 2.0 features and guidance for migrating from 
 <tr>
 <td><strong>parentType</strong></td>
 <td>string</td>
-<td>The type of object the attachment belongs to. One of “SHEET”, “ROW”, or “COMMENT”</td>
+<td>The type of object the attachment belongs to. One of &ldquo;SHEET&rdquo;, &ldquo;ROW&rdquo;, or &ldquo;COMMENT&rdquo;</td>
 </tr>
 <tr>
 <td><strong>parentId</strong></td>
@@ -4682,6 +4817,11 @@ For example, you can perform a simple upload to upload a file to a <a href="#att
 <td>boolean</td>
 <td>Set to <strong>false</strong> to enable lenient parsing. Defaults to <strong>true</strong>. This attribute can be specified in a request, but will never be present in a response. See <a href="#cell-value-parsing">Cell Value Parsing</a> for more information about using this attribute.</td>
 </tr>
+<tr>
+<td><strong>image</strong></td>
+<td><a href="#image-object">Image</a></td>
+<td>The image that the cell contains.<br/>Only returned if the cell contains an image.</td>
+</tr>
 </tbody></table>
 
 <h3 id="cell-history-object">Cell History Object</h3>
@@ -4923,6 +5063,10 @@ For example, you can perform a simple upload to upload a file to a <a href="#att
 
 <h2 id="related-items">Related Items</h2>
 
+<h3 id="images-in-cells">Images in Cells</h3>
+
+<p>For details about working with images in cells, see <a href="#cell-images">Cell Images</a>.</p>
+
 <h3 id="cell-links">Cell Links</h3>
 
 <p>Creating or updating cell links via the <strong>cell.linkInFromCell</strong> attribute is a special operation. 
@@ -4940,6 +5084,260 @@ Additionally, a <a href="#celllink-object">cell link</a> can only be added to an
 When creating or updating a hyperlink, <strong>cell.value</strong> may be set to a string value or null. 
 If null, the cell&rsquo;s value will be derived from the hyperlink: 
 <ul><li>If the hyperlink is a URL link, the cell&rsquo;s value will be set to the URL itself.</li><li>If the hyperlink is a sheet or report link, the cell&rsquo;s value will be set to the sheet or report&rsquo;s name.</li></ul></p>
+
+<h1 id="cell-images">Cell Images</h1>
+
+<p>A &#39;cell image&rsquo; is an image that has been uploaded to a Cell within a Sheet.</p>
+
+<h2 id="objects">Objects</h2>
+
+<h3 id="image-object">Image Object</h3>
+
+<table><thead>
+<tr>
+<th></th>
+<th></th>
+<th></th>
+</tr>
+</thead><tbody>
+<tr>
+<td><strong>id</strong></td>
+<td>string</td>
+<td>Image ID</td>
+</tr>
+<tr>
+<td><strong>width</strong></td>
+<td>number</td>
+<td>Original width (in pixels) of the uploaded image</td>
+</tr>
+<tr>
+<td><strong>height</strong></td>
+<td>number</td>
+<td>Original height (in pixels) of the uploaded image</td>
+</tr>
+<tr>
+<td><strong>altText</strong></td>
+<td>string</td>
+<td>Alternate Text for the image</td>
+</tr>
+</tbody></table>
+
+<h3 id="imageurl-object">ImageUrl Object</h3>
+
+<table><thead>
+<tr>
+<th></th>
+<th></th>
+<th></th>
+</tr>
+</thead><tbody>
+<tr>
+<td><strong>imageId</strong></td>
+<td>string</td>
+<td>Image ID</td>
+</tr>
+<tr>
+<td><strong>width</strong></td>
+<td>number</td>
+<td>Image width (in pixels).<br/>In the <a href="#get-image-urls">Get Cell Images</a> request, this (optional) attribute represents requested width; in the response, it represents actual width of the image returned. (See <a href="#get-image-urls">Get Cell Images</a>.)</td>
+</tr>
+<tr>
+<td><strong>height</strong></td>
+<td>number</td>
+<td>Image height (in pixels).<br/>In the <a href="#get-image-urls">Get Cell Images</a> request, this (optional) attribute represents requested height; in the response, it represents actual height of the image returned. (See <a href="#get-image-urls">Get Cell Images</a>.)</td>
+</tr>
+<tr>
+<td><strong>url</strong></td>
+<td>string</td>
+<td>Temporary URL that can be used to retrieve the image. This attribute can be present in a response but will never be specified in a request.</td>
+</tr>
+<tr>
+<td><strong>error</strong></td>
+<td><a href="#errors">Error</a></td>
+<td>Error object. Present in the <a href="#get-image-urls">Get Cell Images</a> response only if an error occurred retrieving the image.</td>
+</tr>
+</tbody></table>
+
+<h3 id="imageurlmap-object">ImageUrlMap Object</h3>
+
+<table><thead>
+<tr>
+<th></th>
+<th></th>
+<th></th>
+</tr>
+</thead><tbody>
+<tr>
+<td><strong>urlExpiresInMillis</strong></td>
+<td>number</td>
+<td>Milliseconds before the URLs within <strong>imageUrls</strong> will expire</td>
+</tr>
+<tr>
+<td><strong>imageUrls</strong></td>
+<td><a href="#imageurl-object">ImageUrl</a>[]</td>
+<td>Array of ImageUrl objects</td>
+</tr>
+</tbody></table>
+
+<h2 id="add-image-to-cell">Add Image to Cell</h2>
+
+<blockquote>
+<p>Example Request:</p>
+</blockquote>
+<pre class="highlight shell"><code>curl https://api.smartsheet.com/2.0/sheets/<span class="o">{</span>sheetId<span class="o">}</span>/rows/<span class="o">{</span>rowId<span class="o">}</span>/columns/<span class="o">{</span>columnId<span class="o">}</span>/cellimages?altText<span class="o">=</span>my%20image <span class="se">\</span>
+-H <span class="s2">"Authorization: Bearer ACCESS_TOKEN"</span> <span class="se">\</span>
+-H <span class="s2">"Content-Type: application/jpeg"</span> <span class="se">\</span>
+-H <span class="s1">'Content-Disposition: attachment; filename="picture.jpg"'</span> <span class="se">\</span>
+-H <span class="s2">"Content-Length: FILE_SIZE"</span> <span class="se">\</span>
+-X POST <span class="se">\</span>
+--data-binary @picture.jpg
+</code></pre>
+<pre class="highlight javascript"><code><span class="c1">// [todo]</span>
+</code></pre>
+<pre class="highlight csharp"><code><span class="c1">// [todo]
+</span></code></pre>
+<pre class="highlight java"><code><span class="c1">// [todo]</span>
+</code></pre>
+<pre class="highlight python"><code><span class="c"># [todo]</span>
+</code></pre>
+
+<blockquote>
+<p>Example Response:</p>
+</blockquote>
+<pre class="highlight json"><code><span class="p">{</span><span class="w">
+    </span><span class="s2">"message"</span><span class="p">:</span><span class="w"> </span><span class="s2">"SUCCESS"</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"result"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+    </span><span class="p">},</span><span class="w">
+    </span><span class="s2">"resultCode"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre>
+
+<p><code class="prettyprint">POST /sheets/{sheetId}/rows/{rowId}/columns/{columnId}/cellimages</code></p>
+
+<p>Uploads an image to the specified Cell within a Sheet. </p>
+
+<table><thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead><tbody>
+<tr>
+<td><strong>Access Scope</strong></td>
+<td>WRITE_SHEETS</td>
+</tr>
+<tr>
+<td><strong>Headers</strong></td>
+<td>See <a href="#simple-uploads">Simple Uploads</a> for information about required headers.</td>
+</tr>
+<tr>
+<td><strong>Parameters</strong></td>
+<td><strong>altText</strong> (optional): url-encoded alternate text for the image</td>
+</tr>
+<tr>
+<td><strong>Request Body</strong></td>
+<td>Binary content for the file</td>
+</tr>
+<tr>
+<td><strong>Returns</strong></td>
+<td><a href="#result-object">Result object</a></td>
+</tr>
+</tbody></table>
+
+<h2 id="get-image-urls">Get Image URLs</h2>
+
+<blockquote>
+<p>Example Request:</p>
+</blockquote>
+<pre class="highlight shell"><code>curl https://api.smartsheet.com/2.0/imageurls <span class="se">\</span>
+-H <span class="s2">"Authorization: Bearer ACCESS_TOKEN"</span> <span class="se">\</span>
+-H <span class="s2">"Content-Type: application</span><span class="se">\j</span><span class="s2">son"</span> <span class="se">\</span>
+-X POST <span class="se">\</span>
+-d <span class="s1">'[{"imageId": "e1znCxhuZo_soEJtUmmX_A","height":40,"width": 20},{"imageId": "g2jdKdfhQa_abKJmPnhC_B","height":100,"width": 50}]'</span>
+</code></pre>
+<pre class="highlight javascript"><code><span class="c1">// [todo]</span>
+</code></pre>
+<pre class="highlight csharp"><code><span class="c1">// [todo]
+</span></code></pre>
+<pre class="highlight java"><code><span class="c1">// [todo]</span>
+</code></pre>
+<pre class="highlight python"><code><span class="c"># [todo]</span>
+</code></pre>
+
+<blockquote>
+<p>Example Response:</p>
+</blockquote>
+<pre class="highlight json"><code><span class="p">{</span><span class="w">
+    </span><span class="s2">"urlExpiresInMillis"</span><span class="p">:</span><span class="w"> </span><span class="mi">1800000</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"imageUrls"</span><span class="p">:</span><span class="w">  </span><span class="p">[</span><span class="w">
+        </span><span class="p">{</span><span class="w">
+            </span><span class="s2">"imageId"</span><span class="p">:</span><span class="w"> </span><span class="s2">"e1znCxhuZo_soEJtUmmX_A"</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"url"</span><span class="p">:</span><span class="w"> </span><span class="s2">"https://urltoimage1.com?qs1=foo"</span><span class="w">
+        </span><span class="p">},</span><span class="w">
+        </span><span class="p">{</span><span class="w">
+            </span><span class="s2">"imageId"</span><span class="p">:</span><span class="w"> </span><span class="s2">"g2jdKdfhQa_abKJmPnhC_B"</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"error"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+                </span><span class="s2">"errorCode"</span><span class="p">:</span><span class="w"> </span><span class="mi">5001</span><span class="p">,</span><span class="w">
+                </span><span class="s2">"message"</span><span class="p">:</span><span class="w"> </span><span class="s2">"localized_error_message"</span><span class="w">
+            </span><span class="p">}</span><span class="w">
+        </span><span class="p">}</span><span class="w">
+    </span><span class="p">]</span><span class="w">
+</span><span class="p">}</span><span class="w">  
+</span></code></pre>
+
+<p><code class="prettyprint">POST /imageurls</code></p>
+
+<p>Gets URLs that can be used to retrieve the specified cell images.</p>
+
+<aside class="notice">The HTTP verb for this operation is <code>POST</code> (to provide support for specifying request body).</aside>
+
+<aside class="notice">The number and sequence of <a href="#imageurl-object">ImageUrl objects</a> in the Response will correspond exactly to the number and sequence of objects specified by the Request.</aside>
+
+<aside class="notice">If an error is encountered for any of the requested images, the corresponding <b>ImageUrl</b> object in the Response will contain an <b>error</b> attribute that describes the error. (See Example Response.)</aside>
+
+<table><thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead><tbody>
+<tr>
+<td><strong>Access Scope</strong></td>
+<td>READ_SHEETS</td>
+</tr>
+<tr>
+<td><strong>Headers</strong></td>
+<td><strong>Authorization</strong>: Bearer ACCESS_TOKEN<br/><strong>Content-Type</strong>: application/json</td>
+</tr>
+<tr>
+<td><strong>Request Body</strong></td>
+<td>Array of <a href="#imageurl-object">ImageUrl objects</a>, with the following attributes:<ul><li><b>imageId</b> (required)</li><li><b>height</b> (optional)</li><li><b>width</b> (optional)</li></ul>Each image in the response will be sized according to which dimensions were specified by the request:<ul><li>If neither <b>height</b> nor <b>width</b> is specified, the image is returned in its original size.</li><li>If both <b>height</b> AND <b>width</b> are specified, image is sized using those measurements.</li><li>If either <b>height</b> OR <b>width</b> is specified (i.e., one or the other &ndash; not both), the image will be automatically scaled using that measurement.</li></ul>Additionally, the following rules apply:<ul><li>If the requested image size is less than or equal to the actual image size, then the returned image size matches the requested size.</li><li>If the requested image size is larger than the actual image size, then the returned image size will match the actual image size.</li></ul></td>
+</tr>
+<tr>
+<td><strong>Returns</strong></td>
+<td><a href="#imageurlmap-object">ImageUrlMap object</a></td>
+</tr>
+</tbody></table>
+
+<h2 id="remove-image-from-cell">Remove Image from Cell</h2>
+
+<p>To remove an image from a cell (and set cell contents to either empty or to another value), use the <a href="#update-row(s)">Update Row(s)</a> operation to set <strong>cell.value</strong> to the new value.</p>
+
+<h2 id="update-cell-image">Update Cell Image</h2>
+
+<p>A cell image can be updated as follows:</p>
+
+<ul>
+<li>To change the alternate text of an image, use the <a href="#update-row(s)">Update Row(s)</a> operation.</li>
+<li>To replace an existing image with a new image, use the <a href="#add-image-to-cell">Add Image to Cell</a> operation.</li>
+<li>To add an image to a cell that previously contained another type of data, use the <a href="#add-image-to-cell">Add Image to Cell</a> operation.</li>
+</ul>
+
+<h2 id="related-items">Related Items</h2>
+
+<h3 id="cells">Cells</h3>
+
+<p>For details about working with the cells within a Sheet, see <a href="#cells">Cells</a>.</p>
 
 <h1 id="columns">Columns</h1>
 
@@ -5249,7 +5647,7 @@ If null, the cell&rsquo;s value will be derived from the hyperlink:
 
 <p>Inserts one or more columns into the Sheet specified in the URL.</p>
 
-<aside class="notice">This operation supports both single-object and bulk semantics. For more information, see <a href="#bulk-insert-operations">Bulk-insert Operations</a>.</aside>
+<aside class="notice">This operation supports both single-object and bulk semantics.  For more information, see <a href='#optional-bulk-operations'>Optional Bulk Operations</a>.</aside>
 
 <aside class="notice">If multiple columns are specified in the request, the <b>index</b> attribute must be set to the same value for all columns. Columns will be inserted into the sheet starting at the specified position (<b>index</b>), in the sequence that the columns appear in the request.</aside>
 
@@ -6234,7 +6632,7 @@ If null, the cell&rsquo;s value will be derived from the hyperlink:
 <tr>
 <td><strong>parentType</strong></td>
 <td>string</td>
-<td>“SHEET” or “ROW”: present only when the direct association is not clear (see <a href="#get-all-discussions">Get All Discussions</a>)</td>
+<td>&ldquo;SHEET&rdquo; or &ldquo;ROW&rdquo;: present only when the direct association is not clear (see <a href="#get-all-discussions">Get All Discussions</a>)</td>
 </tr>
 <tr>
 <td><strong>lastCommentedAt</strong></td>
@@ -7197,7 +7595,7 @@ These API operations allow you to access the user&rsquo;s favorite API-supported
 
 <p>Adds one or more items to the user&rsquo;s list of Favorite items.</p>
 
-<aside class="notice">This operation supports both single-object and bulk semantics. For more information, see <a href="#bulk-insert-operations">Bulk-insert Operations</a>.</aside>
+<aside class="notice">This operation supports both single-object and bulk semantics.  For more information, see <a href='#optional-bulk-operations'>Optional Bulk Operations</a>.</aside>
 
 <p>If called with a single <a href="#favorite-object">Favorite object</a>, and that favorite already exists, <a href="#errors">error code</a> <strong>1129</strong> will be returned.  If called with an array of <a href="#favorite-object">Favorite objects</a>, any objects specified in the array that are already marked as favorites will be ignored and omitted from the response.</p>
 
@@ -9759,7 +10157,7 @@ These API operations allow you to access the user&rsquo;s favorite API-supported
 
 <p>Adds one or more members to a Group.</p>
 
-<aside class="notice">This operation supports both single-object and bulk semantics. For more information, see <a href="#bulk-insert-operations">Bulk-insert Operations</a>.</aside>
+<aside class="notice">This operation supports both single-object and bulk semantics.  For more information, see <a href='#optional-bulk-operations'>Optional Bulk Operations</a>.</aside>
 
 <p>If called with a single <a href="#groupmember-object">GroupMember object</a>, and that group member already exists, <a href="#errors">error code</a> <strong>1129</strong> will be returned. If called with an array
 of <a href="#groupmember-object">GroupMember objects</a> any users specified in the array that are already group members will be ignored and omitted from the response.</p>
@@ -11191,7 +11589,7 @@ of <a href="#groupmember-object">GroupMember objects</a> any users specified in 
 
 <p>Inserts one or more rows into the Sheet specified in the URL.</p>
 
-<aside class="notice">This operation supports both single-object and bulk semantics. For more information, see <a href="#bulk-insert-operations">Bulk-insert Operations</a>.</aside>
+<aside class="notice">This operation supports both single-object and bulk semantics.  For more information, see <a href='#optional-bulk-operations'>Optional Bulk Operations</a>.</aside>
 
 <aside class="notice">If multiple rows are specified in the request, all rows must be inserted at the same location (i.e. the <b>toTop</b>, <b>toBottom</b>, <b>parentId</b>, <b>siblingId</b>, and <b>above</b> attributes must be the same for all rows in the request).</aside>
 
@@ -11210,6 +11608,10 @@ of <a href="#groupmember-object">GroupMember objects</a> any users specified in 
 <tr>
 <td><strong>Headers</strong></td>
 <td><strong>Authorization</strong>: Bearer ACCESS_TOKEN<br/><strong>Content-Type</strong>: application/json</td>
+</tr>
+<tr>
+<td><strong>Parameters</strong></td>
+<td><strong>allowPartialSuccess</strong> (optional): when specified with a value of <code class="prettyprint">true</code>, enables partial success for this bulk operation.  See <a href="#partial-success">Partial Success</a> for more information.</td>
 </tr>
 <tr>
 <td><strong>Request Body</strong></td>
@@ -11531,6 +11933,10 @@ of <a href="#groupmember-object">GroupMember objects</a> any users specified in 
 <td><a href="#row-object">Row object</a></td>
 </tr>
 </tbody></table>
+
+<h2 id="list-rows">List Rows</h2>
+
+<p>To get the list of all Rows in a Sheet, use the <a href="#get-sheet">Get Sheet</a> operation.</p>
 
 <h2 id="move-row(s)-to-another-sheet">Move Row(s) to Another Sheet</h2>
 
@@ -12119,6 +12525,10 @@ of <a href="#groupmember-object">GroupMember objects</a> any users specified in 
 <td><strong>Authorization</strong>: Bearer ACCESS_TOKEN<br/><strong>Content-Type</strong>: application/json</td>
 </tr>
 <tr>
+<td><strong>Parameters</strong></td>
+<td><strong>allowPartialSuccess</strong> (optional): when specified with a value of <code class="prettyprint">true</code>, enables partial success for this bulk operation.  See <a href="#partial-success">Partial Success</a> for more information.</td>
+</tr>
+<tr>
 <td><strong>Request Body</strong></td>
 <td><a href="#row-object">Row object</a> or an array of Row objects, with the following attributes:<ul><li><strong>id</strong> (required)</li><li>One or more <a href="#row-location"><em>location-specifier</em> attributes</a> (optional)</li><li><strong>expanded</strong> (optional)</li><li><strong>format</strong> (optional)</li><li><strong>cells</strong> (optional) &ndash; if specified, must be an array of <a href="#cell-object">Cell objects</a>, where each object is limited to the following attributes:<ul><li>columnId (required)</li><li>value (required)</li><li>strict (optional)</li><li>format (optional)</li><li><a href="#hyperlink-object">hyperlink</a> (optional) with exactly one of the following attributes set:<ul><li>url</li><li>sheetId</li><li>reportId</li></ul></li><li><a href="#celllink-object">linkInFromCell</a> (optional) with all of the following attributes set:<ul><li>sheetId</li><li>rowId</li><li>columnId</li></ul></li></ul></li><li><strong>locked</strong> (optional) - <strong>true</strong> to lock the row or <strong>false</strong> to unlock the row.</li></ul>See <a href="#column-types">Column Types</a> for more information.<br/><br/>Please note the following:<ul><li>Column Ids must be valid for the sheet to which the row belongs, and must only be used once for each row in the operation.</li><li>Cells containing formulas cannot be updated.</li><li>Cells of a project sheet in the  &ldquo;Predecessor&rdquo; or &ldquo;Finish Date&rdquo; columns cannot be updated via API.</li><li>Cells of a project sheet in the  &ldquo;Start Date&rdquo; column cannot be updated via API for rows that contain a value in the &ldquo;Predecessor&rdquo; column.</li><li>Max length for a cell value is 4000 characters after which truncation will occur without warning. Empty string values are converted to null.</li></ul></td>
 </tr>
@@ -12143,6 +12553,8 @@ of <a href="#groupmember-object">GroupMember objects</a> any users specified in 
 <h3 id="row-cells">Row Cells</h3>
 
 <p>For details about working with a Row&rsquo;s cells, see <a href="#cells">Cells</a>.</p>
+
+<p>For details about working with images in cells, see <a href="#cell-images">Cell Images</a>.</p>
 
 <h3 id="row-discussions">Row Discussions</h3>
 
@@ -13703,7 +14115,7 @@ Either <strong>email</strong> and <strong>groupId</strong> may be set, but not b
 
 <p>Shares a Report with the specified Users and Groups.</p>
 
-<aside class="notice">This operation supports both single-object and bulk semantics. For more information, see <a href="#bulk-insert-operations">Bulk-insert Operations</a>.</aside>
+<aside class="notice">This operation supports both single-object and bulk semantics.  For more information, see <a href='#optional-bulk-operations'>Optional Bulk Operations</a>.</aside>
 
 <p>If called with a single <a href="#share-object">Share object</a>, and that user or group share already exists, <a href="#errors">error code</a> <strong>1025</strong> will be returned.  If called with an array of Share objects, and one or more user or group shares in the array already exist, they will be ignored and omitted from the response.</p>
 
@@ -14164,7 +14576,7 @@ Either <strong>email</strong> and <strong>groupId</strong> may be set, but not b
 
 <p>Shares a Sheet with the specified Users and Groups.</p>
 
-<aside class="notice">This operation supports both single-object and bulk semantics. For more information, see <a href="#bulk-insert-operations">Bulk-insert Operations</a>.</aside>
+<aside class="notice">This operation supports both single-object and bulk semantics.  For more information, see <a href='#optional-bulk-operations'>Optional Bulk Operations</a>.</aside>
 
 <p>If called with a single <a href="#share-object">Share object</a>, and that user or group share already exists, <a href="#errors">error code</a> <strong>1025</strong> will be returned.  If called with an array of Share objects, and one or more user or group shares in the array already exist, they will be ignored and omitted from the response.</p>
 
@@ -14624,7 +15036,7 @@ Either <strong>email</strong> and <strong>groupId</strong> may be set, but not b
 
 <p>Shares a Workspace with the specified Users and Groups.</p>
 
-<aside class="notice">This operation supports both single-object and bulk semantics. For more information, see <a href="#bulk-insert-operations">Bulk-insert Operations</a>.</aside>
+<aside class="notice">This operation supports both single-object and bulk semantics.  For more information, see <a href='#optional-bulk-operations'>Optional Bulk Operations</a>.</aside>
 
 <p>If called with a single <a href="#share-object">Share object</a>, and that user or group share already exists, <a href="#errors">error code</a> <strong>1025</strong> will be returned.  If called with an array of Share objects, and one or more user or group shares in the array already exist, they will be ignored and omitted from the response.</p>
 
@@ -14957,6 +15369,11 @@ Either <strong>email</strong> and <strong>groupId</strong> may be set, but not b
 <td><strong>criticalPathEnabled</strong></td>
 <td>boolean</td>
 <td>Does this user have &ldquo;Show Critical Path&rdquo; turned on for this sheet?  Note this setting only has an effect on project sheets with dependencies enabled.</td>
+</tr>
+<tr>
+<td><strong>displaySummaryTasks</strong></td>
+<td>boolean</td>
+<td>Does this user have &ldquo;Display Summary Tasks&rdquo; turned on for this sheet?  Applies only to sheets where Calendar View has been configured.</td>
 </tr>
 </tbody></table>
 
@@ -17330,6 +17747,8 @@ only has read-only access to the sheet (i.e. the user has viewer permissions, or
 
 <p>For details about working with a Sheet&rsquo;s cells, see <a href="#cells">Cells</a>.</p>
 
+<p>For details about working with images in cells, see <a href="#cell-images">Cell Images</a>.</p>
+
 <h3 id="sheet-columns">Sheet Columns</h3>
 
 <p>For details about working with a Sheet&rsquo;s columns, see <a href="#columns">Columns</a>.</p>
@@ -17394,6 +17813,46 @@ only has read-only access to the sheet (i.e. the user has viewer permissions, or
 <td><strong>accessLevel</strong></td>
 <td>string</td>
 <td>User&rsquo;s permissions on the Template</td>
+</tr>
+<tr>
+<td><strong>image</strong></td>
+<td>string</td>
+<td>URL to the small preview image for this template<br/><em>Only applicable to non-blank public templates</em></td>
+</tr>
+<tr>
+<td><strong>largeImage</strong></td>
+<td>string</td>
+<td>URL to the large preview image for this template<br/><em>Only applicable to non-blank public templates</em></td>
+</tr>
+<tr>
+<td><strong>locale</strong></td>
+<td>string</td>
+<td>Locale of the template<br/><em>Only applicable to public templates</em></td>
+</tr>
+<tr>
+<td><strong>type</strong></td>
+<td>string</td>
+<td>Type of the template. One of &ldquo;sheet&rdquo; or &ldquo;report&rdquo;<br/><em>Only applicable to public templates</em></td>
+</tr>
+<tr>
+<td><strong>tags</strong></td>
+<td>string[]</td>
+<td>List of search tags for this template<br/><em>Only applicable to non-blank public templates</em></td>
+</tr>
+<tr>
+<td><strong>categories</strong></td>
+<td>string[]</td>
+<td>List of categories this template belongs to<br/><em>Only applicable to public templates</em></td>
+</tr>
+<tr>
+<td><strong>blank</strong></td>
+<td>boolean</td>
+<td>Flag indicating whether the template is blank<br/><em>Only applicable to public templates</em></td>
+</tr>
+<tr>
+<td><strong>globalTemplate</strong></td>
+<td>string</td>
+<td>Type of global template. One of: &ldquo;BLANK_SHEET&rdquo;, &ldquo;TASK_LIST&rdquo;, or &ldquo;PROJECT_SHEET&rdquo;<br/><em>Only applicable to blank public templates</em></td>
 </tr>
 </tbody></table>
 
@@ -18905,7 +19364,7 @@ only has read-only access to the sheet (i.e. the user has viewer permissions, or
 -H <span class="s2">"Authorization: Bearer ACCESS_TOKEN"</span> <span class="se">\</span>
 -H <span class="s2">"Content-Type: application/json"</span> <span class="se">\</span>
 -X PUT <span class="se">\</span>
--d <span class="s1">'{"admin": false, "licensedSheetCreator": true}'</span>
+-d <span class="s1">'{"admin": true, "licensedSheetCreator": true}'</span>
 </code></pre>
 <pre class="highlight javascript"><code><span class="c1">// Specify updated user properties.</span>
 <span class="kd">var</span> <span class="nx">user</span> <span class="o">=</span> <span class="p">{</span>
@@ -18928,13 +19387,13 @@ only has read-only access to the sheet (i.e. the user has viewer permissions, or
     <span class="p">});</span>
 </code></pre>
 <pre class="highlight csharp"><code><span class="c1">// Specify updated user properties.
-</span><span class="n">User</span> <span class="n">user</span> <span class="p">=</span> <span class="k">new</span> <span class="n">User</span><span class="p">.</span><span class="nf">UpdateUserBuilder</span><span class="p">(</span><span class="k">false</span><span class="p">,</span> <span class="k">true</span><span class="p">).</span><span class="nf">Build</span><span class="p">()</span>
+</span><span class="n">User</span> <span class="n">user</span> <span class="p">=</span> <span class="k">new</span> <span class="n">User</span><span class="p">.</span><span class="nf">UpdateUserBuilder</span><span class="p">(</span><span class="k">true</span><span class="p">,</span> <span class="k">true</span><span class="p">).</span><span class="nf">Build</span><span class="p">()</span>
 
 <span class="c1">// Update user.
 </span><span class="n">smartsheet</span><span class="p">.</span><span class="n">UserResources</span><span class="p">.</span><span class="nf">UpdateUser</span><span class="p">(</span><span class="n">userId</span><span class="p">,</span> <span class="n">user</span><span class="p">);</span>
 </code></pre>
 <pre class="highlight java"><code><span class="c1">// Specify updated user properties.</span>
-<span class="n">User</span> <span class="n">user</span> <span class="o">=</span> <span class="k">new</span> <span class="n">User</span><span class="o">.</span><span class="na">UpdateUserBuilder</span><span class="o">().</span><span class="na">setUserId</span><span class="o">(</span><span class="n">userId</span><span class="o">).</span><span class="na">setAdmin</span><span class="o">(</span><span class="kc">false</span><span class="o">).</span><span class="na">setLicensedSheetCreator</span><span class="o">(</span><span class="kc">true</span><span class="o">).</span><span class="na">build</span><span class="o">();</span>
+<span class="n">User</span> <span class="n">user</span> <span class="o">=</span> <span class="k">new</span> <span class="n">User</span><span class="o">.</span><span class="na">UpdateUserBuilder</span><span class="o">().</span><span class="na">setUserId</span><span class="o">(</span><span class="n">userId</span><span class="o">).</span><span class="na">setAdmin</span><span class="o">(</span><span class="kc">true</span><span class="o">).</span><span class="na">setLicensedSheetCreator</span><span class="o">(</span><span class="kc">true</span><span class="o">).</span><span class="na">build</span><span class="o">();</span>
 
 <span class="c1">// Update user.</span>
 <span class="n">smartsheet</span><span class="o">.</span><span class="na">userResources</span><span class="o">().</span><span class="na">updateUser</span><span class="o">(</span><span class="n">user</span><span class="o">);</span>
@@ -19715,12 +20174,12 @@ only has read-only access to the sheet (i.e. the user has viewer permissions, or
 <tr>
 <td><strong>resultCode</strong></td>
 <td>number</td>
-<td>0 (zero) if successful</td>
+<td>0 (zero) if successful, 3 for partial success of a bulk operation.</td>
 </tr>
 <tr>
 <td><strong>message</strong></td>
 <td>string</td>
-<td>Message that indicates the outcome of the request</td>
+<td>Message that indicates the outcome of the request. (One of SUCCESS or PARTIAL_SUCCESS)</td>
 </tr>
 <tr>
 <td><strong>result</strong></td>
@@ -19730,7 +20189,40 @@ only has read-only access to the sheet (i.e. the user has viewer permissions, or
 <tr>
 <td><strong>version</strong></td>
 <td>number</td>
-<td>New version of the Sheet (only available on select operations)</td>
+<td>New version of the Sheet.<br/><em>Applicable only for operations which update sheet data</em></td>
+</tr>
+<tr>
+<td><strong>failedItems</strong></td>
+<td><a href="#bulkitemfailure-object">BulkItemFailure</a>[]</td>
+<td>Array of BulkItemFailure objects which represents the items that failed to be added or updated. See <a href="#partial-success">Partial Success</a> for more information.<br/><em>Applicable only for bulk operations that support partial success</em></td>
+</tr>
+</tbody></table>
+
+<h2 id="bulkitemfailure-object">BulkItemFailure Object</h2>
+
+<p>Object that contains information about an item that failed to be added or updated as specified by a bulk request.</p>
+
+<table><thead>
+<tr>
+<th></th>
+<th></th>
+<th></th>
+</tr>
+</thead><tbody>
+<tr>
+<td><strong>index</strong></td>
+<td>number</td>
+<td>The index of the failed item in the bulk request array</td>
+</tr>
+<tr>
+<td><strong>error</strong></td>
+<td><a href="#errors">Error object</a></td>
+<td>The error caused by the failed item</td>
+</tr>
+<tr>
+<td><strong>rowId</strong></td>
+<td>number</td>
+<td>The id of the <a href="#row-object">Row</a> that failed.<br/><em>Applicable only to bulk row operations</em></td>
 </tr>
 </tbody></table>
 
