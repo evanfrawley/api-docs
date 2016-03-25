@@ -1461,6 +1461,12 @@ Use this information to implement error handling logic according to the followin
 </tr>
 <tr>
 <td>400</td>
+<td>1166</td>
+<td>You cannot share Sights as an Editor.</td>
+<td><span class="doNotRetry">Do not retry.</span></td>
+</tr>
+<tr>
+<td>400</td>
 <td>1167</td>
 <td>The resource you are attempting to access has expired.</td>
 <td><span class="doNotRetry">Do not retry.</span></td>
@@ -1977,8 +1983,7 @@ noted as such in their API reference documentation.</p>
 <p><strong>NOTE</strong>: Several <code class="prettyprint">POST</code> operations fail when attempting to create a single object which already exists (e.g. favorites, shares, group members).  However, for the corresponding bulk operations, these endpoints will <em>not</em>
 return an error if one or more items in the array already exist.  Existing items will simply be ignored, and <a href="#result-object">Result object</a> returned will omit them.</p>
 
-<aside class="notice">As we make future updates to the API, we may add bulk support to additional endpoints.  Because the endpoints will continue to support single-object semantics, this will not result in a breaking change,
-and existing code will continue to function.</aside>
+<aside class="notice">As we make future updates to the API, we may add bulk support to additional endpoints.  Because the endpoints will continue to support single-object semantics, this will not result in a breaking change, and existing code will continue to function.</aside>
 
 <h3 id="partial-success">Partial Success</h3>
 
@@ -2395,6 +2400,22 @@ For example, having the Access Scope of WRITE_SHEETS will not allow your app to 
 <td>Create new sheets</td>
 </tr>
 <tr>
+<td>CREATE_SIGHTS</td>
+<td>Create new sights</td>
+</tr>
+<tr>
+<td>READ_SIGHTS</td>
+<td>Read all sight data</td>
+</tr>
+<tr>
+<td>DELETE_SIGHTS</td>
+<td>Delete sight</td>
+</tr>
+<tr>
+<td>SHARE_SIGHTS</td>
+<td>Share sight</td>
+</tr>
+<tr>
 <td>READ_USERS</td>
 <td>Retrieve users and groups for your Smartsheet organization</td>
 </tr>
@@ -2409,6 +2430,10 @@ For example, having the Access Scope of WRITE_SHEETS will not allow your app to 
 <tr>
 <td>ADMIN_SHEETS</td>
 <td>Modify sheet structure, including column definition, publish state, etc.</td>
+</tr>
+<tr>
+<td>ADMIN_SIGHTS</td>
+<td>Modify sight structure</td>
 </tr>
 <tr>
 <td>ADMIN_WORKSPACES</td>
@@ -2960,6 +2985,20 @@ curl https://api.smartsheet.com/2.0/users/sheets <span class="se">\</span>
 <p>This section documents the evolution of Smartsheet API 2.0 over time. 
 To stay informed about changes to the API, we recommend that you periodically review this list for new information, subscribe to our Developer Newsletter (using the <em>Get Developer Updates</em> form on the <a href="http://www.smartsheet.com/developers">Smartsheet Developer Portal</a>) or follow us via <a href="https://twitter.com/smartsheetapi">Twitter</a>.</p>
 
+<h2 id="march-11,-2016">March 11, 2016</h2>
+
+<p>Backward-compatible updates to Smartsheet API 2.0. </p>
+
+<ul>
+<li><p>API enhancements that enable you to attach a link to a file in OneDrive.</p></li>
+<li><p>API enhancements that enable you to differentially share individual items within a workspace and to identify the scope of each <a href="#share-object">Share</a> for any shared item.</p></li>
+<li><p>API enhancements that provide additional information about published sheets and reports and allow you to more tightly control who can access a published sheet or report.</p></li>
+<li><p>API support for <a href="#sights">Sights</a>.</p></li>
+<li><p>Added createdAt and modifiedAt to the <a href="#share-object">Share object</a>.</p></li>
+</ul>
+
+<p>For more detailed information about this release, see the <a href="https://www.smartsheet.com/developers/blog">release notes</a>.</p>
+
 <h2 id="january-15,-2016">January 15, 2016</h2>
 
 <p>Backward-compatible updates to Smartsheet API 2.0. </p>
@@ -3051,7 +3090,7 @@ For detailed information about API 2.0 features and guidance for migrating from 
 <tr>
 <td><strong>attachmentType</strong></td>
 <td>string</td>
-<td>Attachment type (one of FILE, GOOGLE_DRIVE, LINK, BOX_COM, DROPBOX, EVERNOTE, or EGNYTE)</td>
+<td>Attachment type (one of FILE, GOOGLE_DRIVE, LINK, BOX_COM, DROPBOX, EVERNOTE, EGNYTE, ONEDRIVE)</td>
 </tr>
 <tr>
 <td><strong>attachmentSubType</strong></td>
@@ -3706,13 +3745,14 @@ For example, you can perform a simple upload to upload a file to a <a href="#att
 <li>a Dropbox URL (attachmentType &ldquo;DROPBOX&rdquo;)</li>
 <li>an Evernote URL (attachmentType &ldquo;EVERNOTE&rdquo;)</li>
 <li>an Egnyte URL (attachmentType &ldquo;EGNYTE&rdquo;)</li>
+<li>a OneDrive URL (attachmentType &ldquo;ONEDRIVE&rdquo;)</li>
 </ul></p>
 
 <aside class="notice">For GOOGLE_DRIVE attachments that are Google Docs, the <b>attachmentSubType</b> attribute can be optionally included to indicate the type of a file.  Valid values are: &ldquo;DOCUMENT&rdquo;, &ldquo;SPREADSHEET&rdquo;, &ldquo;PRESENTATION&rdquo;, &ldquo;PDF&rdquo;, &ldquo;DRAWING&rdquo;.</aside>
 
 <aside class="notice">For EGNYTE attachments which are Folders, the <b>attachmentSubType</b> attribute must be included with a value of &ldquo;FOLDER&rdquo;.</aside>
 
-<aside class="notice">When the attachment type is BOX_COM, DROPBOX, EGNYTE, or GOOGLE_DRIVE (without an attachmentSubType specified), the mimeType will be derived by the file extension specified on the <b>name</b> attribute.</aside>
+<aside class="notice">When the attachment type is BOX_COM, DROPBOX, ONEDRIVE, EGNYTE (without an <b>attachmentSubType</b> specified), or GOOGLE_DRIVE (without an <b>attachmentSubType</b> specified), the mimeType will be derived by the file extension specified on the <b>name</b> attribute.</aside>
 
 <h2 id="attach-url-to-row">Attach URL to Row</h2>
 
@@ -3827,13 +3867,14 @@ For example, you can perform a simple upload to upload a file to a <a href="#att
 <li>a Dropbox URL (attachmentType &ldquo;DROPBOX&rdquo;)</li>
 <li>an Evernote URL (attachmentType &ldquo;EVERNOTE&rdquo;)</li>
 <li>an Egnyte URL (attachmentType &ldquo;EGNYTE&rdquo;)</li>
+<li>a OneDrive URL (attachmentType &ldquo;ONEDRIVE&rdquo;)</li>
 </ul></p>
 
 <aside class="notice">For GOOGLE_DRIVE attachments that are Google Docs, the <b>attachmentSubType</b> attribute can be optionally included to indicate the type of a file.  Valid values are: &ldquo;DOCUMENT&rdquo;, &ldquo;SPREADSHEET&rdquo;, &ldquo;PRESENTATION&rdquo;, &ldquo;PDF&rdquo;, &ldquo;DRAWING&rdquo;.</aside>
 
 <aside class="notice">For EGNYTE attachments which are Folders, the <b>attachmentSubType</b> attribute must be included with a value of &ldquo;FOLDER&rdquo;.</aside>
 
-<aside class="notice">When the attachment type is BOX_COM, DROPBOX, EGNYTE, or GOOGLE_DRIVE (without an attachmentSubType specified), the mimeType will be derived by the file extension specified on the <b>name</b> attribute.</aside>
+<aside class="notice">When the attachment type is BOX_COM, DROPBOX, ONEDRIVE, EGNYTE (without an <b>attachmentSubType</b> specified), or GOOGLE_DRIVE (without an <b>attachmentSubType</b> specified), the mimeType will be derived by the file extension specified on the <b>name</b> attribute.</aside>
 
 <h2 id="attach-url-to-sheet">Attach URL to Sheet</h2>
 
@@ -3947,13 +3988,14 @@ For example, you can perform a simple upload to upload a file to a <a href="#att
 <li>a Dropbox URL (attachmentType &ldquo;DROPBOX&rdquo;)</li>
 <li>an Evernote URL (attachmentType &ldquo;EVERNOTE&rdquo;)</li>
 <li>an Egnyte URL (attachmentType &ldquo;EGNYTE&rdquo;)</li>
+<li>a OneDrive URL (attachmentType &ldquo;ONEDRIVE&rdquo;)</li>
 </ul></p>
 
 <aside class="notice">For GOOGLE_DRIVE attachments that are Google Docs, the <b>attachmentSubType</b> attribute can be optionally included to indicate the type of a file.  Valid values are: &ldquo;DOCUMENT&rdquo;, &ldquo;SPREADSHEET&rdquo;, &ldquo;PRESENTATION&rdquo;, &ldquo;PDF&rdquo;, &ldquo;DRAWING&rdquo;.</aside>
 
 <aside class="notice">For EGNYTE attachments which are Folders, the <b>attachmentSubType</b> attribute must be included with a value of &ldquo;FOLDER&rdquo;.</aside>
 
-<aside class="notice">When the attachment type is BOX_COM, DROPBOX, EGNYTE, or GOOGLE_DRIVE (without an attachmentSubType specified), the mimeType will be derived by the file extension specified on the <b>name</b> attribute.</aside>
+<aside class="notice">When the attachment type is BOX_COM, DROPBOX, ONEDRIVE, EGNYTE (without an <b>attachmentSubType</b> specified), or GOOGLE_DRIVE (without an <b>attachmentSubType</b> specified), the mimeType will be derived by the file extension specified on the <b>name</b> attribute.</aside>
 
 <h2 id="delete-attachment">Delete Attachment</h2>
 
@@ -4888,9 +4930,9 @@ For example, you can perform a simple upload to upload a file to a <a href="#att
 
 <h3 id="hyperlink-object">Hyperlink Object</h3>
 
-<p>Represents a hyperlink to a URL, a Sheet, or a Report.</p>
+<p>Represents a hyperlink to a URL, a Sheet, a Report, or a Sight.</p>
 
-<aside class="notice">If the Sheet or Report that is linked to was deleted, this object may be empty (i.e. all values null).</aside>
+<aside class="notice">If the Sheet, Report, or Sight that is linked to was deleted, this object may be empty (i.e. all values null).</aside>
 
 <table><thead>
 <tr>
@@ -4902,7 +4944,7 @@ For example, you can perform a simple upload to upload a file to a <a href="#att
 <tr>
 <td><strong>url</strong></td>
 <td>string</td>
-<td>When the hyperlink is a URL link, this property will contain the URL value.<br/><br/>When the hyperlink is a Sheet/Report link (i.e. <strong>sheetId</strong> or <strong>reportId</strong> is non-null), this property will contain the permalink to the Sheet or Report.</td>
+<td>When the hyperlink is a URL link, this property will contain the URL value.<br/><br/>When the hyperlink is a Sheet/Report/Sight link (i.e. <strong>sheetId</strong> or <strong>reportId</strong> or <strong>sightId</strong> is non-null), this property will contain the permalink to the Sheet or Report or Sight.</td>
 </tr>
 <tr>
 <td><strong>sheetId</strong></td>
@@ -4913,6 +4955,11 @@ For example, you can perform a simple upload to upload a file to a <a href="#att
 <td><strong>reportId</strong></td>
 <td>number</td>
 <td>If non-null, this hyperlink is a link to the Report with this ID.</td>
+</tr>
+<tr>
+<td><strong>sightId</strong></td>
+<td>number</td>
+<td>If non-null, this hyperlink is a link to the Sight with this ID.</td>
 </tr>
 </tbody></table>
 
@@ -5082,7 +5129,7 @@ Additionally, a <a href="#celllink-object">cell link</a> can only be added to an
 <p>You can create and modify <a href="#hyperlink-object">hyperlinks</a> by using any API operation that creates or updates cell data. 
 When creating or updating a hyperlink, <strong>cell.value</strong> may be set to a string value or null. 
 If null, the cell&rsquo;s value will be derived from the hyperlink: 
-<ul><li>If the hyperlink is a URL link, the cell&rsquo;s value will be set to the URL itself.</li><li>If the hyperlink is a sheet or report link, the cell&rsquo;s value will be set to the sheet or report&rsquo;s name.</li></ul></p>
+<ul><li>If the hyperlink is a URL link, the cell&rsquo;s value will be set to the URL itself.</li><li>If the hyperlink is a sheet or report or Sight link, the cell&rsquo;s value will be set to the sheet or report or Sight name.</li></ul></p>
 
 <h1 id="cell-images">Cell Images</h1>
 
@@ -7495,7 +7542,7 @@ If null, the cell&rsquo;s value will be derived from the hyperlink:
 
 <h1 id="favorites">Favorites</h1>
 
-<p>Smartsheet allows users to &ldquo;star&rdquo; sheets, reports, folders, workspaces, and other objects on their Home tab to mark them as favorites. 
+<p>Smartsheet allows users to &ldquo;star&rdquo; sheets, reports, folders, workspaces, Sight, and other objects on their Home tab to mark them as favorites. 
 These API operations allow you to access the user&rsquo;s favorite API-supported objects, as well as create and delete favorites.</p>
 
 <h2 id="objects">Objects</h2>
@@ -7512,7 +7559,7 @@ These API operations allow you to access the user&rsquo;s favorite API-supported
 <tr>
 <td><strong>type</strong></td>
 <td>string</td>
-<td>One of:<ul><li>workspace</li><li>folder</li><li>sheet</li><li>report</li><li>template</li></ul></td>
+<td>One of:<ul><li>workspace</li><li>folder</li><li>sheet</li><li>report</li><li>template</li><li>Sight</li></ul></td>
 </tr>
 <tr>
 <td><strong>objectId</strong></td>
@@ -7716,6 +7763,57 @@ These API operations allow you to access the user&rsquo;s favorite API-supported
 </tbody></table>
 
 <h2 id="remove-favorite">Remove Favorite</h2>
+
+<h3 id="remove-favorite-sight">Remove Favorite Sight</h3>
+
+<blockquote>
+<p>Example Request:</p>
+</blockquote>
+<pre class="highlight shell"><code>curl https://api.smartsheet.com/2.0/favorites/sights/<span class="o">{</span>sightId<span class="o">}</span> <span class="se">\</span>
+-H <span class="s2">"Authorization: Bearer ACCESS_TOKEN"</span> <span class="se">\</span>
+-X DELETE
+</code></pre>
+<pre class="highlight javascript"><code><span class="c1">// [todo]</span>
+</code></pre>
+<pre class="highlight csharp"><code><span class="c1">// [todo]
+</span></code></pre>
+<pre class="highlight java"><code><span class="c1">// [todo]</span>
+</code></pre>
+<pre class="highlight python"><code><span class="c"># [todo]</span>
+</code></pre>
+
+<blockquote>
+<p>Example Response:</p>
+</blockquote>
+<pre class="highlight json"><code><span class="p">{</span><span class="w">
+    </span><span class="s2">"message"</span><span class="p">:</span><span class="w"> </span><span class="s2">"SUCCESS"</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"resultCode"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre>
+
+<p><code class="prettyprint">DELETE /favorites/sights/{sightId}</code></p>
+
+<p>Removes a single Sight from the user&rsquo;s list of Favorite items.</p>
+
+<table><thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead><tbody>
+<tr>
+<td><strong>Access Scope</strong></td>
+<td>ADMIN_WORKSPACES</td>
+</tr>
+<tr>
+<td><strong>Headers</strong></td>
+<td><strong>Authorization</strong>: Bearer ACCESS_TOKEN</td>
+</tr>
+<tr>
+<td><strong>Returns</strong></td>
+<td><a href="#result-object">Result object</a></td>
+</tr>
+</tbody></table>
 
 <h3 id="remove-favorite-folder">Remove Favorite Folder</h3>
 
@@ -8068,6 +8166,62 @@ These API operations allow you to access the user&rsquo;s favorite API-supported
 </tbody></table>
 
 <h2 id="remove-favorites-(in-bulk)">Remove Favorites (in bulk)</h2>
+
+<h3 id="remove-favorite-sight">Remove Favorite Sight</h3>
+
+<blockquote>
+<p>Example Request:</p>
+</blockquote>
+<pre class="highlight shell"><code>curl https://api.smartsheet.com/2.0/favorites/sights?objectIds<span class="o">={</span>folderId1<span class="o">}</span>,<span class="o">{</span>folderId2<span class="o">}</span> <span class="se">\</span>
+-H <span class="s2">"Authorization: Bearer ACCESS_TOKEN"</span> <span class="se">\</span>
+-X DELETE
+</code></pre>
+<pre class="highlight javascript"><code><span class="c1">// [todo]</span>
+</code></pre>
+<pre class="highlight csharp"><code><span class="c1">// [todo]
+</span></code></pre>
+<pre class="highlight java"><code><span class="c1">// [todo]</span>
+</code></pre>
+<pre class="highlight python"><code><span class="c"># [todo]</span>
+</code></pre>
+
+<blockquote>
+<p>Example Response:</p>
+</blockquote>
+
+<pre class="highlight json"><code><span class="p">{</span><span class="w">
+    </span><span class="s2">"message"</span><span class="p">:</span><span class="w"> </span><span class="s2">"SUCCESS"</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"resultCode"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre>
+
+<p><code class="prettyprint">DELETE /favorites/sights</code></p>
+
+<p>Removes multiple Sights from the user&rsquo;s list of Favorite items.</p>
+
+<table><thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead><tbody>
+<tr>
+<td><strong>Access Scope</strong></td>
+<td>ADMIN_WORKSPACES</td>
+</tr>
+<tr>
+<td><strong>Headers</strong></td>
+<td><strong>Authorization</strong>: Bearer ACCESS_TOKEN</td>
+</tr>
+<tr>
+<td><strong>Parameters</strong></td>
+<td><strong>objectIds</strong> (required): a comma-separated list of object IDs representing the items to remove from Favorites</td>
+</tr>
+<tr>
+<td><strong>Returns</strong></td>
+<td><a href="#result-object">Result object</a></td>
+</tr>
+</tbody></table>
 
 <h3 id="remove-favorite-folders">Remove Favorite Folders</h3>
 
@@ -8597,7 +8751,7 @@ These API operations allow you to access the user&rsquo;s favorite API-supported
 </tr>
 <tr>
 <td></td>
-<td><strong>skipRemap</strong> (optional) &ndash;  &ndash; comma-separated list of references to NOT re-map for the newly created folder:<ul><li>cellLinks</li><li>reports</li><li>sheetHyperlinks</li></ul>By default, all cell links, reports, and sheet hyperlinks that reference sheets in the source folder will be re-mapped to reference corresponding sheets in the newly created folder. The <strong>skipRemap</strong> parameter can be specified to change that default behavior:<ul><li>If &ldquo;cellLinks&rdquo; is specified in the <b>skipRemap</b> parameter value, the cell links within the newly created folder will continue to point to the original source sheets.</li><li>If &ldquo;reports&rdquo; is specified in the <b>skipRemap</b> parameter value, the reports within the newly created folder will continue to point to the original source sheets.</li><li>If &ldquo;sheetHyperlinks&rdquo; is specified in the <b>skipRemap</b> parameter value, the sheet hyperlinks within the newly created folder will continue to point to the original source sheets.</li></ul></td>
+<td><strong>skipRemap</strong> (optional) &ndash;  &ndash; comma-separated list of references to NOT re-map for the newly created folder:<ul><li>cellLinks</li><li>reports</li><li>sheetHyperlinks</li><li>sights</li></ul>By default, all cell links, reports, sheet hyperlinks, and sights that reference objects in the source folder will be re-mapped to reference corresponding objects in the newly created folder. The <strong>skipRemap</strong> parameter can be specified to change that default behavior:<ul><li>If &ldquo;cellLinks&rdquo; is specified in the <b>skipRemap</b> parameter value, the cell links within the newly created folder will continue to point to the original source sheets.</li><li>If &ldquo;reports&rdquo; is specified in the <b>skipRemap</b> parameter value, the reports within the newly created folder will continue to point to the original source sheets.</li><li>If &ldquo;sheetHyperlinks&rdquo; is specified in the <b>skipRemap</b> parameter value, the sheet hyperlinks within the newly created folder will continue to point to the original source sheets.</li><li>If &ldquo;sights&rdquo; is specified in the <b>skipRemap</b> parameter value, the widgets within sights in the newly created folder will continue to point to the original source sheets / reports.</li></ul></td>
 </tr>
 <tr>
 <td><strong>Request Body</strong></td>
@@ -9028,7 +9182,7 @@ These API operations allow you to access the user&rsquo;s favorite API-supported
 </tr>
 <tr>
 <td><strong>Returns</strong></td>
-<td><a href="#folder-object">Folder object</a>, populated according to the <strong>include</strong> parameter<br/><br/>Note: If no folders and/or sheets are present in the Folder, the corresponding attribute (e.g., &ldquo;folders&rdquo;, &ldquo;sheets&rdquo;) will not be present in the response.</td>
+<td><a href="#folder-object">Folder object</a>, populated according to the <strong>include</strong> parameter<br/><br/>Note: If no folders, sheets, reports, templates, or sights are present in the Folder, the corresponding attribute (e.g., &ldquo;folders&rdquo;, &ldquo;sheets&rdquo;, etc.) will not be present in the response.</td>
 </tr>
 </tbody></table>
 
@@ -10374,13 +10528,14 @@ of <a href="#groupmember-object">GroupMember objects</a> any users specified in 
     </span><span class="p">],</span><span class="w">
     </span><span class="s2">"reports"</span><span class="p">:</span><span class="w"> </span><span class="p">[],</span><span class="w">
     </span><span class="s2">"templates"</span><span class="p">:</span><span class="w"> </span><span class="p">[],</span><span class="w">
-    </span><span class="s2">"workspaces"</span><span class="p">:</span><span class="w"> </span><span class="p">[]</span><span class="w">
+    </span><span class="s2">"workspaces"</span><span class="p">:</span><span class="w"> </span><span class="p">[],</span><span class="w">
+    </span><span class="s2">"sights"</span><span class="p">:</span><span class="w"> </span><span class="p">[]</span><span class="w">
 </span><span class="p">}</span><span class="w">
 </span></code></pre>
 
 <p><code class="prettyprint">GET /home</code></p>
 
-<p>Gets a nested list of all Home objects, including Sheets, Workspaces, Folders, Reports, and Templates, as shown on the Home tab.</p>
+<p>Gets a nested list of all Home objects, including Sheets, Workspaces, Folders, Reports, Templates, and Sights, as shown on the Home tab.</p>
 
 <table><thead>
 <tr>
@@ -10519,7 +10674,12 @@ of <a href="#groupmember-object">GroupMember objects</a> any users specified in 
 <tr>
 <td><strong>readOnlyFullUrl</strong></td>
 <td>string</td>
-<td>URL for Read-Only Full</td>
+<td>URL for &#39;Read-Only Full&rsquo; view of the published report<br/>Only returned in a response if <strong>readOnlyFullEnabled</strong> = true.</td>
+</tr>
+<tr>
+<td><strong>readOnlyFullAccessibleBy</strong></td>
+<td>string</td>
+<td>Flag to indicate who can access the &#39;Read-Only Full&rsquo; view of the published report:<ul><li>If &ldquo;ALL&rdquo;, it is available to anyone who has the link.</li><li>If &ldquo;ORG&rdquo;, it is available only to members of the report owner&rsquo;s Smartsheet organization.</li></ul>Only returned in a response if <strong>readOnlyFullEnabled</strong> = true.</td>
 </tr>
 </tbody></table>
 
@@ -10918,13 +11078,14 @@ of <a href="#groupmember-object">GroupMember objects</a> any users specified in 
 </blockquote>
 <pre class="highlight json"><code><span class="p">{</span><span class="w">
     </span><span class="s2">"readOnlyFullEnabled"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w">
-    </span><span class="s2">"readOnlyFullUrl"</span><span class="p">:</span><span class="w"> </span><span class="s2">"https://publish.smartsheet.com/6d35fa6c99334d4892f9591cf6065"</span><span class="w">
+    </span><span class="s2">"readOnlyFullUrl"</span><span class="p">:</span><span class="w"> </span><span class="s2">"https://publish.smartsheet.com/6d35fa6c99334d4892f9591cf6065"</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"readOnlyFullAccessibleBy"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ALL"</span><span class="w">
 </span><span class="p">}</span><span class="w">
 </span></code></pre>
 
 <p><code class="prettyprint">GET /reports/{reportId}/publish</code></p>
 
-<p>Gets the status of the Publish settings of the Report, including the URLs of any enabled publishings.</p>
+<p>Gets the Report&rsquo;s &#39;Publish&rsquo; settings.</p>
 
 <table><thead>
 <tr>
@@ -10955,7 +11116,7 @@ of <a href="#groupmember-object">GroupMember objects</a> any users specified in 
 -H <span class="s2">"Authorization: Bearer ACCESS_TOKEN"</span> <span class="se">\</span>
 -H <span class="s2">"Content-Type: application/json"</span> <span class="se">\</span>
 -X PUT <span class="se">\</span>
--d <span class="s1">'{"readOnlyFullEnabled": true}'</span>
+-d <span class="s1">'{"readOnlyFullEnabled": true, "readOnlyFullAccessibleBy": "ORG"}'</span>
 </code></pre>
 <pre class="highlight javascript"><code><span class="c1">// [todo]</span>
 </code></pre>
@@ -10973,6 +11134,7 @@ of <a href="#groupmember-object">GroupMember objects</a> any users specified in 
     </span><span class="s2">"message"</span><span class="p">:</span><span class="w"> </span><span class="s2">"SUCCESS"</span><span class="p">,</span><span class="w">
     </span><span class="s2">"result"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
         </span><span class="s2">"readOnlyFullEnabled"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w">
+        </span><span class="s2">"readOnlyFullAccessibleBy"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ORG"</span><span class="p">,</span><span class="w">
         </span><span class="s2">"readOnlyFullUrl"</span><span class="p">:</span><span class="w"> </span><span class="s2">"http://publish.smartsheet.com/9862638d9c444014b5d7a114d436e99d"</span><span class="w">
     </span><span class="p">},</span><span class="w">
     </span><span class="s2">"resultCode"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="w">
@@ -10981,7 +11143,7 @@ of <a href="#groupmember-object">GroupMember objects</a> any users specified in 
 
 <p><code class="prettyprint">PUT /reports/{reportId}/publish</code></p>
 
-<p>Sets the publish status of the Report and returns the new status, including the URLs of any enabled publishings.</p>
+<p>Sets the publish status of the Report and returns the new status, including the URL of any enabled publishing.</p>
 
 <table><thead>
 <tr>
@@ -10999,13 +11161,15 @@ of <a href="#groupmember-object">GroupMember objects</a> any users specified in 
 </tr>
 <tr>
 <td><strong>Request Body</strong></td>
-<td><a href="#reportpublish-object">ReportPublish object</a> limited to the <strong>readOnlyFullEnabled</strong> attribute.<br/><br/>To publish the Report, set <strong>readOnlyFullEnabled</strong> to <code class="prettyprint">true</code>. To unpublish the Report, set <strong>readOnlyFullEnabled</strong> to <code class="prettyprint">false</code>.</td>
+<td><a href="#reportpublish-object">ReportPublish object</a> limited to the following attributes:<ul><li><strong>readOnlyFullEnabled</strong> (required)</li><li><strong>readOnlyFullAccessibleBy</strong> (optional) - set to either &ldquo;ALL&rdquo; or &ldquo;ORG&rdquo;, when <strong>readOnlyFullEnabled</strong>=true.</li></ul>To publish the Report, set <strong>readOnlyFullEnabled</strong> to <code class="prettyprint">true</code>. To unpublish the Report, set <strong>readOnlyFullEnabled</strong> to <code class="prettyprint">false</code>.</td>
 </tr>
 <tr>
 <td><strong>Returns</strong></td>
 <td><a href="#result-object">Result object</a> containing a <a href="#reportpublish-object">ReportPublish object</a></td>
 </tr>
 </tbody></table>
+
+<aside class="notice">If <b>readOnlyFullEnabled</b> is set to <code>true</code> in the request, but <b>readOnlyFullAccessibleBy</b> is not specified, then the value of <b>readOnlyFullAccessibleBy</b> will be defaulted to the organization-level 'Report Publishing&rsquo; setting (if the Report owner belongs to an organization) or to &ldquo;ALL&rdquo; (if the Report owner does not belong to an organization).</aside>
 
 <h2 id="send-report-via-email">Send Report via Email</h2>
 
@@ -13723,7 +13887,7 @@ Either <strong>email</strong> and <strong>groupId</strong> may be set, but not b
 
 <h1 id="sharing">Sharing</h1>
 
-<p>Use the <em>Sharing</em> operations to control sharing of Reports, Sheets, and Workspaces.</p>
+<p>Use the <em>Sharing</em> operations to control sharing of Reports, Sheets, Workspaces, and Sights.</p>
 
 <h2 id="objects">Objects</h2>
 
@@ -13744,7 +13908,7 @@ Either <strong>email</strong> and <strong>groupId</strong> may be set, but not b
 <tr>
 <td><strong>type</strong></td>
 <td>string</td>
-<td>The type of this share. One of <code class="prettyprint">USER</code> or <code class="prettyprint">GROUP</code>.</td>
+<td>The type of this share. One of the following values: <code class="prettyprint">USER</code> or <code class="prettyprint">GROUP</code>.</td>
 </tr>
 <tr>
 <td><strong>userId</strong></td>
@@ -13772,6 +13936,21 @@ Either <strong>email</strong> and <strong>groupId</strong> may be set, but not b
 <td>User or group&rsquo;s <a href="#access-levels">access level</a> on shared object.</td>
 </tr>
 <tr>
+<td><strong>scope</strong></td>
+<td>string</td>
+<td>The scope of this share. One of the following values: <ul><li><code class="prettyprint">ITEM</code>: an item-level share (i.e., the specific object to which the Share applies is shared with the user or group)</li><li><code class="prettyprint">WORKSPACE</code>: a workspace-level share (i.e., the workspace that contains the object to which the Share applies is shared with the user or group)</li></ul></td>
+</tr>
+<tr>
+<td><strong>createdAt</strong></td>
+<td>timestamp</td>
+<td>Time that the share was created.</td>
+</tr>
+<tr>
+<td><strong>modifiedAt</strong></td>
+<td>timestamp</td>
+<td>Time that the share was modified.</td>
+</tr>
+<tr>
 <td><strong>subject</strong></td>
 <td>string</td>
 <td>The subject of the email that will optionally be sent to notify the recipient. This attribute can be specified in a request, but will never be present in a response.</td>
@@ -13785,6 +13964,349 @@ Either <strong>email</strong> and <strong>groupId</strong> may be set, but not b
 <td><strong>ccMe</strong></td>
 <td>boolean</td>
 <td>Flag to indicate whether or not to send a copy of the email to the sharer of the sheet. This attribute can be specified in a request, but will never be present in a response.</td>
+</tr>
+</tbody></table>
+
+<h2 id="sights-sharing">Sights Sharing</h2>
+
+<h3 id="delete-sight-share">Delete Sight Share</h3>
+
+<blockquote>
+<p>Example Request:</p>
+</blockquote>
+<pre class="highlight shell"><code>curl https://api.smartsheet.com/2.0/sights/<span class="o">{</span>sightId<span class="o">}</span>/shares/<span class="o">{</span>shareId<span class="o">}</span> <span class="se">\</span>
+-H <span class="s2">"Authorization: Bearer ACCESS_TOKEN"</span> <span class="se">\</span>
+-X DELETE
+</code></pre>
+<pre class="highlight javascript"><code><span class="c1">// [todo]</span>
+</code></pre>
+<pre class="highlight csharp"><code><span class="c1">// [todo]
+</span></code></pre>
+<pre class="highlight java"><code><span class="c1">// [todo]</span>
+</code></pre>
+<pre class="highlight python"><code><span class="c"># [todo]</span>
+</code></pre>
+
+<blockquote>
+<p>Example Response:</p>
+</blockquote>
+
+<pre class="highlight json"><code><span class="p">{</span><span class="w">
+    </span><span class="s2">"message"</span><span class="p">:</span><span class="w"> </span><span class="s2">"SUCCESS"</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"resultCode"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre>
+
+<p><code class="prettyprint">DELETE /sights/{sightId}/shares/{shareId}</code></p>
+
+<p>Deletes the Share specified in the URL. </p>
+
+<table><thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead><tbody>
+<tr>
+<td><strong>Access Scope</strong></td>
+<td>SHARE_SIGHTS</td>
+</tr>
+<tr>
+<td><strong>Headers</strong></td>
+<td><strong>Authorization</strong>: Bearer ACCESS_TOKEN</td>
+</tr>
+<tr>
+<td><strong>Returns</strong></td>
+<td><a href="#result-object">Result object</a></td>
+</tr>
+</tbody></table>
+
+<h3 id="get-sight-share">Get Sight Share</h3>
+
+<blockquote>
+<p>Example Request:</p>
+</blockquote>
+<pre class="highlight shell"><code>curl https://api.smartsheet.com/2.0/sights/<span class="o">{</span>sightId<span class="o">}</span>/shares/<span class="o">{</span>shareId<span class="o">}</span> <span class="se">\</span>
+-H <span class="s2">"Authorization: Bearer ACCESS_TOKEN"</span> 
+</code></pre>
+<pre class="highlight javascript"><code><span class="c1">// [todo]</span>
+</code></pre>
+<pre class="highlight csharp"><code><span class="c1">// [todo]
+</span></code></pre>
+<pre class="highlight java"><code><span class="c1">// [todo]</span>
+</code></pre>
+<pre class="highlight python"><code><span class="c"># [todo]</span>
+</code></pre>
+
+<blockquote>
+<p>Example Response:</p>
+</blockquote>
+
+<pre class="highlight json"><code><span class="p">{</span><span class="w">
+    </span><span class="s2">"id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"AQAISF82FOeE"</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"GROUP"</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"groupId"</span><span class="p">:</span><span class="w"> </span><span class="mi">2331373580117892</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Group 1"</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"accessLevel"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ADMIN"</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"scope"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ITEM"</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"createdAt"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2016-02-17T22:24:09Z"</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"modifiedAt"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2016-02-17T22:24:09Z"</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre>
+
+<p><code class="prettyprint">GET /sights/{sightId}/shares/{shareId}</code></p>
+
+<p>Gets the Share specified in the URL. </p>
+
+<table><thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead><tbody>
+<tr>
+<td><strong>Access Scope</strong></td>
+<td>READ_SIGHTS</td>
+</tr>
+<tr>
+<td><strong>Headers</strong></td>
+<td><strong>Authorization</strong>: Bearer ACCESS_TOKEN</td>
+</tr>
+<tr>
+<td><strong>Returns</strong></td>
+<td><a href="#share-object">Share object</a></td>
+</tr>
+</tbody></table>
+
+<h3 id="list-sight-shares">List Sight Shares</h3>
+
+<blockquote>
+<p>Example Request:</p>
+</blockquote>
+<pre class="highlight shell"><code>curl https://api.smartsheet.com/2.0/sights/<span class="o">{</span>sightId<span class="o">}</span>/shares <span class="se">\</span>
+-H <span class="s2">"Authorization: Bearer ACCESS_TOKEN"</span> 
+</code></pre>
+<pre class="highlight javascript"><code><span class="c1">// [todo]</span>
+</code></pre>
+<pre class="highlight csharp"><code><span class="c1">// [todo]
+</span></code></pre>
+<pre class="highlight java"><code><span class="c1">// [todo]</span>
+</code></pre>
+<pre class="highlight python"><code><span class="c"># [todo]</span>
+</code></pre>
+
+<blockquote>
+<p>Example Response:</p>
+</blockquote>
+
+<pre class="highlight json"><code><span class="p">{</span><span class="w">
+    </span><span class="s2">"pageNumber"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"pageSize"</span><span class="p">:</span><span class="w"> </span><span class="mi">100</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"totalPages"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"totalCount"</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"data"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+        </span><span class="p">{</span><span class="w">
+            </span><span class="s2">"id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"AAAQSF82FOeE"</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"USER"</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"userId"</span><span class="p">:</span><span class="w"> </span><span class="mi">4583173393803140</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"email"</span><span class="p">:</span><span class="w"> </span><span class="s2">"john.doe@smartsheet.com"</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"John Doe"</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"accessLevel"</span><span class="p">:</span><span class="w"> </span><span class="s2">"OWNER"</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"scope"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ITEM"</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"createdAt"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2016-02-17T22:24:09Z"</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"modifiedAt"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2016-02-17T22:24:09Z"</span><span class="w">
+        </span><span class="p">},</span><span class="w">
+        </span><span class="p">{</span><span class="w">
+            </span><span class="s2">"id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"AQAISF82FOeE"</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"GROUP"</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"groupId"</span><span class="p">:</span><span class="w"> </span><span class="mi">2331373580117892</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Group 1"</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"accessLevel"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ADMIN"</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"scope"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ITEM"</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"createdAt"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2016-02-17T22:24:09Z"</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"modifiedAt"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2016-02-17T22:25:08Z"</span><span class="w">
+        </span><span class="p">}</span><span class="w">
+    </span><span class="p">]</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre>
+
+<p><code class="prettyprint">GET /sights/{sightId}/shares</code></p>
+
+<p>Gets a list of all Users and Groups to whom the specified Sight is shared, and their access level. </p>
+
+<aside class="notice">By default, this operation returns only <i>item-level</i> shares (<b><a href='#share-object'>scope</b></a>='ITEM&rsquo;). Use the <b>include</b> parameter to request that <i>workspace-level</i> shares (<b><a href='#share-object'>scope</b></a>=='WORKSPACE&rsquo;) also be returned.</aside>
+
+<aside class="notice">This operation supports pagination of results. For more information, see <a href="#paging">Paging</a>.</aside>
+
+<table><thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead><tbody>
+<tr>
+<td><strong>Access Scope</strong></td>
+<td>READ_SIGHTS</td>
+</tr>
+<tr>
+<td><strong>Headers</strong></td>
+<td><strong>Authorization</strong>: Bearer ACCESS_TOKEN</td>
+</tr>
+<tr>
+<td><strong>Parameters</strong></td>
+<td><strong>include</strong> (optional): when specified with a value of <code class="prettyprint">workspaceShares</code>, response will contain both <i>item-level</i> shares (<a href="#share-object"><b>scope</b></a>=&#39;ITEM&rsquo;) and <i>workspace-level</i> shares (<a href="#share-object"><b>scope</b></a>=&#39;WORKSPACE&rsquo;).<br/><br/>This operation supports query string parameters for pagination of results. For more information, see <a href="#paging-query-string-parameters">Paging Query String Parameters</a>.</td>
+</tr>
+<tr>
+<td><strong>Returns</strong></td>
+<td><a href="#indexresult-object">IndexResult object</a> containing an array of <a href="#share-object">Share objects</a><br/><br/><strong>NOTE:</strong> If the response contains an <em>item-level</em> share (<strong>scope</strong>=&#39;ITEM&rsquo;) and a <em>workspace-level</em> share (<strong>scope</strong>=&#39;WORKSPACE&rsquo;) for the same user or group, the <strong>id</strong> of those two <a href="#share-object">Share</a> objects will be identical, but the <strong>scope</strong> attribute value can be used to disambiguate the two.</td>
+</tr>
+</tbody></table>
+
+<h3 id="share-sight">Share Sight</h3>
+
+<blockquote>
+<p>Example Request: </p>
+</blockquote>
+<pre class="highlight shell"><code>curl https://api.smartsheet.com/2.0/sights/<span class="o">{</span>sightId<span class="o">}</span>/shares?sendEmail<span class="o">=</span><span class="nb">true</span> <span class="se">\</span>
+-H <span class="s2">"Authorization: Bearer ACCESS_TOKEN"</span> <span class="se">\</span>
+-H <span class="s2">"Content-Type: application/json"</span> <span class="se">\</span>
+-X POST <span class="se">\</span>
+-d <span class="s1">'[{"email": "jane.doe@smartsheet.com", "accessLevel": "EDITOR"}]'</span>
+</code></pre>
+<pre class="highlight javascript"><code><span class="c1">// [todo]</span>
+</code></pre>
+<pre class="highlight csharp"><code><span class="c1">// [todo]
+</span></code></pre>
+<pre class="highlight java"><code><span class="c1">// [todo]</span>
+</code></pre>
+<pre class="highlight python"><code><span class="c"># [todo]</span>
+</code></pre>
+
+<blockquote>
+<p>Example Response:</p>
+</blockquote>
+
+<pre class="highlight json"><code><span class="p">{</span><span class="w">
+    </span><span class="s2">"resultCode"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"result"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+        </span><span class="p">{</span><span class="w">
+            </span><span class="s2">"id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"AAAFeF82FOeE"</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"USER"</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"userId"</span><span class="p">:</span><span class="w"> </span><span class="mi">1539725208119172</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"email"</span><span class="p">:</span><span class="w"> </span><span class="s2">"jane.doe@smartsheet.com"</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Jane Doe"</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"accessLevel"</span><span class="p">:</span><span class="w"> </span><span class="s2">"EDITOR"</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"scope"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ITEM"</span><span class="w">
+        </span><span class="p">}</span><span class="w">
+    </span><span class="p">],</span><span class="w">
+    </span><span class="s2">"message"</span><span class="p">:</span><span class="w"> </span><span class="s2">"SUCCESS"</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre>
+
+<p><code class="prettyprint">POST /sights/{sightId}/shares</code></p>
+
+<p>Shares a Sight with the specified Users and Groups.</p>
+
+<aside class="notice">This operation supports both single-object and bulk semantics.  For more information, see <a href='#optional-bulk-operations'>Optional Bulk Operations</a>.</aside>
+
+<p>If called with a single <a href="#share-object">Share object</a>, and that user or group share already exists, <a href="#errors">error code</a> <strong>1025</strong> will be returned.  If called with an array of Share objects, and one or more user or group shares in the array already exist, they will be ignored and omitted from the response.</p>
+
+<table><thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead><tbody>
+<tr>
+<td><strong>Access Scope</strong></td>
+<td>SHARE_SIGHTS</td>
+</tr>
+<tr>
+<td><strong>Headers</strong></td>
+<td><strong>Authorization</strong>: Bearer ACCESS_TOKEN<br/><strong>Content-Type</strong>: application/json</td>
+</tr>
+<tr>
+<td><strong>Parameters</strong></td>
+<td><strong>sendEmail</strong> (optional): Either <code class="prettyprint">true</code> or <code class="prettyprint">false</code> to indicate whether or not to notify the user by email. Default is <strong>false</strong>.</td>
+</tr>
+<tr>
+<td><strong>Request Body</strong></td>
+<td><a href="#share-object">Share object</a> or an array of Share objects, with the following attributes:<ul><li>email (optional): the individual share recipient&rsquo;s email address</li><li>groupId (optional): the group share recipient&rsquo;s group ID</li><li>accessLevel (required)</li><li>subject (optional): The subject of the email that will optionally be sent to notify the recipient.</li><li>message (optional): The message to be included in the body of the email that will optionally be sent to the recipient.</li><li>ccMe (optional): Boolean flag to indicate whether or not to CC the user sharing the sheet.</li></ul><strong>NOTE:</strong> One of <strong>email</strong> or <strong>groupId</strong> must be specified, but not both.</td>
+</tr>
+<tr>
+<td><strong>Returns</strong></td>
+<td><a href="#result-object">Result object</a> containing either a single <a href="#share-object">Share object</a> or an array of Share objects, corresponding to what was specified in the request. All shares will have <b><a href="#share-object">scope</a></b>=&ldquo;ITEM&rdquo;.</td>
+</tr>
+<tr>
+<td><strong>Errors</strong></td>
+<td>If an error occurs because the request specified one or more <a href="#alternate-email-address(es)"><em>alternate</em> email addresses</a> (i.e., not the primary email address associated with the User account), the <a href="#errors">Error object</a> returned will contain a <strong>detail</strong> attribute set to an array of objects, each object in the array having the following attributes:<ul><li><strong>alternateEmailAddress</strong>: User&rsquo;s <em>alternate</em> email address that was specified in the request</li><li><strong>primaryEmailAddress</strong>: User&rsquo;s primary email address that must instead be specified for the operation</li></ul>For example:<br/>{<br/>&#160;&#160;&ldquo;errorCode&rdquo;: 5xxx,<br/>&#160;&#160;&ldquo;message&rdquo;: &ldquo;u1+1@smartsheet.com is an alternate address of the user u1@smartsheet.com. Please retry sharing directly to u1@smartsheet.com.&rdquo;<br/>&#160;&#160;&ldquo;detail&rdquo;: [<br/>&#160;&#160;&#160;&#160;&#160;&#160;{<br/>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&ldquo;alternateEmailAddress&rdquo;: &ldquo;u1+1@smartsheet.com&rdquo;,<br/>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&ldquo;primaryEmailAddress&rdquo;: &ldquo;u1@smartsheet.com&rdquo;<br/>&#160;&#160;&#160;&#160;&#160;&#160;}<br/>&#160;&#160;]<br/>}</td>
+</tr>
+</tbody></table>
+
+<h3 id="update-sight-share">Update Sight Share</h3>
+
+<blockquote>
+<p>Example Request: </p>
+</blockquote>
+<pre class="highlight shell"><code>curl https://api.smartsheet.com/2.0/sights/<span class="o">{</span>sightId<span class="o">}</span>/shares/<span class="o">{</span>shareId<span class="o">}</span> <span class="se">\</span>
+-H <span class="s2">"Authorization: Bearer ACCESS_TOKEN"</span> <span class="se">\</span>
+-H <span class="s2">"Content-Type: application/json"</span> <span class="se">\</span>
+-X PUT <span class="se">\</span>
+-d <span class="s1">'{"accessLevel": "VIEWER"}'</span>
+</code></pre>
+<pre class="highlight javascript"><code><span class="c1">// [todo]</span>
+</code></pre>
+<pre class="highlight csharp"><code><span class="c1">// [todo]
+</span></code></pre>
+<pre class="highlight java"><code><span class="c1">// [todo]</span>
+</code></pre>
+<pre class="highlight python"><code><span class="c"># [todo]</span>
+</code></pre>
+
+<blockquote>
+<p>Example Response:</p>
+</blockquote>
+
+<pre class="highlight json"><code><span class="p">{</span><span class="w">
+    </span><span class="s2">"resultCode"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"result"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+        </span><span class="s2">"id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"AAAFeF82FOeE"</span><span class="p">,</span><span class="w">
+        </span><span class="s2">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"USER"</span><span class="p">,</span><span class="w">
+        </span><span class="s2">"userId"</span><span class="p">:</span><span class="w"> </span><span class="mi">1539725208119172</span><span class="p">,</span><span class="w">
+        </span><span class="s2">"email"</span><span class="p">:</span><span class="w"> </span><span class="s2">"jane.doe@smartsheet.com"</span><span class="p">,</span><span class="w">
+        </span><span class="s2">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Jane Doe"</span><span class="p">,</span><span class="w">
+        </span><span class="s2">"accessLevel"</span><span class="p">:</span><span class="w"> </span><span class="s2">"VIEWER"</span><span class="p">,</span><span class="w">
+        </span><span class="s2">"scope"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ITEM"</span><span class="w">
+    </span><span class="p">},</span><span class="w">
+    </span><span class="s2">"message"</span><span class="p">:</span><span class="w"> </span><span class="s2">"SUCCESS"</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre>
+
+<p><code class="prettyprint">PUT /sights/{sightId}/shares/{shareId}</code></p>
+
+<p>Updates the access level of a User or Group for the specified Sight.</p>
+
+<table><thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead><tbody>
+<tr>
+<td><strong>Access Scope</strong></td>
+<td>SHARE_SIGHTS</td>
+</tr>
+<tr>
+<td><strong>Headers</strong></td>
+<td><strong>Authorization</strong>: Bearer ACCESS_TOKEN<br/><strong>Content-Type</strong>: application/json</td>
+</tr>
+<tr>
+<td><strong>Request Body</strong></td>
+<td><a href="#share-object">Share object</a> limited to the following attribute:<ul><li>accessLevel (string)</li></ul></td>
+</tr>
+<tr>
+<td><strong>Returns</strong></td>
+<td><a href="#result-object">Result object</a> containing the modified <a href="#share-object">Share object</a></td>
 </tr>
 </tbody></table>
 
@@ -13900,7 +14422,10 @@ Either <strong>email</strong> and <strong>groupId</strong> may be set, but not b
     </span><span class="s2">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"GROUP"</span><span class="p">,</span><span class="w">
     </span><span class="s2">"groupId"</span><span class="p">:</span><span class="w"> </span><span class="mi">2331373580117892</span><span class="p">,</span><span class="w">
     </span><span class="s2">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Group 1"</span><span class="p">,</span><span class="w">
-    </span><span class="s2">"accessLevel"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ADMIN"</span><span class="w">
+    </span><span class="s2">"accessLevel"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ADMIN"</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"scope"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ITEM"</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"createdAt"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2016-02-17T22:24:09Z"</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"modifiedAt"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2016-02-17T22:24:09Z"</span><span class="w">
 </span><span class="p">}</span><span class="w">
 </span></code></pre>
 
@@ -13991,14 +14516,20 @@ Either <strong>email</strong> and <strong>groupId</strong> may be set, but not b
             </span><span class="s2">"userId"</span><span class="p">:</span><span class="w"> </span><span class="mi">4583173393803140</span><span class="p">,</span><span class="w">
             </span><span class="s2">"email"</span><span class="p">:</span><span class="w"> </span><span class="s2">"john.doe@smartsheet.com"</span><span class="p">,</span><span class="w">
             </span><span class="s2">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"John Doe"</span><span class="p">,</span><span class="w">
-            </span><span class="s2">"accessLevel"</span><span class="p">:</span><span class="w"> </span><span class="s2">"OWNER"</span><span class="w">
+            </span><span class="s2">"accessLevel"</span><span class="p">:</span><span class="w"> </span><span class="s2">"OWNER"</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"scope"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ITEM"</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"createdAt"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2016-02-17T22:24:09Z"</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"modifiedAt"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2016-02-17T22:24:09Z"</span><span class="w">
         </span><span class="p">},</span><span class="w">
         </span><span class="p">{</span><span class="w">
             </span><span class="s2">"id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"AQAISF82FOeE"</span><span class="p">,</span><span class="w">
             </span><span class="s2">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"GROUP"</span><span class="p">,</span><span class="w">
             </span><span class="s2">"groupId"</span><span class="p">:</span><span class="w"> </span><span class="mi">2331373580117892</span><span class="p">,</span><span class="w">
             </span><span class="s2">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Group 1"</span><span class="p">,</span><span class="w">
-            </span><span class="s2">"accessLevel"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ADMIN"</span><span class="w">
+            </span><span class="s2">"accessLevel"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ADMIN"</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"scope"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ITEM"</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"createdAt"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2016-02-17T22:24:09Z"</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"modifiedAt"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2016-02-17T22:25:08Z"</span><span class="w">
         </span><span class="p">}</span><span class="w">
     </span><span class="p">]</span><span class="w">
 </span><span class="p">}</span><span class="w">
@@ -14007,6 +14538,8 @@ Either <strong>email</strong> and <strong>groupId</strong> may be set, but not b
 <p><code class="prettyprint">GET /reports/{reportId}/shares</code></p>
 
 <p>Gets a list of all Users and Groups to whom the specified Report is shared, and their access level. </p>
+
+<aside class="notice">By default, this operation returns only <i>item-level</i> shares (<b><a href='#share-object'>scope</b></a>='ITEM&rsquo;). Use the <b>include</b> parameter to request that <i>workspace-level</i> shares (<b><a href='#share-object'>scope</b></a>=='WORKSPACE&rsquo;) also be returned.</aside>
 
 <aside class="notice">This operation supports pagination of results. For more information, see <a href="#paging">Paging</a>.</aside>
 
@@ -14026,11 +14559,11 @@ Either <strong>email</strong> and <strong>groupId</strong> may be set, but not b
 </tr>
 <tr>
 <td><strong>Parameters</strong></td>
-<td>This operation supports query string parameters for pagination of results. For more information, see <a href="#paging-query-string-parameters">Paging Query String Parameters</a>.</td>
+<td><strong>include</strong> (optional): when specified with a value of <code class="prettyprint">workspaceShares</code>, response will contain both <i>item-level</i> shares (<a href="#share-object"><b>scope</b></a>=&lsquo;ITEM&rsquo;) and <i>workspace-level</i> shares (<a href="#share-object"><b>scope</b></a>=&#39;WORKSPACE&rsquo;).<br/><br/>This operation supports query string parameters for pagination of results. For more information, see <a href="#paging-query-string-parameters">Paging Query String Parameters</a>.</td>
 </tr>
 <tr>
 <td><strong>Returns</strong></td>
-<td><a href="#indexresult-object">IndexResult object</a> containing an array of <a href="#share-object">Share objects</a></td>
+<td><a href="#indexresult-object">IndexResult object</a> containing an array of <a href="#share-object">Share objects</a><br/><br/><strong>NOTE:</strong> If the response contains an <em>item-level</em> share (<strong>scope</strong>=&#39;ITEM&rsquo;) and a <em>workspace-level</em> share (<strong>scope</strong>=&#39;WORKSPACE&rsquo;) for the same user or group, the <strong>id</strong> of those two <a href="#share-object">Share</a> objects will be identical, but the <strong>scope</strong> attribute value can be used to disambiguate the two.</td>
 </tr>
 </tbody></table>
 
@@ -14103,7 +14636,8 @@ Either <strong>email</strong> and <strong>groupId</strong> may be set, but not b
             </span><span class="s2">"userId"</span><span class="p">:</span><span class="w"> </span><span class="mi">1539725208119172</span><span class="p">,</span><span class="w">
             </span><span class="s2">"email"</span><span class="p">:</span><span class="w"> </span><span class="s2">"jane.doe@smartsheet.com"</span><span class="p">,</span><span class="w">
             </span><span class="s2">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Jane Doe"</span><span class="p">,</span><span class="w">
-            </span><span class="s2">"accessLevel"</span><span class="p">:</span><span class="w"> </span><span class="s2">"EDITOR"</span><span class="w">
+            </span><span class="s2">"accessLevel"</span><span class="p">:</span><span class="w"> </span><span class="s2">"EDITOR"</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"scope"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ITEM"</span><span class="w">
         </span><span class="p">}</span><span class="w">
     </span><span class="p">],</span><span class="w">
     </span><span class="s2">"message"</span><span class="p">:</span><span class="w"> </span><span class="s2">"SUCCESS"</span><span class="w">
@@ -14142,7 +14676,7 @@ Either <strong>email</strong> and <strong>groupId</strong> may be set, but not b
 </tr>
 <tr>
 <td><strong>Returns</strong></td>
-<td><a href="#result-object">Result object</a> containing either a single <a href="#share-object">Share object</a> or an array of Share objects, corresponding to what was specified in the request.</td>
+<td><a href="#result-object">Result object</a> containing either a single <a href="#share-object">Share object</a> or an array of Share objects, corresponding to what was specified in the request. All shares will have <b><a href="#share-object">scope</a></b>=&ldquo;ITEM&rdquo;.</td>
 </tr>
 <tr>
 <td><strong>Errors</strong></td>
@@ -14214,7 +14748,8 @@ Either <strong>email</strong> and <strong>groupId</strong> may be set, but not b
         </span><span class="s2">"userId"</span><span class="p">:</span><span class="w"> </span><span class="mi">1539725208119172</span><span class="p">,</span><span class="w">
         </span><span class="s2">"email"</span><span class="p">:</span><span class="w"> </span><span class="s2">"jane.doe@smartsheet.com"</span><span class="p">,</span><span class="w">
         </span><span class="s2">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Jane Doe"</span><span class="p">,</span><span class="w">
-        </span><span class="s2">"accessLevel"</span><span class="p">:</span><span class="w"> </span><span class="s2">"VIEWER"</span><span class="w">
+        </span><span class="s2">"accessLevel"</span><span class="p">:</span><span class="w"> </span><span class="s2">"VIEWER"</span><span class="p">,</span><span class="w">
+        </span><span class="s2">"scope"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ITEM"</span><span class="w">
     </span><span class="p">},</span><span class="w">
     </span><span class="s2">"message"</span><span class="p">:</span><span class="w"> </span><span class="s2">"SUCCESS"</span><span class="w">
 </span><span class="p">}</span><span class="w">
@@ -14360,7 +14895,10 @@ Either <strong>email</strong> and <strong>groupId</strong> may be set, but not b
     </span><span class="s2">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"GROUP"</span><span class="p">,</span><span class="w">
     </span><span class="s2">"groupId"</span><span class="p">:</span><span class="w"> </span><span class="mi">2331373580117892</span><span class="p">,</span><span class="w">
     </span><span class="s2">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Group 1"</span><span class="p">,</span><span class="w">
-    </span><span class="s2">"accessLevel"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ADMIN"</span><span class="w">
+    </span><span class="s2">"accessLevel"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ADMIN"</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"scope"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ITEM"</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"createdAt"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2016-02-17T22:24:09Z"</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"modifiedAt"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2016-02-17T22:24:09Z"</span><span class="w">
 </span><span class="p">}</span><span class="w">
 </span></code></pre>
 
@@ -14451,14 +14989,20 @@ Either <strong>email</strong> and <strong>groupId</strong> may be set, but not b
             </span><span class="s2">"userId"</span><span class="p">:</span><span class="w"> </span><span class="mi">4583173393803140</span><span class="p">,</span><span class="w">
             </span><span class="s2">"email"</span><span class="p">:</span><span class="w"> </span><span class="s2">"john.doe@smartsheet.com"</span><span class="p">,</span><span class="w">
             </span><span class="s2">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"John Doe"</span><span class="p">,</span><span class="w">
-            </span><span class="s2">"accessLevel"</span><span class="p">:</span><span class="w"> </span><span class="s2">"OWNER"</span><span class="w">
+            </span><span class="s2">"accessLevel"</span><span class="p">:</span><span class="w"> </span><span class="s2">"OWNER"</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"scope"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ITEM"</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"createdAt"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2016-02-17T22:24:09Z"</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"modifiedAt"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2016-02-17T22:24:09Z"</span><span class="w">
         </span><span class="p">},</span><span class="w">
         </span><span class="p">{</span><span class="w">
             </span><span class="s2">"id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"AQAISF82FOeE"</span><span class="p">,</span><span class="w">
             </span><span class="s2">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"GROUP"</span><span class="p">,</span><span class="w">
             </span><span class="s2">"groupId"</span><span class="p">:</span><span class="w"> </span><span class="mi">2331373580117892</span><span class="p">,</span><span class="w">
             </span><span class="s2">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Group 1"</span><span class="p">,</span><span class="w">
-            </span><span class="s2">"accessLevel"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ADMIN"</span><span class="w">
+            </span><span class="s2">"accessLevel"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ADMIN"</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"scope"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ITEM"</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"createdAt"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2016-02-17T22:24:09Z"</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"modifiedAt"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2016-02-17T22:25:08Z"</span><span class="w">
         </span><span class="p">}</span><span class="w">
     </span><span class="p">]</span><span class="w">
 </span><span class="p">}</span><span class="w">
@@ -14467,6 +15011,8 @@ Either <strong>email</strong> and <strong>groupId</strong> may be set, but not b
 <p><code class="prettyprint">GET /sheets/{sheetId}/shares</code></p>
 
 <p>Gets a list of all Users and Groups to whom the specified Sheet is shared, and their access level. </p>
+
+<aside class="notice">By default, this operation returns only <i>item-level</i> shares (<b><a href='#share-object'>scope</b></a>='ITEM&rsquo;). Use the <b>include</b> parameter to request that <i>workspace-level</i> shares (<b><a href='#share-object'>scope</b></a>=='WORKSPACE&rsquo;) also be returned.</aside>
 
 <aside class="notice">This operation supports pagination of results. For more information, see <a href="#paging">Paging</a>.</aside>
 
@@ -14486,11 +15032,11 @@ Either <strong>email</strong> and <strong>groupId</strong> may be set, but not b
 </tr>
 <tr>
 <td><strong>Parameters</strong></td>
-<td>This operation supports query string parameters for pagination of results. For more information, see <a href="#paging-query-string-parameters">Paging Query String Parameters</a>.</td>
+<td><strong>include</strong> (optional): when specified with a value of <code class="prettyprint">workspaceShares</code>, response will contain both <i>item-level</i> shares (<a href="#share-object"><b>scope</b></a>=&lsquo;ITEM&rsquo;) and <i>workspace-level</i> shares (<a href="#share-object"><b>scope</b></a>=&#39;WORKSPACE&rsquo;).<br/><br/>This operation supports query string parameters for pagination of results. For more information, see <a href="#paging-query-string-parameters">Paging Query String Parameters</a>.</td>
 </tr>
 <tr>
 <td><strong>Returns</strong></td>
-<td><a href="#indexresult-object">IndexResult object</a> containing an array of <a href="#share-object">Share objects</a></td>
+<td><a href="#indexresult-object">IndexResult object</a> containing an array of <a href="#share-object">Share objects</a><br/><br/><strong>NOTE:</strong> If the response contains an <em>item-level</em> share (<strong>scope</strong>=&#39;ITEM&rsquo;) and a <em>workspace-level</em> share (<strong>scope</strong>=&#39;WORKSPACE&rsquo;) for the same user or group, the <strong>id</strong> of those two <a href="#share-object">Share</a> objects will be identical, but the <strong>scope</strong> attribute value can be used to disambiguate the two.</td>
 </tr>
 </tbody></table>
 
@@ -14564,7 +15110,8 @@ Either <strong>email</strong> and <strong>groupId</strong> may be set, but not b
             </span><span class="s2">"userId"</span><span class="p">:</span><span class="w"> </span><span class="mi">1539725208119172</span><span class="p">,</span><span class="w">
             </span><span class="s2">"email"</span><span class="p">:</span><span class="w"> </span><span class="s2">"jane.doe@smartsheet.com"</span><span class="p">,</span><span class="w">
             </span><span class="s2">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Jane Doe"</span><span class="p">,</span><span class="w">
-            </span><span class="s2">"accessLevel"</span><span class="p">:</span><span class="w"> </span><span class="s2">"EDITOR"</span><span class="w">
+            </span><span class="s2">"accessLevel"</span><span class="p">:</span><span class="w"> </span><span class="s2">"EDITOR"</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"scope"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ITEM"</span><span class="w">
         </span><span class="p">}</span><span class="w">
     </span><span class="p">],</span><span class="w">
     </span><span class="s2">"message"</span><span class="p">:</span><span class="w"> </span><span class="s2">"SUCCESS"</span><span class="w">
@@ -14603,7 +15150,7 @@ Either <strong>email</strong> and <strong>groupId</strong> may be set, but not b
 </tr>
 <tr>
 <td><strong>Returns</strong></td>
-<td><a href="#result-object">Result object</a> containing either a single <a href="#share-object">Share object</a> or an array of Share objects, corresponding to what was specified in the request.</td>
+<td><a href="#result-object">Result object</a> containing either a single <a href="#share-object">Share object</a> or an array of Share objects, corresponding to what was specified in the request. All shares will have <b><a href="#share-object">scope</a></b>=&ldquo;ITEM&rdquo;.</td>
 </tr>
 <tr>
 <td><strong>Errors</strong></td>
@@ -14675,7 +15222,8 @@ Either <strong>email</strong> and <strong>groupId</strong> may be set, but not b
         </span><span class="s2">"userId"</span><span class="p">:</span><span class="w"> </span><span class="mi">1539725208119172</span><span class="p">,</span><span class="w">
         </span><span class="s2">"email"</span><span class="p">:</span><span class="w"> </span><span class="s2">"jane.doe@smartsheet.com"</span><span class="p">,</span><span class="w">
         </span><span class="s2">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Jane Doe"</span><span class="p">,</span><span class="w">
-        </span><span class="s2">"accessLevel"</span><span class="p">:</span><span class="w"> </span><span class="s2">"VIEWER"</span><span class="w">
+        </span><span class="s2">"accessLevel"</span><span class="p">:</span><span class="w"> </span><span class="s2">"VIEWER"</span><span class="p">,</span><span class="w">
+        </span><span class="s2">"scope"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ITEM"</span><span class="w">
     </span><span class="p">},</span><span class="w">
     </span><span class="s2">"message"</span><span class="p">:</span><span class="w"> </span><span class="s2">"SUCCESS"</span><span class="w">
 </span><span class="p">}</span><span class="w">
@@ -14821,7 +15369,10 @@ Either <strong>email</strong> and <strong>groupId</strong> may be set, but not b
     </span><span class="s2">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"GROUP"</span><span class="p">,</span><span class="w">
     </span><span class="s2">"groupId"</span><span class="p">:</span><span class="w"> </span><span class="mi">2331373580117892</span><span class="p">,</span><span class="w">
     </span><span class="s2">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Group 1"</span><span class="p">,</span><span class="w">
-    </span><span class="s2">"accessLevel"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ADMIN"</span><span class="w">
+    </span><span class="s2">"accessLevel"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ADMIN"</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"scope"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ITEM"</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"createdAt"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2016-02-17T22:24:09Z"</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"modifiedAt"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2016-02-17T22:24:09Z"</span><span class="w">
 </span><span class="p">}</span><span class="w">
 </span></code></pre>
 
@@ -14912,14 +15463,20 @@ Either <strong>email</strong> and <strong>groupId</strong> may be set, but not b
             </span><span class="s2">"userId"</span><span class="p">:</span><span class="w"> </span><span class="mi">4583173393803140</span><span class="p">,</span><span class="w">
             </span><span class="s2">"email"</span><span class="p">:</span><span class="w"> </span><span class="s2">"john.doe@smartsheet.com"</span><span class="p">,</span><span class="w">
             </span><span class="s2">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"John Doe"</span><span class="p">,</span><span class="w">
-            </span><span class="s2">"accessLevel"</span><span class="p">:</span><span class="w"> </span><span class="s2">"OWNER"</span><span class="w">
+            </span><span class="s2">"accessLevel"</span><span class="p">:</span><span class="w"> </span><span class="s2">"OWNER"</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"scope"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ITEM"</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"createdAt"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2016-02-17T22:24:09Z"</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"modifiedAt"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2016-02-17T22:24:09Z"</span><span class="w">
         </span><span class="p">},</span><span class="w">
         </span><span class="p">{</span><span class="w">
             </span><span class="s2">"id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"AQAISF82FOeE"</span><span class="p">,</span><span class="w">
             </span><span class="s2">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"GROUP"</span><span class="p">,</span><span class="w">
             </span><span class="s2">"groupId"</span><span class="p">:</span><span class="w"> </span><span class="mi">2331373580117892</span><span class="p">,</span><span class="w">
             </span><span class="s2">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Group 1"</span><span class="p">,</span><span class="w">
-            </span><span class="s2">"accessLevel"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ADMIN"</span><span class="w">
+            </span><span class="s2">"accessLevel"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ADMIN"</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"scope"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ITEM"</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"createdAt"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2016-02-17T22:24:09Z"</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"modifiedAt"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2016-02-17T22:25:08Z"</span><span class="w">
         </span><span class="p">}</span><span class="w">
     </span><span class="p">]</span><span class="w">
 </span><span class="p">}</span><span class="w">
@@ -15024,7 +15581,8 @@ Either <strong>email</strong> and <strong>groupId</strong> may be set, but not b
             </span><span class="s2">"userId"</span><span class="p">:</span><span class="w"> </span><span class="mi">1539725208119172</span><span class="p">,</span><span class="w">
             </span><span class="s2">"email"</span><span class="p">:</span><span class="w"> </span><span class="s2">"jane.doe@smartsheet.com"</span><span class="p">,</span><span class="w">
             </span><span class="s2">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Jane Doe"</span><span class="p">,</span><span class="w">
-            </span><span class="s2">"accessLevel"</span><span class="p">:</span><span class="w"> </span><span class="s2">"EDITOR"</span><span class="w">
+            </span><span class="s2">"accessLevel"</span><span class="p">:</span><span class="w"> </span><span class="s2">"EDITOR"</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"scope"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ITEM"</span><span class="w">
         </span><span class="p">}</span><span class="w">
     </span><span class="p">],</span><span class="w">
     </span><span class="s2">"message"</span><span class="p">:</span><span class="w"> </span><span class="s2">"SUCCESS"</span><span class="w">
@@ -15064,6 +15622,10 @@ Either <strong>email</strong> and <strong>groupId</strong> may be set, but not b
 <tr>
 <td><strong>Returns</strong></td>
 <td><a href="#result-object">Result object</a> containing either a single <a href="#share-object">Share object</a> or an array of Share objects, corresponding to what was specified in the request.</td>
+</tr>
+<tr>
+<td><strong>Errors</strong></td>
+<td>If an error occurs because the request specified one or more <a href="#alternate-email-address(es)"><em>alternate</em> email addresses</a> (i.e., not the primary email address associated with the User account), the <a href="#errors">Error object</a> returned will contain a <strong>detail</strong> attribute set to an array of objects, each object in the array having the following attributes:<ul><li><strong>alternateEmailAddress</strong>: User&rsquo;s <em>alternate</em> email address that was specified in the request</li><li><strong>primaryEmailAddress</strong>: User&rsquo;s primary email address that must instead be specified for the operation</li></ul>For example:<br/>{<br/>&#160;&#160;&ldquo;errorCode&rdquo;: 5xxx,<br/>&#160;&#160;&ldquo;message&rdquo;: &ldquo;u1+1@smartsheet.com is an alternate address of the user u1@smartsheet.com. Please retry sharing directly to u1@smartsheet.com.&rdquo;<br/>&#160;&#160;&ldquo;detail&rdquo;: [<br/>&#160;&#160;&#160;&#160;&#160;&#160;{<br/>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&ldquo;alternateEmailAddress&rdquo;: &ldquo;u1+1@smartsheet.com&rdquo;,<br/>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&ldquo;primaryEmailAddress&rdquo;: &ldquo;u1@smartsheet.com&rdquo;<br/>&#160;&#160;&#160;&#160;&#160;&#160;}<br/>&#160;&#160;]<br/>}</td>
 </tr>
 </tbody></table>
 
@@ -15131,7 +15693,8 @@ Either <strong>email</strong> and <strong>groupId</strong> may be set, but not b
         </span><span class="s2">"userId"</span><span class="p">:</span><span class="w"> </span><span class="mi">1539725208119172</span><span class="p">,</span><span class="w">
         </span><span class="s2">"email"</span><span class="p">:</span><span class="w"> </span><span class="s2">"jane.doe@smartsheet.com"</span><span class="p">,</span><span class="w">
         </span><span class="s2">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Jane Doe"</span><span class="p">,</span><span class="w">
-        </span><span class="s2">"accessLevel"</span><span class="p">:</span><span class="w"> </span><span class="s2">"VIEWER"</span><span class="w">
+        </span><span class="s2">"accessLevel"</span><span class="p">:</span><span class="w"> </span><span class="s2">"VIEWER"</span><span class="p">,</span><span class="w">
+        </span><span class="s2">"scope"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ITEM"</span><span class="w">
     </span><span class="p">},</span><span class="w">
     </span><span class="s2">"message"</span><span class="p">:</span><span class="w"> </span><span class="s2">"SUCCESS"</span><span class="w">
 </span><span class="p">}</span><span class="w">
@@ -15332,24 +15895,34 @@ Either <strong>email</strong> and <strong>groupId</strong> may be set, but not b
 <td>If <code class="prettyprint">true</code>, a webcal will be available for the calendar in the sheet.</td>
 </tr>
 <tr>
+<td><strong>readOnlyFullAccessibleBy</strong></td>
+<td>string</td>
+<td>Flag to indicate who can access the &#39;Read-Only Full&rsquo; view of the published sheet:<ul><li>If &ldquo;ALL&rdquo;, it is available to anyone who has the link.</li><li>If &ldquo;ORG&rdquo;, it is available only to members of the sheet owner&rsquo;s Smartsheet organization.</li></ul>Only returned in a response if <strong>readOnlyFullEnabled</strong> = true.</td>
+</tr>
+<tr>
+<td><strong>readWriteAccessibleBy</strong></td>
+<td>string</td>
+<td>Flag to indicate who can access the &#39;Edit by Anyone&rsquo; view of the published sheet:<ul><li>If &ldquo;ALL&rdquo;, it is available to anyone who has the link.</li><li>If &ldquo;ORG&rdquo;, it is available only to members of the sheet owner&rsquo;s Smartsheet organization.</li></ul>Only returned in a response if <strong>readWriteEnabled</strong> = true.</td>
+</tr>
+<tr>
 <td><strong>readOnlyLiteUrl</strong></td>
 <td>string</td>
-<td>URL for Read-Only HTML</td>
+<td>URL for &#39;Read-Only HTML&rsquo; view of the published sheet<br/>Only returned in a response if <strong>readOnlyLiteEnabled</strong> = true.</td>
 </tr>
 <tr>
 <td><strong>readOnlyFullUrl</strong></td>
 <td>string</td>
-<td>URL for Read-Only Full</td>
+<td>URL for &#39;Read-Only Full&rsquo; view of the published sheet<br/>Only returned in a response if <strong>readOnlyFullEnabled</strong> = true.</td>
 </tr>
 <tr>
 <td><strong>readWriteUrl</strong></td>
 <td>string</td>
-<td>URL for Edit by Anyone</td>
+<td>URL for &#39;Edit by Anyone&rsquo; view of the published sheet<br/>Only returned in a response if <strong>readWriteEnabled</strong> = true.</td>
 </tr>
 <tr>
 <td><strong>icalUrl</strong></td>
 <td>string</td>
-<td>URL for iCal</td>
+<td>URL for &#39;iCal&rsquo; view of the published sheet<br/>Only returned in a response if <strong>icalEnabled</strong> = true.</td>
 </tr>
 </tbody></table>
 
@@ -17033,7 +17606,9 @@ Either <strong>email</strong> and <strong>groupId</strong> may be set, but not b
 
 <p><code class="prettyprint">POST /sheets/{sheetId}/move</code></p>
 
-<p>Moves the specified sheet to a new location.</p>
+<p>Moves the specified Sheet to a new location.</p>
+
+<aside class="notice">When a Sheet that is shared to one or more user(s) and/or group(s) is moved into or out of a workspace, those <i>sheet-level</i> shares will be preserved.</aside>
 
 <table><thead>
 <tr>
@@ -17099,17 +17674,18 @@ Either <strong>email</strong> and <strong>groupId</strong> may be set, but not b
 <p>Example Response:</p>
 </blockquote>
 <pre class="highlight json"><code><span class="p">{</span><span class="w">
-    </span><span class="s2">"readOnlyLiteEnabled"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w">
-    </span><span class="s2">"readOnlyFullEnabled"</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"readOnlyLiteEnabled"</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"readOnlyFullEnabled"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w">
     </span><span class="s2">"readWriteEnabled"</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span><span class="w">
     </span><span class="s2">"icalEnabled"</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span><span class="w">
-    </span><span class="s2">"readOnlyLiteUrl"</span><span class="p">:</span><span class="w"> </span><span class="s2">"https://publish.smartsheet.com/6d35fa6c99334d4892f9591cf6065"</span><span class="w">
+    </span><span class="s2">"readOnlyFullAccessibleBy"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ALL"</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"readOnlyFullUrl"</span><span class="p">:</span><span class="w"> </span><span class="s2">"https://publish.smartsheet.com/6d35fa6c99334d4892f9591cf6065"</span><span class="w">
 </span><span class="p">}</span><span class="w">
 </span></code></pre>
 
 <p><code class="prettyprint">GET /sheets/{sheetId}/publish</code></p>
 
-<p>Gets the status of the Publish settings of the Sheet, including the URLs of any enabled publishings.</p>
+<p>Gets the Sheet&rsquo;s &#39;Publish&rsquo; settings.</p>
 
 <table><thead>
 <tr>
@@ -17224,13 +17800,17 @@ Either <strong>email</strong> and <strong>groupId</strong> may be set, but not b
 </tr>
 <tr>
 <td><strong>Request Body</strong></td>
-<td><a href="#sheetpublish-object">SheetPublish object</a> limited to the following attributes:<ul><li>readOnlyLiteEnabled</li><li>readOnlyFullEnabled</li><li>readWriteEnabled</li><li>icalEnabled</li></ul>To enable one or more of the Publish Options for the Sheet (i.e., to publish the Sheet), set the corresponding attribute(s) to <code class="prettyprint">true</code>. To disable one or more of the Publish Options for the Sheet (i.e., to unpublish the Sheet), set the corresponding attribute(s) to <code class="prettyprint">false</code>.</td>
+<td><a href="#sheetpublish-object">SheetPublish object</a> limited to the following attributes:<ul><li>readOnlyLiteEnabled (required)</li><li>readOnlyFullEnabled (required)</li><li>readOnlyFullAccessibleBy (optional) - set to either &ldquo;ALL&rdquo; or &ldquo;ORG&rdquo;, when <b>readOnlyFullEnabled</b>=true</li><li>readWriteEnabled (required)</li><li>readWriteAccessibleBy (optional) - set to either &ldquo;ALL&rdquo; or &ldquo;ORG&rdquo;, when <b>readWriteEnabled</b>=true</li><li>icalEnabled (required)</li></ul>To enable one or more of the Publish Options for the Sheet (i.e., to publish the Sheet), set the corresponding &ldquo;Enabled&rdquo; attribute(s) to <code class="prettyprint">true</code>. To disable one or more of the Publish Options for the Sheet (i.e., to unpublish the Sheet), set the corresponding &ldquo;Enabled&rdquo; attribute(s) to <code class="prettyprint">false</code>.</td>
 </tr>
 <tr>
 <td><strong>Returns</strong></td>
 <td><a href="#result-object">Result object</a> containing a <a href="#sheetpublish-object">SheetPublish object</a></td>
 </tr>
 </tbody></table>
+
+<aside class="notice">If <b>readOnlyFullEnabled</b> is set to <code>true</code> in the request, but <b>readOnlyFullAccessibleBy</b> is not specified, then the value of <b>readOnlyFullAccessibleBy</b> will be defaulted to the organization-level 'Sheet Publishing&rsquo; setting (if the Sheet owner belongs to an organization) or to &ldquo;ALL&rdquo; (if the Sheet owner does not belong to an organization).</aside>
+
+<aside class="notice">If <b>readWriteEnabled</b> is set to <code>true</code> in the request but <b>readWriteAccessibleBy</b> is not specified, then the value of <b>readWriteAccessibleBy</b> will be defaulted to the organization-level 'Sheet Publishing&rsquo; setting (if the Sheet owner belongs to an organization) or to &ldquo;ALL&rdquo; (if the Sheet owner does not belong to an organization).</aside>
 
 <h2 id="search-sheet">Search Sheet</h2>
 
@@ -17777,6 +18357,716 @@ only has read-only access to the sheet (i.e. the user has viewer permissions, or
 <h3 id="sheet-rows">Sheet Rows</h3>
 
 <p>For details about working with a Sheet&rsquo;s rows, see <a href="#rows">Rows</a>.</p>
+
+<h1 id="sights">Sights</h1>
+
+<p>A Sight is a collection of widgets that can contain data from a variety of different data sources (i.e., Sheets, Reports, custom data).</p>
+
+<h2 id="objects">Objects</h2>
+
+<h3 id="sight-object">Sight Object</h3>
+
+<table><thead>
+<tr>
+<th></th>
+<th></th>
+<th></th>
+</tr>
+</thead><tbody>
+<tr>
+<td><strong>id</strong></td>
+<td>number</td>
+<td>Sight ID</td>
+</tr>
+<tr>
+<td><strong>name</strong></td>
+<td>string</td>
+<td>Sight Name</td>
+</tr>
+<tr>
+<td><strong>columnCount</strong></td>
+<td>number</td>
+<td>Number of Columns that the Sight contains</td>
+</tr>
+<tr>
+<td><strong>widgets</strong></td>
+<td><a href="#widget-object">widget</a>[]</td>
+<td>Array of Widget objects</td>
+</tr>
+<tr>
+<td><strong>favorite</strong></td>
+<td>boolean</td>
+<td>Indicates whether the User has marked the Sight as a favorite</td>
+</tr>
+<tr>
+<td><strong>accessLevel</strong></td>
+<td>string</td>
+<td>User&rsquo;s permissions on the Sight. Valid values: <ul><li>OWNER</li> <li>ADMIN</li> <li>VIEWER</li></ul></td>
+</tr>
+<tr>
+<td><strong>permalink</strong></td>
+<td>string</td>
+<td>URL that represents a direct link to the Sight in Smartsheet</td>
+</tr>
+<tr>
+<td><strong>createdAt</strong></td>
+<td>timestamp</td>
+<td>Time of creation</td>
+</tr>
+<tr>
+<td><strong>modifiedAt</strong></td>
+<td>timestamp</td>
+<td>Time of last modification</td>
+</tr>
+<tr>
+<td><strong>workspace</strong></td>
+<td><a href="#workspace-object">Workspace</a></td>
+<td>A Workspace object, limited to only 2 attributes: <ul><li>id</li> <li>name</li></ul> <em>Note: this attribute is only present if the Sight resides within a Workspace.</em></td>
+</tr>
+</tbody></table>
+
+<h3 id="widget-object">Widget Object</h3>
+
+<table><thead>
+<tr>
+<th></th>
+<th></th>
+<th></th>
+</tr>
+</thead><tbody>
+<tr>
+<td><strong>id</strong></td>
+<td>number</td>
+<td>Widget ID</td>
+</tr>
+<tr>
+<td><strong>type</strong></td>
+<td>string</td>
+<td>Type of widget</td>
+</tr>
+<tr>
+<td><strong>title</strong></td>
+<td>string</td>
+<td><em>(Optional)</em> Title of the widget</td>
+</tr>
+<tr>
+<td><strong>showTitleIcon</strong></td>
+<td>boolean</td>
+<td><strong>True</strong> indicates that the client should display the Sheet icon in the widget title</td>
+</tr>
+<tr>
+<td><strong>titleFormat</strong></td>
+<td>string</td>
+<td><a href="#formatting">FormatDescriptor</a></td>
+</tr>
+<tr>
+<td><strong>xPosition</strong></td>
+<td>number</td>
+<td>X-coordinate of widget&rsquo;s position on the Sight</td>
+</tr>
+<tr>
+<td><strong>yPosition</strong></td>
+<td>number</td>
+<td>Y-coordinate of widget&rsquo;s position on the Sight</td>
+</tr>
+<tr>
+<td><strong>height</strong></td>
+<td>number</td>
+<td>Number of Rows that the widget occupies on the Sight</td>
+</tr>
+<tr>
+<td><strong>width</strong></td>
+<td>number</td>
+<td>Number of Columns that the widget occupies on the Sight</td>
+</tr>
+<tr>
+<td><strong>version</strong></td>
+<td>int</td>
+<td>Widget version number</td>
+</tr>
+<tr>
+<td><strong>contents</strong></td>
+<td><a href="#widgetcontent-object">WidgetContent</a></td>
+<td>Data that specifies the contents of the widget. _Note: the type of <em>WidgetContent</em> object (and attributes within) will depend on the value of <em>Widget.type</em>: <ul><li>CELLLINK - <a href="#celllinkwidgetcontent-object">CellLinkWidgetContent</a></li> <li>SHEETSUMMARY - <a href="#celllinkwidgetcontent-object">CellLinkWidgetContent</a></li> <li>RICHTEXT - <a href="#richtextwidgetcontent-object">RichTextWidgetContent</a></li> <li>SHORTCUTICON - <a href="#shortcutwidgetcontent-object">ShortcutWidgetContent</a></li> <li>SHORTCUTLIST - <a href="#shortcutwidgetcontent-object">ShortcutWidgetContent</a> </li> <li>GRIDGANTT - <a href="#reportwidgetcontent-object">ReportWidgetContent</a></li></td>
+</tr>
+</tbody></table>
+
+<h3 id="celllinkwidgetcontent-object">CellLinkWidgetContent object</h3>
+
+<table><thead>
+<tr>
+<th></th>
+<th></th>
+<th></th>
+</tr>
+</thead><tbody>
+<tr>
+<td>hyperlink</td>
+<td><a href="#hyperlink-object">hyperlink</a></td>
+<td>The widget has <strong>when clicked</strong> attribute set to that hyperlink (if present and non-null)</td>
+</tr>
+<tr>
+<td>cellData</td>
+<td><a href="#celldataitem-object">cellData</a>[]</td>
+<td>Array of cellDataItem objects</td>
+</tr>
+<tr>
+<td>column</td>
+<td><a href="#column-object">column</a>[]</td>
+<td>Array of Column objects</td>
+</tr>
+</tbody></table>
+
+<h3 id="richtextwidgetcontent-object">RichTextWidgetContent object</h3>
+
+<table><thead>
+<tr>
+<th></th>
+<th></th>
+<th></th>
+</tr>
+</thead><tbody>
+<tr>
+<td>html</td>
+<td>string</td>
+<td>The widget content as HTML </br> </br> The Rich Text widget supports the following subset of HTML tags and CSS Styles: </br></br> <b>HTML</b><ul><li>a</li> <li>br</li> <li>li</li> <li>ol</li> <li>p</li> <li>ul</li> <li>span</li></ul> <b>CSS</b><ul><li>color</li> <li>font-family</li> <li>font-size</li> <li>font-style</li> <li>font-weight</li> <li>text-align</li> <li>text-decoration</li></ul></td>
+</tr>
+</tbody></table>
+
+<h3 id="shortcutwidgetcontent-object">ShortcutWidgetContent object</h3>
+
+<table><thead>
+<tr>
+<th></th>
+<th></th>
+<th></th>
+</tr>
+</thead><tbody>
+<tr>
+<td>shortcutData</td>
+<td><a href="#shortcutdataitem-object">shortcutData</a>[]</td>
+<td>An array of ShortcutDataItem objects</td>
+</tr>
+</tbody></table>
+
+<h3 id="reportwidgetcontent-object">ReportWidgetContent object</h3>
+
+<table><thead>
+<tr>
+<th></th>
+<th></th>
+<th></th>
+</tr>
+</thead><tbody>
+<tr>
+<td>htmlContent</td>
+<td>string</td>
+<td>HTML snippet to render Report</td>
+</tr>
+</tbody></table>
+
+<h3 id="celldataitem-object">CellDataItem object</h3>
+
+<table><thead>
+<tr>
+<th></th>
+<th></th>
+<th></th>
+</tr>
+</thead><tbody>
+<tr>
+<td><strong>label</strong></td>
+<td>string</td>
+<td>Label for the data point. This will be either the column name or a user-provided string</td>
+</tr>
+<tr>
+<td><strong>labelFormat</strong></td>
+<td>string</td>
+<td><a href="#formatting">formatDescriptor</a></td>
+</tr>
+<tr>
+<td><strong>objectValue</strong></td>
+<td>A <strong>string</strong>, <strong>number</strong>, or a <strong>boolean</strong> value</td>
+<td>The type of data returned will depend on the cell type and the data in the cell</td>
+</tr>
+<tr>
+<td><strong>cell</strong></td>
+<td><a href="#cell-object">cell</a></td>
+<td>Cell Object</td>
+</tr>
+<tr>
+<td><strong>valueFormat</strong></td>
+<td>string</td>
+<td><a href="#formatting">formatDescriptor</a></td>
+</tr>
+<tr>
+<td><strong>order</strong></td>
+<td>integer</td>
+<td>The display order for the CellDataItem</td>
+</tr>
+<tr>
+<td><strong>columnId</strong></td>
+<td>number</td>
+<td>Column ID for the cell</td>
+</tr>
+</tbody></table>
+
+<h3 id="shortcutdataitem-object">ShortcutDataItem object</h3>
+
+<table><thead>
+<tr>
+<th></th>
+<th></th>
+<th></th>
+</tr>
+</thead><tbody>
+<tr>
+<td><strong>label</strong></td>
+<td>string</td>
+<td>Label for the data point</td>
+</tr>
+<tr>
+<td><strong>labelFormat</strong></td>
+<td>string</td>
+<td><a href="#formatting">formatDescriptor</a></td>
+</tr>
+<tr>
+<td><strong>mimeType</strong></td>
+<td>string</td>
+<td>Attachment type (one of FILE, GOOGLE_DRIVE, LINK, BOX_COM, DROPBOX, EVERNOTE, or EGNYTE)</td>
+</tr>
+<tr>
+<td><strong>hyperlink</strong></td>
+<td><a href="#hyperlink-object">hyperlink</a></td>
+<td>Hyperlink object</td>
+</tr>
+<tr>
+<td><strong>order</strong></td>
+<td>integer</td>
+<td>The display order for the ShortcutWidgetItem</td>
+</tr>
+</tbody></table>
+
+<h2 id="copy-sight">Copy Sight</h2>
+
+<blockquote>
+<p>Example Request:</p>
+</blockquote>
+<pre class="highlight shell"><code>curl https://api.smartsheet.com/2.0/sights/<span class="o">{</span>sightId<span class="o">}</span>/copy <span class="se">\</span>
+-H <span class="s2">"Authorization: Bearer ACCESS_TOKEN"</span> <span class="se">\</span>
+-H <span class="s2">"Content-Type: application/json"</span>
+-d <span class="s1">'{ \
+    "destinationType": "workspace", \
+    "destinationId": 7960873114331012, \
+    "newName": "newSightName" \
+}'</span> <span class="se">\</span>
+-X POST
+</code></pre>
+<pre class="highlight javascript"><code><span class="c1">// [todo]</span>
+</code></pre>
+<pre class="highlight csharp"><code><span class="c1">// [todo]
+</span></code></pre>
+<pre class="highlight java"><code><span class="c1">// [todo]</span>
+</code></pre>
+<pre class="highlight python"><code><span class="c"># [todo]</span>
+</code></pre>
+
+<blockquote>
+<p>Example Response:</p>
+</blockquote>
+<pre class="highlight json"><code><span class="p">{</span><span class="w">
+    </span><span class="s2">"resultCode"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"result"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+        </span><span class="s2">"id"</span><span class="p">:</span><span class="w"> </span><span class="mi">4583173393803140</span><span class="p">,</span><span class="w">
+        </span><span class="s2">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"newSightName"</span><span class="p">,</span><span class="w">
+        </span><span class="s2">"accessLevel"</span><span class="p">:</span><span class="w"> </span><span class="s2">"OWNER"</span><span class="p">,</span><span class="w">
+        </span><span class="s2">"permalink"</span><span class="p">:</span><span class="w"> </span><span class="s2">"https://app.smartsheet.com/b/home?lx=lB0JaOh6AX1wGwqxsQIMaA"</span><span class="w">
+    </span><span class="p">},</span><span class="w">
+    </span><span class="s2">"message"</span><span class="p">:</span><span class="w"> </span><span class="s2">"SUCCESS"</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre>
+
+<p><code class="prettyprint">POST /sights/{sightId}/copy</code></p>
+
+<p>Creates a copy of the specified Sight.</p>
+
+<table><thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead><tbody>
+<tr>
+<td><strong>Access Scope</strong></td>
+<td>CREATE_SIGHTS</td>
+</tr>
+<tr>
+<td><strong>Headers</strong></td>
+<td><strong>Authorization</strong>: Bearer ACCESS_TOKEN<br/><strong>Content-Type</strong>: application/json</td>
+</tr>
+<tr>
+<td><strong>Request Body</strong></td>
+<td><a href="#containerdestination-object">ContainerDestination object</a></td>
+</tr>
+<tr>
+<td><strong>Returns</strong></td>
+<td><a href="#result-object">Result object</a> containing a <a href="#sight-object">Sight</a> for the newly created Sight, limited to the following attributes:<ul><li>id</li><li>name</li><li>accessLevel</li><li>permalink</li></ul></td>
+</tr>
+</tbody></table>
+
+<h2 id="delete-sight">Delete Sight</h2>
+
+<blockquote>
+<p>Example Request:</p>
+</blockquote>
+<pre class="highlight shell"><code>curl https://api.smartsheet.com/2.0/sights/<span class="o">{</span>sightId<span class="o">}</span> <span class="se">\</span>
+-H <span class="s2">"Authorization: Bearer ACCESS_TOKEN"</span> <span class="se">\</span>
+</code></pre>
+<pre class="highlight javascript"><code><span class="c1">// [todo]</span>
+</code></pre>
+<pre class="highlight csharp"><code><span class="c1">// [todo]
+</span></code></pre>
+<pre class="highlight java"><code><span class="c1">// [todo]</span>
+</code></pre>
+<pre class="highlight python"><code><span class="c"># [todo]</span>
+</code></pre>
+
+<blockquote>
+<p>Example Response:</p>
+</blockquote>
+<pre class="highlight json"><code><span class="p">{</span><span class="w">
+    </span><span class="s2">"resultCode"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"message"</span><span class="p">:</span><span class="w"> </span><span class="s2">"SUCCESS"</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre>
+
+<p><code class="prettyprint">DELETE /sights/{sightId}</code></p>
+
+<p>Deletes the Sight specified in the URL.</p>
+
+<table><thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead><tbody>
+<tr>
+<td><strong>Access Scope</strong></td>
+<td>DELETE_SIGHTS</td>
+</tr>
+<tr>
+<td><strong>Headers</strong></td>
+<td><strong>Authorization</strong>: Bearer ACCESS_TOKEN</td>
+</tr>
+<tr>
+<td><strong>Returns</strong></td>
+<td><a href="#result-object">Result object</a></td>
+</tr>
+</tbody></table>
+
+<h2 id="get-sight">Get Sight</h2>
+
+<blockquote>
+<p>Example Request:</p>
+</blockquote>
+<pre class="highlight shell"><code>curl https://api.smartsheet.com/2.0/sights/<span class="o">{</span>sightId<span class="o">}</span> <span class="se">\</span>
+-H <span class="s2">"Authorization: Bearer ACCESS_TOKEN"</span>
+</code></pre>
+<pre class="highlight javascript"><code><span class="c1">// [todo]</span>
+</code></pre>
+<pre class="highlight csharp"><code><span class="c1">// [todo]
+</span></code></pre>
+<pre class="highlight java"><code><span class="c1">// [todo]</span>
+</code></pre>
+<pre class="highlight python"><code><span class="c"># [todo]</span>
+</code></pre>
+
+<blockquote>
+<p>Example Response:</p>
+</blockquote>
+<pre class="highlight json"><code><span class="p">{</span><span class="w">
+  </span><span class="s2">"id"</span><span class="p">:</span><span class="w"> </span><span class="mi">2591554075418573</span><span class="p">,</span><span class="w">
+  </span><span class="s2">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Test"</span><span class="p">,</span><span class="w">
+  </span><span class="s2">"accessLevel"</span><span class="p">:</span><span class="w"> </span><span class="s2">"OWNER"</span><span class="p">,</span><span class="w">
+  </span><span class="s2">"columnCount"</span><span class="p">:</span><span class="w"> </span><span class="mi">6</span><span class="p">,</span><span class="w">
+  </span><span class="s2">"widgets"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+    </span><span class="p">{</span><span class="w">
+      </span><span class="s2">"id"</span><span class="p">:</span><span class="w"> </span><span class="mi">3056651398234562</span><span class="p">,</span><span class="w">
+      </span><span class="s2">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"RICHTEXT"</span><span class="p">,</span><span class="w">
+      </span><span class="s2">"contents"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+        </span><span class="s2">"htmlContent"</span><span class="p">:</span><span class="w"> </span><span class="s2">"&lt;p&gt;This is a test&lt;/p&gt;"</span><span class="w">
+      </span><span class="p">},</span><span class="w">
+      </span><span class="s2">"xPosition"</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span><span class="w">
+      </span><span class="s2">"yPosition"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+      </span><span class="s2">"width"</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span><span class="w">
+      </span><span class="s2">"height"</span><span class="p">:</span><span class="w"> </span><span class="mi">4</span><span class="p">,</span><span class="w">
+      </span><span class="s2">"showTitleIcon"</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span><span class="w">
+      </span><span class="s2">"titleFormat"</span><span class="p">:</span><span class="w"> </span><span class="s2">",,1,,,,,,,3,,,,,,"</span><span class="p">,</span><span class="w">
+      </span><span class="s2">"version"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="w">
+    </span><span class="p">},</span><span class="w">
+    </span><span class="p">{</span><span class="w">
+      </span><span class="s2">"id"</span><span class="p">:</span><span class="w"> </span><span class="mi">48092647672583496</span><span class="p">,</span><span class="w">
+      </span><span class="s2">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"SHORTCUTLIST"</span><span class="p">,</span><span class="w">
+      </span><span class="s2">"contents"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+        </span><span class="s2">"shortcutData"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+          </span><span class="p">{</span><span class="w">
+            </span><span class="s2">"label"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Sight Data"</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"labelFormat"</span><span class="p">:</span><span class="w"> </span><span class="s2">",2,,,,,1,,1,,,,,,,"</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"hyperlink"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+              </span><span class="s2">"url"</span><span class="p">:</span><span class="w"> </span><span class="s2">"https://app.smartsheet.com/b/home?lx=m1O5qo7tpM1h23KFxYavIw"</span><span class="p">,</span><span class="w">
+              </span><span class="s2">"sheetId"</span><span class="p">:</span><span class="w"> </span><span class="mi">692061146243972</span><span class="w">
+            </span><span class="p">},</span><span class="w">
+            </span><span class="s2">"attachmentType"</span><span class="p">:</span><span class="w"> </span><span class="s2">"SMARTSHEET"</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"order"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="w">
+          </span><span class="p">}</span><span class="w">
+        </span><span class="p">]</span><span class="w">
+      </span><span class="p">},</span><span class="w">
+      </span><span class="s2">"xPosition"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w">
+      </span><span class="s2">"yPosition"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+      </span><span class="s2">"width"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w">
+      </span><span class="s2">"height"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w">
+      </span><span class="s2">"showTitleIcon"</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span><span class="w">
+      </span><span class="s2">"titleFormat"</span><span class="p">:</span><span class="w"> </span><span class="s2">",,1,,,,,,,3,,,,,,"</span><span class="p">,</span><span class="w">
+      </span><span class="s2">"version"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="w">
+    </span><span class="p">}</span><span class="w">
+  </span><span class="p">]</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre>
+
+<p><code class="prettyprint">GET /sights/{sightId}</code></p>
+
+<p>Gets the specified Sight.</p>
+
+<table><thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead><tbody>
+<tr>
+<td><strong>Access Scope</strong></td>
+<td>READ_SIGHTS</td>
+</tr>
+<tr>
+<td><strong>Headers</strong></td>
+<td><strong>Authorization</strong>: Bearer ACCESS_TOKEN</td>
+</tr>
+<tr>
+<td><strong>Returns</strong></td>
+<td><a href="#sight-object">Sight object</a></td>
+</tr>
+</tbody></table>
+
+<h2 id="list-sights">List Sights</h2>
+
+<blockquote>
+<p>Example Request:</p>
+</blockquote>
+<pre class="highlight shell"><code>curl https://api.smartsheet.com/2.0/sights <span class="se">\</span>
+-H <span class="s2">"Authorization: Bearer ACCESS_TOKEN"</span>
+</code></pre>
+<pre class="highlight javascript"><code><span class="c1">// [todo]</span>
+</code></pre>
+<pre class="highlight csharp"><code><span class="c1">// [todo]
+</span></code></pre>
+<pre class="highlight java"><code><span class="c1">// [todo]</span>
+</code></pre>
+<pre class="highlight python"><code><span class="c"># [todo]</span>
+</code></pre>
+
+<blockquote>
+<p>Example Response:</p>
+</blockquote>
+<pre class="highlight json"><code><span class="p">{</span><span class="w">
+    </span><span class="s2">"pageNumber"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"pageSize"</span><span class="p">:</span><span class="w"> </span><span class="mi">100</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"totalPages"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"totalCount"</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"data"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+        </span><span class="p">{</span><span class="w">
+            </span><span class="s2">"id"</span><span class="p">:</span><span class="w"> </span><span class="mi">2331373580117892</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Sales Sight"</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"accessLevel"</span><span class="p">:</span><span class="w"> </span><span class="s2">"OWNER"</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"permalink"</span><span class="p">:</span><span class="w"> </span><span class="s2">"https://app.smartsheet.com/b/home?lx=xUefSOIYmn07iJJesvSHCQ"</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"createdAt"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2016-01-28T00:24:41Z"</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"modifiedAt"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2016-01-28T20:32:33Z"</span><span class="w">
+        </span><span class="p">},</span><span class="w">
+        </span><span class="p">{</span><span class="w">
+            </span><span class="s2">"id"</span><span class="p">:</span><span class="w"> </span><span class="mi">7397923160909700</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Sight #2"</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"accessLevel"</span><span class="p">:</span><span class="w"> </span><span class="s2">"OWNER"</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"permalink"</span><span class="p">:</span><span class="w"> </span><span class="s2">"https://app.smartsheet.com/b/home?lx=xUefSOIYmn07iJJrthEFTG"</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"createdAt"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2016-01-28T01:17:51Z"</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"modifiedAt"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2016-01-28T20:32:27Z"</span><span class="w">
+        </span><span class="p">}</span><span class="w">
+    </span><span class="p">]</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre>
+
+<p><code class="prettyprint">GET /sights</code></p>
+
+<p>Gets the list of all Sights that the User has access to.</p>
+
+<aside class="notice">This operation supports pagination of results. For more information, see <a href="#paging">Paging</a>.</aside>
+
+<table><thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead><tbody>
+<tr>
+<td><strong>Access Scope</strong></td>
+<td>READ_SIGHTS</td>
+</tr>
+<tr>
+<td><strong>Headers</strong></td>
+<td><strong>Authorization</strong>: Bearer ACCESS_TOKEN</td>
+</tr>
+<tr>
+<td><strong>Parameters</strong></td>
+<td>This operation supports query string parameters for pagination of results. For more information, see <a href="#paging-query-string-parameters">Paging Query String Parameters</a>.</td>
+</tr>
+<tr>
+<td><strong>Returns</strong></td>
+<td><a href="#indexresult-object">IndexResult object</a> containing an array of <a href="#sight-object">Sight object</a> limited to the following attributes:<ul><li>id</li><li>name</li><li>accessLevel</li><li>permalink</li><li>createdAt</li><li>modifiedAt</li></ul></td>
+</tr>
+</tbody></table>
+
+<h2 id="move-sight">Move Sight</h2>
+
+<blockquote>
+<p>Example Request:</p>
+</blockquote>
+<pre class="highlight shell"><code>curl https://api.smartsheet.com/2.0/sights/<span class="o">{</span>sightId<span class="o">}</span>/move <span class="se">\</span>
+-H <span class="s2">"Authorization: Bearer ACCESS_TOKEN"</span> <span class="se">\</span>
+-H <span class="s2">"Content-Type: application/json"</span>
+-d <span class="s1">'{ \
+    "destinationType": "folder", \
+    "destinationId": workspace_or_folder_id \
+}'</span> <span class="se">\</span>
+-X POST
+</code></pre>
+<pre class="highlight javascript"><code><span class="c1">// [todo]</span>
+</code></pre>
+<pre class="highlight csharp"><code><span class="c1">// [todo]
+</span></code></pre>
+<pre class="highlight java"><code><span class="c1">// [todo]</span>
+</code></pre>
+<pre class="highlight python"><code><span class="c"># [todo]</span>
+</code></pre>
+
+<blockquote>
+<p>Example Response:</p>
+</blockquote>
+<pre class="highlight json"><code><span class="p">{</span><span class="w">
+    </span><span class="s2">"resultCode"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"result"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+        </span><span class="s2">"id"</span><span class="p">:</span><span class="w"> </span><span class="mi">4583173393803140</span><span class="p">,</span><span class="w">
+        </span><span class="s2">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"moved_Sight_name"</span><span class="p">,</span><span class="w">
+        </span><span class="s2">"accessLevel"</span><span class="p">:</span><span class="w"> </span><span class="s2">"OWNER"</span><span class="p">,</span><span class="w">
+        </span><span class="s2">"permalink"</span><span class="p">:</span><span class="w"> </span><span class="s2">"https://app.smartsheet.com/b/home?lx=lB0JaOh6AX1wGwqxsQIMaA"</span><span class="w">
+    </span><span class="p">},</span><span class="w">
+    </span><span class="s2">"message"</span><span class="p">:</span><span class="w"> </span><span class="s2">"SUCCESS"</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre>
+
+<p><code class="prettyprint">POST /sights/{sightId}/move</code></p>
+
+<p>Moves the specified Sight to a new location.</p>
+
+<aside class="notice">When a Sight that is shared to one or more user(s) and/or group(s) is moved into or out of a workspace, those <i>Sight-level</i> shares will be preserved.</aside>
+
+<table><thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead><tbody>
+<tr>
+<td><strong>Access Scope</strong></td>
+<td>CREATE_SIGHTS</td>
+</tr>
+<tr>
+<td><strong>Headers</strong></td>
+<td><strong>Authorization</strong>: Bearer ACCESS_TOKEN<br/><strong>Content-Type</strong>: application/json</td>
+</tr>
+<tr>
+<td><strong>Request Body</strong></td>
+<td><a href="#containerdestination-object">ContainerDestination object</a>, limited to the following required attributes:<ul><li>destinationType</li><li>destinationId</li></ul></td>
+</tr>
+<tr>
+<td><strong>Returns</strong></td>
+<td><a href="#result-object">Result object</a> containing a <a href="#sight-object">Sight object</a> for the moved Sight, limited to the following attributes:<ul><li>id</li><li>name</li><li>accessLevel</li><li>permalink</li></ul></td>
+</tr>
+</tbody></table>
+
+<h2 id="share-sight">Share Sight</h2>
+
+<p>For details about Sight sharing, see <a href="#sights-sharing">Sights Sharing</a>.</p>
+
+<h2 id="update-sight">Update Sight</h2>
+
+<blockquote>
+<p>Example Request:</p>
+</blockquote>
+<pre class="highlight shell"><code>curl https://api.smartsheet.com/2.0/sights/<span class="o">{</span>sightId<span class="o">}</span> <span class="se">\</span>
+-H <span class="s2">"Authorization: Bearer ACCESS_TOKEN"</span> <span class="se">\</span>
+-H <span class="s2">"Content-Type: application/json"</span> <span class="se">\</span>
+-X PUT <span class="se">\</span>
+-d <span class="s1">'{"name": "New Sight name"}'</span>
+</code></pre>
+<pre class="highlight javascript"><code><span class="c1">// [todo]</span>
+</code></pre>
+<pre class="highlight csharp"><code><span class="c1">// [todo]
+</span></code></pre>
+<pre class="highlight java"><code><span class="c1">// [todo]</span>
+</code></pre>
+<pre class="highlight python"><code><span class="c"># [todo]</span>
+</code></pre>
+
+<blockquote>
+<p>Example Response:</p>
+</blockquote>
+<pre class="highlight json"><code><span class="p">{</span><span class="w">
+    </span><span class="s2">"message"</span><span class="p">:</span><span class="w"> </span><span class="s2">"SUCCESS"</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"result"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+        </span><span class="s2">"accessLevel"</span><span class="p">:</span><span class="w"> </span><span class="s2">"OWNER"</span><span class="p">,</span><span class="w">
+        </span><span class="s2">"id"</span><span class="p">:</span><span class="w"> </span><span class="mi">7960873114331012</span><span class="p">,</span><span class="w">
+        </span><span class="s2">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"New Sight name"</span><span class="p">,</span><span class="w">
+        </span><span class="s2">"permalink"</span><span class="p">:</span><span class="w"> </span><span class="s2">"https://app.smartsheet.com/b/home?lx=rBU8QqUVPCJ3geRgl7L8yQ"</span><span class="w">
+    </span><span class="p">},</span><span class="w">
+    </span><span class="s2">"resultCode"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre>
+
+<p><code class="prettyprint">PUT /sights/{sightId}</code></p>
+
+<p>Updates (renames) the specified Sight. </p>
+
+<table><thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead><tbody>
+<tr>
+<td><strong>Access Scope</strong></td>
+<td>ADMIN_SIGHTS</td>
+</tr>
+<tr>
+<td><strong>Headers</strong></td>
+<td><strong>Authorization</strong>: Bearer ACCESS_TOKEN<br/><strong>Content-Type</strong>: application/json</td>
+</tr>
+<tr>
+<td><strong>Request Body</strong></td>
+<td><a href="#sight-object">Sight object</a> limited to the following attribute:<ul><li>name (string)</li></ul></td>
+</tr>
+<tr>
+<td><strong>Returns</strong></td>
+<td><a href="#result-object">Result object</a> containing the updated <a href="#sight-object">Sight object</a></td>
+</tr>
+</tbody></table>
 
 <h1 id="templates">Templates</h1>
 
@@ -19588,7 +20878,7 @@ only has read-only access to the sheet (i.e. the user has viewer permissions, or
 </tr>
 <tr>
 <td></td>
-<td><strong>skipRemap</strong> (optional) &ndash;  &ndash; comma-separated list of references to NOT re-map for the newly created workspace:<ul><li>cellLinks</li><li>reports</li><li>sheetHyperlinks</li></ul>By default, all cell links, reports, and sheet hyperlinks that reference sheets in the source workspace will be re-mapped to reference corresponding sheets in the newly created workspace. The <strong>skipRemap</strong> parameter can be specified to change that default behavior:<ul><li>If &ldquo;cellLinks&rdquo; is specified in the <b>skipRemap</b> parameter value, the cell links within the newly created workspace will continue to point to the original source sheets.</li><li>If &ldquo;reports&rdquo; is specified in the <b>skipRemap</b> parameter value, the reports within the newly created workspace will continue to point to the original source sheets.</li><li>If &ldquo;sheetHyperlinks&rdquo; is specified in the <b>skipRemap</b> parameter value, the sheet hyperlinks within the newly created workspace will continue to point to the original source sheets.</li></ul></td>
+<td><strong>skipRemap</strong> (optional) &ndash;  &ndash; comma-separated list of references to NOT re-map for the newly created workspace:<ul><li>cellLinks</li><li>reports</li><li>sheetHyperlinks</li><li>Sights</li></ul>By default, all cell links, reports, sheet hyperlinks, and sights that reference objects in the source workspace will be re-mapped to reference corresponding objects in the newly created workspace. The <strong>skipRemap</strong> parameter can be specified to change that default behavior:<ul><li>If &ldquo;cellLinks&rdquo; is specified in the <b>skipRemap</b> parameter value, the cell links within the newly created workspace will continue to point to the original source sheets.</li><li>If &ldquo;reports&rdquo; is specified in the <b>skipRemap</b> parameter value, the reports within the newly created workspace will continue to point to the original source sheets.</li><li>If &ldquo;sheetHyperlinks&rdquo; is specified in the <b>skipRemap</b> parameter value, the sheet hyperlinks within the newly created workspace will continue to point to the original source sheets.</li><li>If &ldquo;sights&rdquo; is specified in the <b>skipRemap</b> parameter value, the widgets within sights in the newly created workspace will continue to point to the original source sheets / reports.</li></ul></td>
 </tr>
 <tr>
 <td><strong>Request Body</strong></td>
@@ -19822,7 +21112,7 @@ only has read-only access to the sheet (i.e. the user has viewer permissions, or
 
 <aside class="notice">By default, this operation only returns the top-level items in the Workspace. To load all of the contents, including nested Folders, include the <b>loadAll</b> query string parameter with a value of <b>true</b>.</aside>
 
-<aside class="notice">If no Folders, Sheets, Reports, or Templates are present in the Workspace, the corresponding attribute (e.g., &ldquo;folders&rdquo;, &ldquo;sheets&rdquo;) will not be present in the response object.</aside>
+<aside class="notice">If no Folders, Sheets, Reports, Templates, or Sights are present in the Workspace, the corresponding attribute (e.g., &ldquo;folders&rdquo;, &ldquo;sheets&rdquo;, etc.) will not be present in the response.</aside>
 
 <table><thead>
 <tr>
@@ -20054,7 +21344,7 @@ only has read-only access to the sheet (i.e. the user has viewer permissions, or
 
 <h3 id="workspace-sheets">Workspace Sheets</h3>
 
-<p>For details about working with sheets in a Workspace, see <a href="#sheets">Sheets</a>.</p>
+<p>For details about working with sheets in a Workspace, see <a href="#sheets">Sheets</a>.</br></p>
 
 <h1 id="additional-reference"><span class="customTOCSectionHeading">Additional Reference</span></h1>
 
@@ -20117,7 +21407,7 @@ only has read-only access to the sheet (i.e. the user has viewer permissions, or
 <tr>
 <td><strong>newName</strong></td>
 <td>string</td>
-<td>Name of the newly created object (when creating a copy of a Sheet, Folder, or Workspace). This attribute is not supported for &ldquo;move&rdquo; operations (i.e., a moved Sheet, Folder or Workspace retains its original name).</td>
+<td>Name of the newly created object (when creating a copy of a Sheet, Folder, Sight, or Workspace). This attribute is not supported for &ldquo;move&rdquo; operations (i.e., a moved Sheet, Folder, Sight, or Workspace retains its original name).</td>
 </tr>
 </tbody></table>
 
@@ -20385,12 +21675,12 @@ only has read-only access to the sheet (i.e. the user has viewer permissions, or
 <tr>
 <td><strong>horizontalAlign</strong></td>
 <td>array of strings</td>
-<td>Possible values:<ul><li>none</li><li>on</li></ul></td>
+<td>Horizontal alignment, possible values:<ul><li>default</li><li>left</li><li>center</li><li>right</li></ul>Note: &ldquo;default&rdquo; is the default value, which is equivalent to &ldquo;left&rdquo;.</td>
 </tr>
 <tr>
 <td><strong>verticalAlign</strong></td>
 <td>array of strings</td>
-<td>Vertical alignment, possible values:<ul><li>top</li><li>middle</li><li>bottom</li></ul>Note: &ldquo;default&rdquo; is the default value, which is equivalent to &ldquo;top&rdquo;.</td>
+<td>Vertical alignment, possible values:<ul><li>default</li><li>top</li><li>middle</li><li>bottom</li></ul>Note: &ldquo;default&rdquo; is the default value, which is equivalent to &ldquo;top&rdquo;.</td>
 </tr>
 <tr>
 <td><strong>color</strong></td>
@@ -20558,6 +21848,1028 @@ You should never use deprecated APIs in new development, and if you have existin
 <td><a href="#workspace-object">Workspace object</a></td>
 <td>fromId</td>
 <td>new endpoint for <a href="#copy-workspace">Copy Workspace</a></td>
+</tr>
+</tbody></table>
+
+<h1 id="webhooks"><span class="customTOCSectionHeading">Webhooks</span></h1>
+
+<aside class="warning">Webhooks are currently in beta. Before we ​officially ​release Webhooks, we want to make sure the feature is stable and performs well. Once we feel that these criteria have been met, the beta will be phased out and we will ​officially release the feature.</br></br>
+
+​While Webhooks are in Beta, the following limitations apply:​
+<ul>
+<li>
+<b>Stability</b>: Smartsheet Webhooks are a work in progress, and we make no guarantees regarding service stability / reliability.
+</li>
+<li>
+<b>Changes</b>: As with any beta, we reserve the right to make changes to Webhooks which may break your integrations.  If we make such changes, we promise to do so thoughtfully and to update our documentation accordingly.
+</li>
+</aside>
+
+<h1 id="intro-to-webhooks">Intro to Webhooks</h1>
+
+<p>Webhooks provide a way for Smartsheet to automatically notify your external application or service when certain events occur in Smartsheet. Webhooks offer a more efficient alternative to using the API to periodically <i>poll</i> for changes. </p>
+
+<p>At a high-level, it works like this:</p>
+
+<ol>
+    <li><span class="customInstructionsHeading">Your application subscribes to <a href="#event-callbacks">callbacks</a>.</span><br/>First, you need to subscribe to event notifications (callbacks) by creating one or more webhooks.  You can create a webhook manually via the API or have your application create a webhook dynamically.  Each webhook must specify:
+        <ul>
+            <li>Which Smartsheet object to monitor for events</li>
+            <li>Which events in that object should trigger a callback</li>
+            <li>The HTTPS URL (i.e., &ldquo;<b>callback URL</b>&rdquo;) where Smartsheet should send callbacks when any of the specified events occur within the scope of the specified Smartsheet object</li>
+        </ul> 
+        <br/>
+        
+        <b>Webhook examples in plain English:</b> 
+        <ul>
+            <li><i>&ldquo;When any changes occur in Sheet_A, send a callback to https://www.myapp.com/abc&rdquo;</i></li>
+            <li><i>&ldquo;When a new row is added to Sheet_B, send a callback to https://www.myapp.com/def&rdquo;</i></li>
+            <li><i>&ldquo;When a cell value is changed in Sheet_C, send a callback to https://www.myapp.com/ghi&rdquo;</i></li>
+        </ul>
+        <br/>
+    </li>
+    <li><span class="customInstructionsHeading">When any of the specified events occur within an object that is being monitored by a webhook, Smartsheet sends an <code>HTTP POST</code> (i.e., &ldquo;callback&rdquo;) to the <b>callback URL</b> that is associated with the Webhook.</span><br/>
+        <ul>
+            <li><i>Note:</i> The callback payload is a &ldquo;skinny&rdquo; payload &ndash; it indicates which objects changed and the type of events that occurred, but does not contain any data from the objects themselves.</li>
+        </ul> 
+        <br/>
+    </li>
+    <li><span class="customInstructionsHeading">Your application receives, acknowledges, and processes callbacks.</span><br/>Your application receives the <code>HTTP POST</code>, acknowledges the callback by responding with HTTP status 200, and processes the callback. 
+    Because the callbacks are &ldquo;skinny&rdquo;, you may need to make one or more requests to the Smartsheet API to retrieve the actual data associated with the change.
+    </li>
+</ol>
+
+<h2 id="webhook-management">Webhook Management</h2>
+
+<p>Webhooks are created and managed by using the Smartsheet API. See <a href="#webhooks">Webhooks API Reference</a> for details about the related API operations. </p>
+
+<h2 id="webhook-ownership-&amp;-access">Webhook Ownership &amp; Access</h2>
+
+<p>Webhooks can be created and managed via <a href="http://smartsheet-platform.github.io/api-docs/#direct-api-access">Direct API Access</a> or by a <a href="http://smartsheet-platform.github.io/api-docs/#third-party-app-development">third-party app</a>. </p>
+
+<p>A webhook that is created via Direct API Access:</p>
+
+<ul>
+<li>is owned by the User who created it</li>
+<li>can be managed only by the User who created it</li>
+<li>will not be affected if the access token that was used to create it is revoked, as long as the User remains active</li>
+</ul>
+
+<p>A webhook that is created by a <a href="http://smartsheet-platform.github.io/api-docs/#third-party-app-development">third-party app</a>:</p>
+
+<ul>
+<li>is owned by the User who authorized the third-party app (and is associated with the third-party app)</li>
+<li>can be managed by the third-party-app (as long as it maintains authorization) OR by the User who owns it</li>
+<li>will be permanently disabled if the third-party app&rsquo;s permissions are revoked</li>
+</ul>
+
+<h2 id="webhook-scope-&amp;-events">Webhook Scope &amp; Events</h2>
+
+<p>A webhook monitors the specified <strong>scope</strong> for the specified <strong>events</strong>. </p>
+
+<p>A <a href="#webhook-object">Webhook&rsquo;s</a> <strong>scope</strong> attribute indicates the scope of the subscription. It is specified when <a href="#create-webhook">creating a webhook</a>, and cannot subsequently be changed. </p>
+
+<ul>
+<li>Currently, &ldquo;sheet&rdquo; is the only supported value for the <strong>scope</strong> atribute. </li>
+<li>Future releases of webhooks will support additional scopes such as &ldquo;org&rdquo;, &ldquo;folder&rdquo;, &ldquo;workspace&rdquo;, etc.</li>
+</ul>
+
+<p>A <a href="#webhook-object">Webhook&rsquo;s</a> <strong>event</strong> attribute indicates the set of events that a webhook is subscribed to (i.e. which events will trigger a callback).</p>
+
+<ul>
+<li>Events are represented as a dot-separated string in the format &ldquo;<em>object</em>.<em>event</em>&rdquo;, where an asterisk (&#42;) can be used to represent &ldquo;all objects&rdquo; or &ldquo;all events&rdquo;.</li>
+<li>Currently, &ldquo;&#42;.&#42;&rdquo; is the only supported value for the <strong>events</strong> attribute. This indicates a subscription to all objects in the scope, and all events for those objects.</li>
+<li>Future releases of webhooks will support more specific events such as &ldquo;sheet.updated&rdquo;, &ldquo;row.deleted&rdquo;, &ldquo;column.created&rdquo;, etc.</li>
+</ul>
+
+<p><span class="customSubHeading">Example</span></p>
+
+<p>Consider a <a href="#webhook-object">Webhook</a> with the following attribute values:</p>
+
+<ul>
+<li><strong>scopeObjectId</strong> = 12345678901234</li>
+<li><strong>scope</strong> = &ldquo;sheet&rdquo; </li>
+<li><strong>events</strong> = &ldquo;&#42;.&#42;&rdquo; </li>
+</ul>
+
+<p>This webhook monitors the specified Sheet (id: 12345678901234) for all types of events. For example, if a row is added to the sheet, cell values are updated in the sheet, a column is deleted from the sheet, etc., a callback would be sent to the webhook&rsquo;s <strong>callbackUrl</strong>.</p>
+
+<h1 id="creating-a-webhook">Creating a Webhook</h1>
+
+<p>An API client can create a webhook by using the <a href="#create-webhook">Create Webhook</a> operation. A newly created webhook is disabled by default.
+After successfully creating a webhook, the API client must subsequently initiate and complete the <a href="#webhook-verification">verification process</a> before the webhook will become enabled. 
+The following diagram illustrates the process of creating and enabling a Webhook. </p>
+
+<p><img src="images/v4-CreateAndEnableWebhook.png" /></p>
+
+<p><span class="customSubHeading">Step-by-Step:</span></p>
+
+<p>The process occurs synchronously:</p>
+
+<ol>
+<li><p>API Client submits a <a href="#create-webhook">Create Webhook</a> request.</p></li>
+<li><p>Smartsheet creates the webhook, but does not initially enable the webhook (<code class="prettyprint">enabled: false</code> and <code class="prettyprint">status: &quot;NEW_NOT_VERIFIED&quot;</code>).</p></li>
+<li><p>To initiate the verification process, the API Client submits an <a href="#update-webhook">Update Webhook</a> request to specify <code class="prettyprint">enabled: true</code>. (<em>Note</em>: The API Client will not receive a response to this request until the Verification process (steps 4 and 5) has completed.)</p></li>
+<li><p>When Smartsheet receives the request to enable the webhook, it sends a <a href="#webhook-verification">Verification Request</a> to the Subscriber (i.e., to the <code class="prettyprint">callbackUrl</code> that the API Client specified in the <strong>Create Webhook</strong> request). 
+The request specifies a unique random value in the <strong>Smartsheet-Hook-Challenge</strong> header and contains only <code class="prettyprint">webhookId</code> in the request body.</p></li>
+<li><p>The Subscriber responds to the Verification Request by echoing back the same unique random value in the <strong>Smartsheet-Hook-Response</strong> header of the response.</p></li>
+<li><p>Once the Subscriber has successfully acknowledged the Verification Request, Smartsheet enables the webhook and responds to the API Client&rsquo;s <strong>Update Webhook</strong> request to confirm that the webhook has been enabled (<code class="prettyprint">enabled: true</code> and <code class="prettyprint">status: &quot;ENABLED&quot;</code>). </p></li>
+</ol>
+
+<h2 id="webhook-verification">Webhook Verification</h2>
+
+<blockquote>
+<p>Verification Request (from Smartsheet):</p>
+</blockquote>
+<pre class="highlight plaintext"><code>POST [callbackUrl]
+Smartsheet-Hook-Challenge: d78dd1d3-01ce-4481-81de-92b4f3aa5ab1 
+{ 
+    "webhookId": 2674017481058180
+}
+</code></pre>
+
+<blockquote>
+<p>Verification Response (by Subscriber):</p>
+</blockquote>
+<pre class="highlight plaintext"><code>HTTP status: 200 OK
+Smartsheet-Hook-Response: d78dd1d3-01ce-4481-81de-92b4f3aa5ab1 
+</code></pre>
+
+<p>When an API Client attempts to enable a webhook, Smartsheet will send a verification request to the webhook&rsquo;s <strong>callbackUrl</strong> to verify that the Subscriber expects and is able to successfully receive callbacks. 
+The request specifies a unique random value in the <strong>Smartsheet-Hook-Challenge</strong> header and contains a JSON object in the request body with only a <code class="prettyprint">webhookId</code> attribute.</p>
+
+<ul>
+<li><p>To verify the webhook, the Subscriber&rsquo;s response to the Verification Request must return a 200 HTTP status code and must echo back the same unique random value in the <strong>Smartsheet-Hook-Response</strong> header of the response. Once Smartsheet receives this verification response, the webhook will be enabled (<code class="prettyprint">enabled: true</code> and <code class="prettyprint">status: &quot;ENABLED&quot;</code>).</p></li>
+<li><p>If the Subscriber does not successfully respond to the verification request, the webhook will remain disabled (<code class="prettyprint">enabled: false</code> and <code class="prettyprint">status: &quot;DISABLED_VERIFICATION_FAILED&quot;</code>).</p></li>
+</ul>
+
+<p>When a webhook is initially <a href="#create-webhook">created through the API</a>, the response will contain the webhook&rsquo;s ID.  If you wish to guarantee that your server only receives callbacks for webhooks that you created,
+you can check the verification request&rsquo;s <code class="prettyprint">webhookId</code> attribute against your list of created webhook IDs.  If the ID is not in the list, return a response with a non-200 status code (for example, 403 Forbidden),
+and the webhook that initiated the verification request will be disabled as described above.</p>
+
+<aside class="notice"><b>IMPORTANT</b>: ONGOING VERIFICATION. Once a webhook has been enabled, Smartsheet will send Smartsheet will send a verification request to the webhook&rsquo;s <b>callbackUrl</b> once every 100 callbacks. The Subscriber should respond to the verification request as described above &ndash; failure to do so will result in the webhook being disabled (<code>enabled: false</code> and <code>status: "DISABLED_VERIFICATION_FAILED"</code>).</aside>
+
+<h1 id="webhook-status">Webhook Status</h1>
+
+<p>A <a href="#webhook-object">Webhook</a> object&rsquo;s <strong>enabled</strong> attribute indicates whether a webhook is enabled or disabled, while the <strong>status</strong> attribute describes the <em>reason</em> that the webhook is enabled or disabled.</p>
+
+<aside class="notice"><b>Note:</b><ul><li>When a Webhook&rsquo;s <b>enabled</b> attribute is set to <code>true</code>, Smartsheet is monitoring for the specified events and will send a <a href="#event-callbacks">callback</a> to the <b>callbackUrl</b> when the events occur.</li><li>When a Webhook&rsquo;s <b>enabled</b> attribute is set to <code>false</code>, Smartsheet is NOT monitoring for the specified events and will NOT send a callback to the <b>callbackUrl</b> when the events occur. Depending on the value of the <b>status</b> attribute, it may be possible to (re-)enable the Webhook. (See below for details).</li></ul></aside>
+
+<p>The following table lists all possible combinations of <strong>enabled</strong> and <strong>status</strong> attribute values.</p>
+
+<table><thead>
+<tr>
+<th>Webhook.enabled</th>
+<th>Webhook.status</th>
+<th>Meaning</th>
+<th>Notes</th>
+</tr>
+</thead><tbody>
+<tr>
+<td>true</td>
+<td>ENABLED</td>
+<td>Webhook is active.</td>
+<td></td>
+</tr>
+<tr>
+<td>false</td>
+<td>NEW_NOT_VERIFIED</td>
+<td>Webhook has been created but is not enabled because it has not yet been verified.</td>
+<td>Owner can re-enable the webhook by using the <a href="#update-webhook">Update Webhook</a> operation to set <strong>enabled</strong> to <code class="prettyprint">true</code>. Once the subscriber successfully acknowledges the <a href="#webhook-verification">verification request</a>, the webhook will become enabled.</td>
+</tr>
+<tr>
+<td>false</td>
+<td>DISABLED_BY_OWNER</td>
+<td>Webhook has been disabled by the owner.</td>
+<td>Owner can re-enable the webhook by using the <a href="#update-webhook">Update Webhook</a> operation to set <strong>enabled</strong> to <code class="prettyprint">true</code>. No verification is necessary for enabling webhooks that were disabled by the owner.</td>
+</tr>
+<tr>
+<td>false</td>
+<td>DISABLED_VERIFICATION_FAILED</td>
+<td>Webhook verification has failed.</td>
+<td>Owner can re-enable the webhook by using the <a href="#update-webhook">Update Webhook</a> operation to set <strong>enabled</strong> to <code class="prettyprint">true</code>. Once the subscriber successfully acknowledges the <a href="#webhook-verification">verification request</a>, the webhook will become enabled.</td>
+</tr>
+<tr>
+<td>false</td>
+<td>DISABLED_CALLBACK_FAILED</td>
+<td>Webhook has been disabled because callback was not successfully delivered to the Callback URL.</td>
+<td>Owner can re-enable the webhook by using the <a href="#update-webhook">Update Webhook</a> operation to set <strong>enabled</strong> to <code class="prettyprint">true</code>. Once the subscriber successfully acknowledges the <a href="#webhook-verification">verification request</a>, the webhook will become enabled.</td>
+</tr>
+<tr>
+<td>false</td>
+<td>DISABLED_APP_REVOKED</td>
+<td>Webhook has been disabled because the third-party app associated with the webhook has had its access revoked.</td>
+<td>This is a terminal state (i.e., webhook in this state cannot be re-enabled, and attempts to do so will result in error code 1153). If the third party app&rsquo;s access is subsequently restored, it will need to create new webhooks.</td>
+</tr>
+<tr>
+<td>false</td>
+<td>DISABLED_SCOPE_INACCESSIBLE</td>
+<td>Webhook has been disabled because its owner lost access to the corresponding data in Smartsheet (either because the object was deleted or sharing permissions were revoked).</td>
+<td>Webhook will automatically be re-enabled if access to data is restored (i.e., if deleted object is restored or sharing permissions are restored).</td>
+</tr>
+<tr>
+<td>false</td>
+<td>DISABLED_ADMINISTRATIVE</td>
+<td>Webhook has been disabled by Smartsheet support.</td>
+<td>A webhook in this state can only be re-enabled by Smartsheet (contact <a href="mailto:api@smartsheet.com">api@smartsheet.com</a>).  Attempting to re-enable a webhook in this state will result in error code 1154.</td>
+</tr>
+</tbody></table>
+
+<h1 id="webhook-callbacks">Webhook Callbacks</h1>
+
+<p>A &ldquo;callback&rdquo; is the notification that Smartsheet sends to a webhook&rsquo;s <strong>callbackUrl</strong>. There are two types of callbacks:</p>
+
+<ul>
+<li><p><a href="#event-callbacks"><strong>Event</strong> callback</a>: Alerts the subscriber when the specified event(s) have occurred in Smartsheet. This is the most common type of callback.</p></li>
+<li><p><a href="#status-change-callbacks"><strong>Status Change</strong> callback</a>: Alerts the subscriber that a webhook has been automatically disabled due to loss of access or automatically re-enabled due to restoration of access.</p></li>
+</ul>
+
+<p>A Subscriber has the ability to verify the integrity of a callback payload (i.e. ensure that the message was not tampered with en route) and authenticate the identity of its sender (i.e. ensure that the callback did indeed originate from Smartsheet). 
+For more information, see <a href="#authenticating-callbacks-(optional)">Authenticating Callbacks</a>.</p>
+
+<h2 id="event-callbacks">Event Callbacks</h2>
+
+<blockquote>
+<p>Example - Event callback (row created):</p>
+</blockquote>
+<pre class="highlight json"><code><span class="p">{</span><span class="w">
+    </span><span class="s2">"nonce"</span><span class="p">:</span><span class="w"> </span><span class="s2">"4b2ed20d-6f00-4b0c-8fac-082182aa9aac"</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"timestamp"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2015-10-27T17:04:23.795+0000"</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"webhookId"</span><span class="p">:</span><span class="w"> </span><span class="mi">4503604829677444</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"scope"</span><span class="p">:</span><span class="w"> </span><span class="s2">"sheet"</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"scopeObjectId"</span><span class="p">:</span><span class="w"> </span><span class="mi">4509506114742148</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"events"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+        </span><span class="p">{</span><span class="w">
+            </span><span class="s2">"objectType"</span><span class="p">:</span><span class="w"> </span><span class="s2">"sheet"</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"eventType"</span><span class="p">:</span><span class="w"> </span><span class="s2">"updated"</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"id"</span><span class="p">:</span><span class="w"> </span><span class="mi">4509506114742148</span><span class="w">
+        </span><span class="p">},</span><span class="w">
+        </span><span class="p">{</span><span class="w">
+            </span><span class="s2">"objectType"</span><span class="p">:</span><span class="w"> </span><span class="s2">"row"</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"eventType"</span><span class="p">:</span><span class="w"> </span><span class="s2">"created"</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"id"</span><span class="p">:</span><span class="w"> </span><span class="mi">7129509179746180</span><span class="w">
+        </span><span class="p">}</span><span class="w">
+    </span><span class="p">]</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre>
+
+<p>Smartsheet sends an Event callback to notify the Subscriber when the specified event(s) occur in Smartsheet.</p>
+
+<aside class="warning">Any events that occur while a webhook is disabled will NOT be communicated via callback if/when webhook is enabled.</aside>
+
+<p><span class="customSubHeading">Callback Acknowledgement</span></p>
+
+<p>The Subscriber must respond to an event callback with a 200 <a href="https://en.wikipedia.org/wiki/List_of_HTTP_status_codes#2xx_Success">HTTP status code</a> to acknowledge that the callback was received. </p>
+
+<p><span class="customSubHeading">Retry Logic</span></p>
+
+<p>If the Subscriber fails to respond with a 200 status, depending on the response, Smartsheet may retry delivery up to 14 times. (The first 7 retry attempts occur with a frequency that&rsquo;s determined using exponential backoff; thereafter, retry attempts will occur once every three hours until all retries have been exhausted.)</p>
+
+<table><thead>
+<tr>
+<th>Subscriber response</th>
+<th>Will be retried?</th>
+</tr>
+</thead><tbody>
+<tr>
+<td>HTTP 201 through 299</td>
+<td>No</td>
+</tr>
+<tr>
+<td>HTTP 309 through 399</td>
+<td>No</td>
+</tr>
+<tr>
+<td>HTTP 400 through 499 (except 410)</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td>HTTP 410</td>
+<td>No</td>
+</tr>
+<tr>
+<td>HTTP 500 through 599</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td>Any other HTTP status</td>
+<td>No</td>
+</tr>
+<tr>
+<td>Request timeout</td>
+<td>Yes</td>
+</tr>
+</tbody></table>
+
+<p>If the response is not retriable or retry attempts have been exhausted, the webhook will be disabled (<code class="prettyprint">enabled: false</code> and <code class="prettyprint">status: &quot;DISABLED_CALLBACK_FAILED&quot;</code>).
+A webhook in this state can be re-enabled if the subscriber completes the verification process. (See <a href="#webhook-status">Webhook Status</a> for details.)</p>
+
+<h2 id="status-change-callbacks">Status Change Callbacks</h2>
+
+<blockquote>
+<p>Status Change callback (access lost):</p>
+</blockquote>
+<pre class="highlight json"><code><span class="p">{</span><span class="w">
+    </span><span class="s2">"nonce"</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="s2">"20d4d741-6224-446f-b9c4-bf7802326192"</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"timestamp"</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="s2">"2015-10-27T14:48:40.214+0000"</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"webhookId"</span><span class="p">:</span><span class="w"> </span><span class="mi">2674017481058180</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"scope"</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="s2">"sheet"</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"scopeObjectId"</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="mi">3407658024757124</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"newWebhookStatus"</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="s2">"DISABLED_SCOPE_INACCESSIBLE"</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre>
+
+<blockquote>
+<p>Status Change callback (access restored):</p>
+</blockquote>
+<pre class="highlight json"><code><span class="p">{</span><span class="w">
+    </span><span class="s2">"nonce"</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="s2">"20d4d741-6224-446f-b9c4-bf7802326192"</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"timestamp"</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="s2">"2015-10-27T14:48:40.214+0000"</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"webhookId"</span><span class="p">:</span><span class="w"> </span><span class="mi">2674017481058180</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"scope"</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="s2">"sheet"</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"scopeObjectId"</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="mi">3407658024757124</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"newWebhookStatus"</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="s2">"ENABLED"</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre>
+
+<p>If a webhook&rsquo;s owner loses access to the object that a webhook is monitoring (either because the object was deleted or the webhook owner&rsquo;s access to the object was revoked in Smartsheet), 
+Smartsheet will automatically disable the webhook and send a Status Change callback to alert the Subscriber of this change in status. 
+The <strong>newWebhookStatus</strong> attribute will indicate that the webhook is now disabled (because the scope is inaccessible).</p>
+
+<p>If the webhook owner&rsquo;s access to the object is subsequently restored, 
+Smartsheet will automatically re-enable the webhook and send a Status Change callback to alert the Subscriber of this change in status. 
+The <strong>newWebhookStatus</strong> attribute will indicate that the webhook is now enabled.</p>
+
+<h2 id="authenticating-callbacks-(optional)">Authenticating Callbacks (optional)</h2>
+
+<blockquote>
+<p>Calculating an HMAC</p>
+</blockquote>
+<pre class="highlight shell"><code><span class="c"># See programming language tabs for language-specific examples.</span>
+</code></pre>
+<pre class="highlight java"><code><span class="kd">private</span> <span class="kd">static</span> <span class="kd">final</span> <span class="n">String</span> <span class="n">HMAC_SHA256_ALGORITHM</span> <span class="o">=</span> <span class="s">"HmacSHA256"</span><span class="o">;</span>
+<span class="kd">private</span> <span class="kd">static</span> <span class="kd">final</span> <span class="kt">int</span> <span class="n">HMAC_RADIX</span> <span class="o">=</span> <span class="mi">16</span><span class="o">;</span>
+
+<span class="kd">private</span> <span class="n">String</span> <span class="nf">calculateHmac</span><span class="p">(</span><span class="n">String</span> <span class="n">sharedSecret</span><span class="o">,</span> <span class="n">String</span> <span class="n">callbackBody</span><span class="o">)</span> <span class="kd">throws</span> <span class="n">GeneralSecurityException</span> <span class="o">{</span>
+    <span class="n">Mac</span> <span class="n">mac</span> <span class="o">=</span> <span class="n">Mac</span><span class="o">.</span><span class="na">getInstance</span><span class="o">(</span><span class="n">HMAC_SHA256_ALGORITHM</span><span class="o">));</span>
+    <span class="n">mac</span><span class="o">.</span><span class="na">init</span><span class="o">(</span><span class="k">new</span> <span class="n">SecretKeySpec</span><span class="o">(</span><span class="n">sharedSecret</span><span class="o">.</span><span class="na">getBytes</span><span class="o">(),</span> <span class="n">HMAC_SHA256_ALGORITHM</span><span class="o">));</span>
+
+    <span class="kt">byte</span><span class="o">[]</span> <span class="n">rawHmac</span> <span class="o">=</span> <span class="n">mac</span><span class="o">.</span><span class="na">doFinal</span><span class="o">(</span><span class="n">callbackBody</span><span class="o">.</span><span class="na">getBytes</span><span class="o">());</span>
+    <span class="k">return</span> <span class="k">new</span> <span class="n">BigInteger</span><span class="o">(</span><span class="mi">1</span><span class="o">,</span> <span class="n">rawHmac</span><span class="o">).</span><span class="na">toString</span><span class="o">(</span><span class="n">HMAC_RADIX</span><span class="o">);</span>
+<span class="o">}</span>
+</code></pre>
+
+<p>A Subscriber has the ability to verify the integrity of a callback payload (i.e. ensure that the message was not tampered with en route) and authenticate the identity of its sender (i.e. ensure that the callback did indeed originate from Smartsheet).</p>
+
+<p>When you create a new <a href="#webhook-object">webhook</a>, it is assigned a randomly generated <strong>sharedSecret</strong> value.  The shared secret is used by Smartsheet to sign callback payloads, and should not be shared with any third parties.</p>
+
+<p>To authenticate a callback request:</p>
+
+<ol>
+<li><p>Calculate the <a href="https://en.wikipedia.org/wiki/Hash-based_message_authentication_code">HMAC</a> of the webhook&rsquo;s <strong>sharedSecret</strong> and the request body.  This must be done using the SHA-256 cryptographic hash algorithm.</p></li>
+<li><p>Format the calculated value as a string in base 16.</p></li>
+<li><p>Compare your result with the value of the <strong>Smartsheet-Hmac-SHA256</strong> header of the request.</p></li>
+</ol>
+
+<p>If the values match, you can be sure the request originated from Smartsheet and that the data has not been tampered with.</p>
+
+<aside class="notice">For maximum security, you may also choose to <a href="#reset-shared-secret">reset your webhook&rsquo;s shared secret</a> at periodic intervals.</aside>
+
+<h1 id="preventing-infinite-loops">Preventing Infinite Loops</h1>
+
+<p>It&rsquo;s possible that an application which subscribes to callbacks (using webhooks) might react to those callbacks by using the API to make additional changes in Smartsheet. 
+But, consider the following scenario:</p>
+
+<ol>
+<li><p><strong>App1</strong> creates a Webhook to monitor <strong>Sheet-A</strong> for changes, specifying an <strong>App-1</strong> URL as the <strong>callbackUrl</strong> for the Webhook.</p></li>
+<li><p><strong>App-1</strong> updates <strong>Sheet-A</strong> using the API.</p></li>
+<li><p>Smartsheet detects that <strong>Sheet-A</strong> has changed and sends a callback to <strong>App-1</strong> (as the webhook specified).</p></li>
+<li><p><strong>App-1</strong> processes the callback, and in the course of doing so, updates <strong>Sheet-A</strong> again using the API.</p></li>
+<li><p>Return to Step 3.</p></li>
+</ol>
+
+<p>To protect against infinite loops like the one outlined above, we&rsquo;ve introduced support for a new header that an API client can include with any API request that adds, updates, or deletes data in Smartsheet. 
+Here&rsquo;s how it works:</p>
+
+<ul>
+<li>An API client includes the <b>Smartsheet-Change-Agent</b> header in any API request that adds, updates, or deletes data in Smartsheet.<br/><br/>
+    <ul>
+        <li>The header value should be set to a string that the API client will be able to recognize as identifying itself.<br/><br/></li>
+    </ul>
+</li>
+<li>If any <a href="#event-callbacks">Event callbacks</a> fire as a result of an API request that contains the <b>Smartsheet-Change-Agent</b> header, the value of the <b>Smartsheet-Change-Agent</b> header will be included in the <a href="#callbackevent-object">callback</a> in the value of the <b>changeAgent</b> attribute.<br/><br/></li>
+<li>If a webhook Subscriber receives a <a href="#callbackevent-object">callback</a> that contains the <b>changeAgent</b> attribute, it should evaluate the attribute value:<br/><br/> 
+    <ul>
+        <li>If the attribute value&rsquo;s comma-delimited list contains the Subscriber API client&rsquo;s change agent value, this indicates that the change which triggered the callback <b>WAS</b> caused by the Subscriber itself, and the Subscriber can choose to ignore the callback, thus preventing an infinite loop.<br/><br/></li>
+        <li>Else, the change which triggered the callback was <b>NOT</b> caused by the Subscriber itself, and if the Subscriber is going to subsequently react to the callback by making a change in Smartsheet (via API request), the API client should append a comma and its own identifier to the original attribute value, and pass that value through using the <b>Smartsheet-Change-Agent</b> header of the API request. Doing so will protect against cross-system infinite loops.<br/><br/></li>
+    </ul>
+</li>
+</ul>
+
+<aside class="notice">The <b>Smartsheet-Change-Agent</b> header value has a maximum length of 512 characters. If its length exceeds 512 characters, the excess will be trimmed from the front of the string, so that the most recent agent information will remain.</aside>
+
+<h1 id="webhook-errors">Webhook Errors</h1>
+
+<p>The following table specifies the recommended action for each Smartsheet-specific error code. 
+Use this information to implement error handling logic according to the following guidelines:</p>
+
+<ul>
+<li>If the error code indicates a permanent error condition, do not retry the request.</li>
+<li>If the error code indicates a problem that can be fixed, do not retry the request until the problem has been fixed.</li>
+<li>If the error code indicates a problem that could be overcome by retrying the request after a period of time, retry the request using exponential backoff.</li>
+</ul>
+
+<table><thead>
+<tr>
+<th>HTTP status code</th>
+<th>Smartsheet errorCode</th>
+<th>Smartsheet message</th>
+<th>Recommended Action</th>
+</tr>
+</thead><tbody>
+<tr>
+<td>400</td>
+<td>1151</td>
+<td>Scope &rsquo;{0}&rsquo;, object id {1} was not found.</td>
+<td>Do not retry without fixing the problem.</td>
+</tr>
+<tr>
+<td>400</td>
+<td>1152</td>
+<td>Only URLs with a protocol of &#39;https&rsquo; are supported for attribute &rsquo;{0}&rsquo;.</td>
+<td>Do not retry without fixing the problem.</td>
+</tr>
+<tr>
+<td>403</td>
+<td>1153</td>
+<td>This webhook cannot be enabled because access was revoked for the application that created it.</td>
+<td><span class="doNotRetry">Do not retry.</span></td>
+</tr>
+<tr>
+<td>403</td>
+<td>1154</td>
+<td>Please contact api@smartsheet.com in order to enable this Webhook.</td>
+<td><span class="doNotRetry">Do not retry.</span></td>
+</tr>
+</tbody></table>
+
+<h1 id="webhooks-reference"><span class="customTOCSectionHeading">Webhooks Reference</span></h1>
+
+<p>Webhooks provide a way for Smartsheet to automatically notify your external application or service when certain events occur in Smartsheet. Webhooks offer a more efficient alternative to using the API to periodically <i>poll</i> for changes.</p>
+
+<p>For more information, see <a href="#webhooks-overview">Webhooks Overview</a>.</p>
+
+<h1 id="objects">Objects</h1>
+
+<h2 id="callback-object">Callback Object</h2>
+
+<table><thead>
+<tr>
+<th></th>
+<th></th>
+<th></th>
+</tr>
+</thead><tbody>
+<tr>
+<td><strong>nonce</strong></td>
+<td>string</td>
+<td>Random value that will be distinct for each Callback</td>
+</tr>
+<tr>
+<td><strong>timestamp</strong></td>
+<td>timestamp</td>
+<td>Time that the callback was generated</td>
+</tr>
+<tr>
+<td><strong>webhookId</strong></td>
+<td>number</td>
+<td>ID of the corresponding Webhook</td>
+</tr>
+<tr>
+<td><strong>scope</strong></td>
+<td>string</td>
+<td>Scope of the Webhook. Currently, the only supported value is &ldquo;sheet&rdquo;.</td>
+</tr>
+<tr>
+<td><strong>scopeObjectId</strong></td>
+<td>number</td>
+<td>ID of the object that corresponds to <strong>scope</strong></td>
+</tr>
+<tr>
+<td><strong>events</strong></td>
+<td><a href="#callbackevent-object">CallbackEvent</a>[]</td>
+<td>Array of CallbackEvent objects</td>
+</tr>
+<tr>
+<td><strong>newWebhookStatus</strong></td>
+<td>string</td>
+<td>New status of the corresponding Webhook <br/>Only returned for &ldquo;Webhook Status Change&rdquo; <a href="#webhook-callbacks">callbacks</a> (null for &ldquo;Event&rdquo; Callbacks).</td>
+</tr>
+</tbody></table>
+
+<h2 id="callbackevent-object">CallbackEvent Object</h2>
+
+<table><thead>
+<tr>
+<th></th>
+<th></th>
+<th></th>
+</tr>
+</thead><tbody>
+<tr>
+<td><strong>objectType</strong></td>
+<td>string</td>
+<td>Type of object for which event occurred. One of the following values:<ul><li>sheet</li><li>column</li><li>row</li><li>cell</li><li>attachment</li><li>discussion</li><li>comment</li></ul></td>
+</tr>
+<tr>
+<td><strong>eventType</strong></td>
+<td>string</td>
+<td>Type of event that occurred. One of the following values:<ul><li>created</li><li>updated</li><li>deleted</li></ul></td>
+</tr>
+<tr>
+<td><strong>id</strong></td>
+<td>number</td>
+<td>ID of the object that corresponds to <strong>objectType</strong>. Omitted if <strong>objectType</strong> is &ldquo;cell&rdquo;.</td>
+</tr>
+<tr>
+<td><strong>rowId</strong></td>
+<td>number</td>
+<td>Only present if <strong>objectType</strong> is &ldquo;cell&rdquo;. The ID of the row where the cell is located.</td>
+</tr>
+<tr>
+<td><strong>columnId</strong></td>
+<td>number</td>
+<td>Only present if <strong>objectType</strong> is &ldquo;cell&rdquo;. The ID of the column where the cell is located.</td>
+</tr>
+<tr>
+<td><strong>changeAgent</strong></td>
+<td>string</td>
+<td>A comma-delimited list of values that uniquely identify the agent(s) responsible for making the change(s) that caused the callback to occur. Only present if the change agent included the <strong>Smartsheet-Change-Agent</strong> header in the API request that changed data in Smartsheet. For more information, see <a href="#preventing-infinite-loops">Preventing Infinite Loops</a>.</td>
+</tr>
+</tbody></table>
+
+<h2 id="sharedsecret-object">SharedSecret Object</h2>
+
+<table><thead>
+<tr>
+<th></th>
+<th></th>
+<th></th>
+</tr>
+</thead><tbody>
+<tr>
+<td><strong>sharedSecret</strong></td>
+<td>string</td>
+<td>New value for the shared secret</td>
+</tr>
+</tbody></table>
+
+<h2 id="webhook-object">Webhook Object</h2>
+
+<table><thead>
+<tr>
+<th></th>
+<th></th>
+<th></th>
+</tr>
+</thead><tbody>
+<tr>
+<td><strong>id</strong></td>
+<td>number</td>
+<td>Webhook ID</td>
+</tr>
+<tr>
+<td><strong>name</strong></td>
+<td>string</td>
+<td>Webhook name</td>
+</tr>
+<tr>
+<td><strong>apiClientId</strong></td>
+<td>string</td>
+<td>API Client Id corresponding to third-party app that created the Webhook. Read-only. Only present if webhook was created by third-party app.</td>
+</tr>
+<tr>
+<td><strong>apiClientName</strong></td>
+<td>string</td>
+<td>API Client Name corresponding to third-party app that created the Webhook. Read-only. Only present if webhook was created by third-party app.</td>
+</tr>
+<tr>
+<td><strong>scope</strong></td>
+<td>string</td>
+<td>Scope of the subscription. Currently, the only supported value is &ldquo;sheet&rdquo;. Specified when a webhook is created and cannot be changed.</td>
+</tr>
+<tr>
+<td><strong>scopeObjectId</strong></td>
+<td>number</td>
+<td>ID of the object that is subscribed to. Specified when a webhook is created and cannot be changed.</td>
+</tr>
+<tr>
+<td><strong>events</strong></td>
+<td>string[]</td>
+<td>Array of the events that are subscribed to. Currently, must be an array of size 1 that contains the string value &ldquo;&#42;.&#42;&rdquo;, which means &ldquo;all objects&rdquo; and &ldquo;all events&rdquo;.</td>
+</tr>
+<tr>
+<td><strong>callbackUrl</strong></td>
+<td>string</td>
+<td>HTTPS URL where callbacks will be sent</td>
+</tr>
+<tr>
+<td><strong>sharedSecret</strong></td>
+<td>string</td>
+<td>Shared secret for this webhook, randomly generated by Smartsheet. Read-only. See <a href="#authenticating-callbacks-(optional)">Authenticating Callbacks</a> for details about how this value can be used.</td>
+</tr>
+<tr>
+<td><strong>enabled</strong></td>
+<td>boolean</td>
+<td>Flag indicating whether the Webhook is on (<code class="prettyprint">true</code>) or off (<code class="prettyprint">false</code>)</td>
+</tr>
+<tr>
+<td><strong>status</strong></td>
+<td>string</td>
+<td>Webhook status. Read-only. See <a href="#webhook-status">Webhook Status</a> for list of possible values.</td>
+</tr>
+<tr>
+<td><strong>disabledDetails</strong></td>
+<td>string</td>
+<td>Details about the reason the Webhook was disabled. Read-only. Only present when <strong>enabled</strong>=<code class="prettyprint">false</code>.</td>
+</tr>
+<tr>
+<td><strong>version</strong></td>
+<td>number</td>
+<td>Webhook version. Currently, the only supported value is 1. This attribute is intended to ensure backward compatibility as new webhook functionality is released. For example, a webhook with a version of 1 is guaranteed to always be sent callback objects that are compatible with the version 1 release of webhooks.</td>
+</tr>
+<tr>
+<td><strong>createdAt</strong></td>
+<td>timestamp</td>
+<td>Time of creation. Read-only.</td>
+</tr>
+<tr>
+<td><strong>modifiedAt</strong></td>
+<td>timestamp</td>
+<td>Time of last modification. Read-only.</td>
+</tr>
+</tbody></table>
+
+<h1 id="create-webhook">Create Webhook</h1>
+
+<blockquote>
+<p>Example Request:</p>
+</blockquote>
+<pre class="highlight shell"><code>curl https://api.smartsheet.com/2.0/webhooks <span class="se">\</span>
+-H <span class="s2">"Authorization: Bearer ACCESS_TOKEN"</span> <span class="se">\</span>
+-H <span class="s2">"Content-Type: application/json"</span> <span class="se">\</span>
+-X POST <span class="se">\</span>
+-d <span class="s1">'{ "name": "Webhook #4", "callbackUrl": "http://www.myApp.com/webhooks", "scope": "sheet", "scopeObjectId": 2258256056870788, "version": 1, "events": [ "*.*" ]}'</span>
+</code></pre>
+<pre class="highlight java"><code>
+</code></pre>
+
+<blockquote>
+<p>Example Response:</p>
+</blockquote>
+<pre class="highlight json"><code><span class="p">{</span><span class="w">
+    </span><span class="s2">"resultCode"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"result"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+        </span><span class="s2">"id"</span><span class="p">:</span><span class="w"> </span><span class="mi">8444254503626628</span><span class="p">,</span><span class="w">
+        </span><span class="s2">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Webhook #4"</span><span class="p">,</span><span class="w">
+        </span><span class="s2">"scope"</span><span class="p">:</span><span class="w"> </span><span class="s2">"sheet"</span><span class="p">,</span><span class="w">
+        </span><span class="s2">"scopeObjectId"</span><span class="p">:</span><span class="w"> </span><span class="mi">2258256056870788</span><span class="p">,</span><span class="w">
+        </span><span class="s2">"events"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+            </span><span class="s2">"*.*"</span><span class="w">
+        </span><span class="p">],</span><span class="w">
+        </span><span class="s2">"callbackUrl"</span><span class="p">:</span><span class="w"> </span><span class="s2">"http://www.myApp.com/webhooks"</span><span class="p">,</span><span class="w">
+        </span><span class="s2">"sharedSecret"</span><span class="p">:</span><span class="w"> </span><span class="s2">"3qo29mvjou6xt5fujukjtwzhj0"</span><span class="p">,</span><span class="w">
+        </span><span class="s2">"enabled"</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span><span class="w">
+        </span><span class="s2">"status"</span><span class="p">:</span><span class="w"> </span><span class="s2">"NEW_NOT_VERIFIED"</span><span class="p">,</span><span class="w">
+        </span><span class="s2">"version"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w">
+        </span><span class="s2">"createdAt"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2015-11-03T22:25:51Z"</span><span class="p">,</span><span class="w">
+        </span><span class="s2">"modifiedAt"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2015-11-03T22:25:51Z"</span><span class="w">
+    </span><span class="p">},</span><span class="w">
+    </span><span class="s2">"message"</span><span class="p">:</span><span class="w"> </span><span class="s2">"SUCCESS"</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre>
+
+<p><code class="prettyprint">POST /webhooks</code></p>
+
+<p>Creates a new Webhook. </p>
+
+<aside class="notice">A Webhook is not enabled by default when it is created. Once you&rsquo;ve created a Webhook, you can enable it by using the <a href="#update-webhook">Update Webhook</a> operation to set <b>enabled</b> to <code>true</code>.</aside>
+
+<table><thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead><tbody>
+<tr>
+<td><strong>Access Scope</strong></td>
+<td>ADMIN_WEBHOOKS</td>
+</tr>
+<tr>
+<td><strong>Headers</strong></td>
+<td><strong>Authorization</strong>: Bearer ACCESS_TOKEN<br/><strong>Content-Type</strong>: application/json</td>
+</tr>
+<tr>
+<td><strong>Request Body</strong></td>
+<td><a href="#webhook-object">Webhook object</a>, limited to the following attributes:<ul><li>name (required)</li><li>callbackUrl (required)</li><li>scope (required)</li><li>scopeObjectId (required)</li><li>events (required)</li><li>version (required)</li></ul></td>
+</tr>
+<tr>
+<td><strong>Returns</strong></td>
+<td><a href="http://smartsheet-platform.github.io/api-docs/#result-object">Result object</a>, containing a <a href="#webhook-object">Webhook object</a> for the newly created Webhook</td>
+</tr>
+</tbody></table>
+
+<h1 id="delete-webhook">Delete Webhook</h1>
+
+<blockquote>
+<p>Example Request:</p>
+</blockquote>
+<pre class="highlight shell"><code>curl https://api.smartsheet.com/2.0/webhooks/<span class="o">{</span>webhookId<span class="o">}</span> <span class="se">\</span>
+-H <span class="s2">"Authorization: Bearer ACCESS_TOKEN"</span> <span class="se">\</span>
+-X DELETE
+</code></pre>
+<pre class="highlight java"><code>
+</code></pre>
+
+<blockquote>
+<p>Example Response:</p>
+</blockquote>
+<pre class="highlight json"><code><span class="p">{</span><span class="w">
+    </span><span class="s2">"resultCode"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"message"</span><span class="p">:</span><span class="w"> </span><span class="s2">"SUCCESS"</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre>
+
+<p><code class="prettyprint">DELETE /webhooks/{webhookId}</code></p>
+
+<p>Deletes the Webhook specified in the URL.</p>
+
+<aside class="notice">Using this operation will permanently delete the specified Webhook. To temporarily disable a webhook, use the <a href="#update-webhook">Update Webhook</a> operation to set <b>enabled</b> to <code>false</code>.</aside>
+
+<table><thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead><tbody>
+<tr>
+<td><strong>Access Scope</strong></td>
+<td>ADMIN_WEBHOOKS</td>
+</tr>
+<tr>
+<td><strong>Headers</strong></td>
+<td><strong>Authorization</strong>: Bearer ACCESS_TOKEN</td>
+</tr>
+<tr>
+<td><strong>Returns</strong></td>
+<td><a href="http://smartsheet-platform.github.io/api-docs/#result-object">Result object</a></td>
+</tr>
+</tbody></table>
+
+<h1 id="get-webhook">Get Webhook</h1>
+
+<blockquote>
+<p>Example Request:</p>
+</blockquote>
+<pre class="highlight shell"><code>curl https://api.smartsheet.com/2.0/webhooks/<span class="o">{</span>webhookId<span class="o">}</span> <span class="se">\</span>
+-H <span class="s2">"Authorization: Bearer ACCESS_TOKEN"</span>
+</code></pre>
+<pre class="highlight java"><code>
+</code></pre>
+
+<blockquote>
+<p>Example Response:</p>
+</blockquote>
+<pre class="highlight json"><code><span class="p">{</span><span class="w">
+    </span><span class="s2">"id"</span><span class="p">:</span><span class="w"> </span><span class="mi">4503604829677444</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Webhook #5"</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"scope"</span><span class="p">:</span><span class="w"> </span><span class="s2">"sheet"</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"scopeObjectId"</span><span class="p">:</span><span class="w"> </span><span class="mi">6761855684241284</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"events"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+        </span><span class="s2">"*.*"</span><span class="w">
+    </span><span class="p">],</span><span class="w">
+    </span><span class="s2">"callbackUrl"</span><span class="p">:</span><span class="w"> </span><span class="s2">"http://www.myApp.com/webhooks"</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"sharedSecret"</span><span class="p">:</span><span class="w"> </span><span class="s2">"216ejjzdnq17mq1q8xs7d4hu8b"</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"enabled"</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"status"</span><span class="p">:</span><span class="w"> </span><span class="s2">"DISABLED_CALLBACK_FAILED"</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"disabledDetails"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Request returned HTTP status code 500"</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"version"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"createdAt"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2015-11-03T22:25:51Z"</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"modifiedAt"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2015-11-04T20:12:42Z"</span><span class="w"> 
+</span><span class="p">}</span><span class="w">
+</span></code></pre>
+
+<p><code class="prettyprint">GET /webhooks/{webhookId}</code></p>
+
+<p>Gets the Webhook specified in the URL.</p>
+
+<table><thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead><tbody>
+<tr>
+<td><strong>Access Scope</strong></td>
+<td>ADMIN_WEBHOOKS</td>
+</tr>
+<tr>
+<td><strong>Headers</strong></td>
+<td><strong>Authorization</strong>: Bearer ACCESS_TOKEN</td>
+</tr>
+<tr>
+<td><strong>Returns</strong></td>
+<td><a href="#webhook-object">Webhook object</a></td>
+</tr>
+</tbody></table>
+
+<h1 id="list-webhooks">List Webhooks</h1>
+
+<blockquote>
+<p>Example Request:</p>
+</blockquote>
+<pre class="highlight shell"><code>curl https://api.smartsheet.com/2.0/webhooks <span class="se">\</span>
+-H <span class="s2">"Authorization: Bearer ACCESS_TOKEN"</span>
+</code></pre>
+<pre class="highlight java"><code>
+</code></pre>
+
+<blockquote>
+<p>Example Response:</p>
+</blockquote>
+<pre class="highlight json"><code><span class="p">{</span><span class="w">
+    </span><span class="s2">"pageNumber"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"pageSize"</span><span class="p">:</span><span class="w"> </span><span class="mi">100</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"totalPages"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"totalCount"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"data"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+        </span><span class="p">{</span><span class="w">
+            </span><span class="s2">"id"</span><span class="p">:</span><span class="w"> </span><span class="mi">4503604829677444</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Webhook #5"</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"scope"</span><span class="p">:</span><span class="w"> </span><span class="s2">"sheet"</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"scopeObjectId"</span><span class="p">:</span><span class="w"> </span><span class="mi">6761855684241284</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"events"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+                </span><span class="s2">"*.*"</span><span class="w">
+            </span><span class="p">],</span><span class="w">
+            </span><span class="s2">"callbackUrl"</span><span class="p">:</span><span class="w"> </span><span class="s2">"http://www.myApp.com/webhooks"</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"sharedSecret"</span><span class="p">:</span><span class="w"> </span><span class="s2">"216ejjzdnq17mq1q8xs7d4hu8b"</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"enabled"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"status"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ENABLED"</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"version"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"createdAt"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2015-11-03T14:52:21Z"</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"modifiedAt"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2015-11-04T19:05:40Z"</span><span class="w">
+        </span><span class="p">}</span><span class="w">
+    </span><span class="p">]</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre>
+
+<p><code class="prettyprint">GET /webhooks</code></p>
+
+<p>Gets the list of all Webhooks that the user owns (if a <a href="http://smartsheet-platform.github.io/api-docs/#generating-access-token">user generated token</a> was used to make the request) 
+or the list of all Webhooks associated with the third-party app (if a <a href="http://smartsheet-platform.github.io/api-docs/#third-party-app-development">third-party app</a> made the request). 
+Items in the response are ordered by API Client name, then Webhook name, then creation date.</p>
+
+<table><thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead><tbody>
+<tr>
+<td><strong>Access Scope</strong></td>
+<td>ADMIN_WEBHOOKS</td>
+</tr>
+<tr>
+<td><strong>Headers</strong></td>
+<td><strong>Authorization</strong>: Bearer ACCESS_TOKEN</td>
+</tr>
+<tr>
+<td><strong>Returns</strong></td>
+<td><a href="http://smartsheet-platform.github.io/api-docs/#indexresult-object">IndexResult object</a> containing an array of <a href="#webhook-object">Webhook objects</a></td>
+</tr>
+</tbody></table>
+
+<h1 id="reset-shared-secret">Reset Shared Secret</h1>
+
+<blockquote>
+<p>Example Request:</p>
+</blockquote>
+<pre class="highlight shell"><code>curl https://api.smartsheet.com/2.0/webhooks/<span class="o">{</span>webhookId<span class="o">}</span>/resetsharedsecret <span class="se">\</span>
+-H <span class="s2">"Authorization: Bearer ACCESS_TOKEN"</span> <span class="se">\</span>
+-H <span class="s2">"Content-Type: application/json"</span> <span class="se">\</span>
+-X POST
+</code></pre>
+<pre class="highlight java"><code>
+</code></pre>
+
+<blockquote>
+<p>Example Response:</p>
+</blockquote>
+<pre class="highlight json"><code><span class="p">{</span><span class="w">
+    </span><span class="s2">"resultCode"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"result"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="s2">"sharedSecret"</span><span class="p">:</span><span class="w"> </span><span class="s2">"5nua69a56es57qdr97g9bcg8f3"</span><span class="w"> </span><span class="p">},</span><span class="w">
+    </span><span class="s2">"message"</span><span class="p">:</span><span class="w"> </span><span class="s2">"SUCCESS"</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre>
+
+<p><code class="prettyprint">POST /webhooks/{webhookId}/resetsharedsecret</code></p>
+
+<p>Resets the shared secret for the specified Webhook. For more information about how a shared secret is used, see <a href="#authenticating-callbacks-(optional)">Authenticating Callbacks</a>.</p>
+
+<p>This operation can be used to rotate an API client&rsquo;s webhooks&rsquo; shared secrets at periodic intervals to provide additional security.</p>
+
+<table><thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead><tbody>
+<tr>
+<td><strong>Access Scope</strong></td>
+<td>ADMIN_WEBHOOKS</td>
+</tr>
+<tr>
+<td><strong>Headers</strong></td>
+<td><strong>Authorization</strong>: Bearer ACCESS_TOKEN<br/><strong>Content-Type</strong>: application/json</td>
+</tr>
+<tr>
+<td><strong>Request Body</strong></td>
+<td>The request body should be empty.</td>
+</tr>
+<tr>
+<td><strong>Returns</strong></td>
+<td><a href="http://smartsheet-platform.github.io/api-docs/#result-object">Result object</a> containing the <a href="#sharedsecret-object">SharedSecret object</a></td>
+</tr>
+</tbody></table>
+
+<h1 id="update-webhook">Update Webhook</h1>
+
+<blockquote>
+<p>Example Request:</p>
+</blockquote>
+<pre class="highlight shell"><code>curl https://api.smartsheet.com/2.0/webhooks/<span class="o">{</span>webhookId<span class="o">}</span> <span class="se">\</span>
+-H <span class="s2">"Authorization: Bearer ACCESS_TOKEN"</span> <span class="se">\</span>
+-H <span class="s2">"Content-Type: application/json"</span> <span class="se">\</span>
+-X PUT <span class="se">\</span>
+-d <span class="s1">'{ "enabled": true }'</span>
+</code></pre>
+<pre class="highlight java"><code>
+</code></pre>
+
+<blockquote>
+<p>Example Response:</p>
+</blockquote>
+<pre class="highlight json"><code><span class="p">{</span><span class="w">
+    </span><span class="s2">"resultCode"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"result"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+        </span><span class="s2">"id"</span><span class="p">:</span><span class="w"> </span><span class="mi">8444254503626628</span><span class="p">,</span><span class="w">
+        </span><span class="s2">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Webhook #4"</span><span class="p">,</span><span class="w">
+        </span><span class="s2">"scope"</span><span class="p">:</span><span class="w"> </span><span class="s2">"sheet"</span><span class="p">,</span><span class="w">
+        </span><span class="s2">"scopeObjectId"</span><span class="p">:</span><span class="w"> </span><span class="mi">2258256056870788</span><span class="p">,</span><span class="w">
+        </span><span class="s2">"events"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+            </span><span class="s2">"*.*"</span><span class="w">
+        </span><span class="p">],</span><span class="w">
+        </span><span class="s2">"callbackUrl"</span><span class="p">:</span><span class="w"> </span><span class="s2">"http://www.myApp.com/webhooks"</span><span class="p">,</span><span class="w">
+        </span><span class="s2">"sharedSecret"</span><span class="p">:</span><span class="w"> </span><span class="s2">"3qo29mvjou6xt5fujukjtwzhj0"</span><span class="p">,</span><span class="w">
+        </span><span class="s2">"enabled"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w">
+        </span><span class="s2">"status"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ENABLED"</span><span class="p">,</span><span class="w">
+        </span><span class="s2">"version"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w">
+        </span><span class="s2">"createdAt"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2015-11-03T14:52:21Z"</span><span class="p">,</span><span class="w">
+        </span><span class="s2">"modifiedAt"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2015-11-04T19:05:40Z"</span><span class="w">
+    </span><span class="p">},</span><span class="w">
+    </span><span class="s2">"message"</span><span class="p">:</span><span class="w"> </span><span class="s2">"SUCCESS"</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre>
+
+<p><code class="prettyprint">PUT /webhooks/{webhookId}</code></p>
+
+<p>Updates the Webhook specified in the URL.</p>
+
+<aside class="notice"><b>Enabling a Webhook</b><br/><br/>When setting a webhook&rsquo;s <b>enabled</b> to <code>true</code> using this operation, the behavior and result depend on the webhook&rsquo;s <b>status</b> and may result in a webhook <a href="#webhook-verification">verification</a> being triggered, or in some cases, an error being returned.  See <a href="#webhook-status">Webhook Status</a> for more details.</aside>
+
+<!--aside class="notice"><b>Enabling a Webhook</b><ul><li>If <b>Webhook.enabled</b>=<code>false</code> and <a href="#webhook-status"><b>Webhook.status</b></a> is any value other than &ldquo;DISABLED_APP_REVOKED&rdquo;, &ldquo;DISABLED_SCOPE_INACCESSIBLE&rdquo;, or &ldquo;DISABLED_ADMINISTRATIVE&rdquo;, using this operation to set <b>Webhook.enabled</b>=<code>true</code> will trigger the <a href="#webhook-verification">verification</a> process.</li><li>Verification must be successfully completed in order for the Webhook to become enabled.</li></ul></aside-->
+
+<table><thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead><tbody>
+<tr>
+<td><strong>Access Scope</strong></td>
+<td>ADMIN_WEBHOOKS</td>
+</tr>
+<tr>
+<td><strong>Headers</strong></td>
+<td><strong>Authorization</strong>: Bearer ACCESS_TOKEN<br/><strong>Content-Type</strong>: application/json</td>
+</tr>
+<tr>
+<td><strong>Request Body</strong></td>
+<td><a href="#webhook-object">Webhook object</a>, limited to the following attributes:<ul><li>name (optional)</li><li>events (optional)</li><li>callbackUrl (optional)</li><li>enabled (optional)</li><li>version (optional)</li></ul></td>
+</tr>
+<tr>
+<td><strong>Returns</strong></td>
+<td><a href="http://smartsheet-platform.github.io/api-docs/#result-object">Result object</a> containing the <a href="#webhook-object">Webhook object</a> for the updated webhook</td>
 </tr>
 </tbody></table>
 
