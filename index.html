@@ -263,7 +263,7 @@ To avoid this scenario, design your integration such that API requests to update
 <span class="inSectionSubheading">Be smart: Handle errors appropriately</span></p>
 
 <p>A successful error handling strategy requires that your integration recognize the difference between errors that can potentially be resolved by retrying the request and errors that should never be retried automatically. 
-The <a href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html">HTTP status code</a> that is returned with each response is your first indication as to the outcome of the request.</p>
+The <a href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html">HTTP status code</a> that is returned with each response is your first indication as to the outcome of the request. Message content is returned as raw text.  You may need to escape it if displayed in HTML.</p>
 
 <table><thead>
 <tr>
@@ -463,7 +463,7 @@ To avoid this scenario, design your integration such that API requests to update
 <h2 id="errors">Errors</h2>
 
 <p>A successful error handling strategy requires that your integration recognize the difference between errors that can potentially be resolved by retrying the request and errors that should never be retried automatically. 
-The <a href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html">HTTP status code</a> that is returned with each response is your first indication as to the outcome of the request.</p>
+The <a href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html">HTTP status code</a> that is returned with each response is your first indication as to the outcome of the request. Message content is returned as raw text.  You may need to escape it if displayed in HTML.</p>
 
 <table><thead>
 <tr>
