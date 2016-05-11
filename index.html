@@ -1457,7 +1457,7 @@ Use this information to implement error handling logic according to the followin
 <td>400</td>
 <td>1165</td>
 <td>Cannot add image to cell with alt text larger than 100 characters.</td>
-<td><span class="doNotRetry">Do not retry.</span></td>
+<td>Do not retry without fixing the problem.</td>
 </tr>
 <tr>
 <td>400</td>
@@ -1470,6 +1470,54 @@ Use this information to implement error handling logic according to the followin
 <td>1167</td>
 <td>The resource you are attempting to access has expired.</td>
 <td><span class="doNotRetry">Do not retry.</span></td>
+</tr>
+<tr>
+<td>500</td>
+<td>1170</td>
+<td>The sheet referenced by this widget is unavailable or deleted.</td>
+<td><span class="doNotRetry">Do not retry.</span></td>
+</tr>
+<tr>
+<td>500</td>
+<td>1171</td>
+<td>The report referenced by this widget is unavailable or deleted.</td>
+<td><span class="doNotRetry">Do not retry.</span></td>
+</tr>
+<tr>
+<td>500</td>
+<td>1172</td>
+<td>The referenced cell is unavailable or deleted.</td>
+<td><span class="doNotRetry">Do not retry.</span></td>
+</tr>
+<tr>
+<td>403</td>
+<td>1173</td>
+<td>You must be in a Team/Enterprise account to specify a {0} value of &rsquo;{1}&rsquo;.</td>
+<td><span class="doNotRetry">Do not retry.</span></td>
+</tr>
+<tr>
+<td>403</td>
+<td>1174</td>
+<td>The value for {0} is invalid because this publish option is configured to be restricted to users in this account.</td>
+<td><span class="doNotRetry">Do not retry.</span></td>
+</tr>
+<tr>
+<td>403</td>
+<td>1175</td>
+<td>One or more publish options which you attempted to enable are disabled for this account.</td>
+<td><span class="doNotRetry">Do not retry.</span></td>
+</tr>
+<tr>
+<td>400</td>
+<td>1176</td>
+<td>Array attribute(s) may not contain null elements: {0}.</td>
+<td>Do not retry without fixing the problem.</td>
+</tr>
+<tr>
+<td>400</td>
+<td>1177</td>
+<td>Arrays may not contain null elements.</td>
+<td>Do not retry without fixing the problem.</td>
 </tr>
 <tr>
 <td>500</td>
@@ -8669,8 +8717,8 @@ These API operations allow you to access the user&rsquo;s favorite API-supported
 -H <span class="s2">"Authorization: Bearer ACCESS_TOKEN"</span> <span class="se">\</span>
 -H <span class="s2">"Content-Type: application/json"</span> <span class="se">\</span>
 -d <span class="s1">'{ \
-    "destinationType": "workspace|folder|home", \
-    "destinationId": workspace_or_folder_id, \
+    "destinationType": "folder", \
+    "destinationId": 7960873114331012, \
     "newName": "newFolderName" \
 }'</span> <span class="se">\</span>
 -X POST
@@ -9500,8 +9548,8 @@ These API operations allow you to access the user&rsquo;s favorite API-supported
 -H <span class="s2">"Authorization: Bearer ACCESS_TOKEN"</span> <span class="se">\</span>
 -H <span class="s2">"Content-Type: application/json"</span> <span class="se">\</span>
 -d <span class="s1">'{ \
-    "destinationType": "workspace|folder|home", \
-    "destinationId": workspace_or_folder_id \
+    "destinationType": "folder", \
+    "destinationId": 7960873114331012, \
 }'</span> <span class="se">\</span>
 -X POST
 </code></pre>
@@ -10822,7 +10870,7 @@ of <a href="#groupmember-object">GroupMember objects</a> any users specified in 
 <pre class="highlight shell"><code>curl https://api.smartsheet.com/2.0/reports/<span class="o">{</span>reportId<span class="o">}</span> <span class="se">\</span>
 -H <span class="s2">"Authorization: Bearer ACCESS_TOKEN"</span> <span class="se">\</span>
 -H <span class="s2">"Accept: application/vnd.ms-excel"</span> <span class="se">\</span>
--o output.xls
+-o output.xlsx
 </code></pre>
 <pre class="highlight javascript"><code><span class="c1">// Set options.</span>
 <span class="kd">var</span> <span class="nx">options</span> <span class="o">=</span> <span class="p">{</span>
@@ -10861,7 +10909,7 @@ of <a href="#groupmember-object">GroupMember objects</a> any users specified in 
 <blockquote>
 <p>Example Response:</p>
 </blockquote>
-<pre class="highlight shell"><code><span class="c"># See local file named "output.xls"</span>
+<pre class="highlight shell"><code><span class="c"># See local file named "output.xlsx"</span>
 </code></pre>
 <pre class="highlight javascript"><code><span class="c1">// [todo]</span>
 </code></pre>
@@ -10932,7 +10980,7 @@ of <a href="#groupmember-object">GroupMember objects</a> any users specified in 
 
 <p>Gets the Report in the format specified, based on the Report ID.  </p>
 
-<aside class="notice">Note: For Excel format, only .xls output format is supported at this time.</aside>
+<aside class="notice">Note: For Excel format, only .xlsx output format is supported at this time.</aside>
 
 <table><thead>
 <tr>
@@ -13194,6 +13242,11 @@ Either <strong>email</strong> and <strong>groupId</strong> may be set, but not b
 <td><strong>includeDiscussions</strong></td>
 <td>boolean</td>
 <td>A flag to indicate whether or not to include Discussions in the email.</td>
+</tr>
+<tr>
+<td><strong>layout</strong></td>
+<td>string</td>
+<td>One of the following values: HORIZONTAL, VERTICAL.  Optional, defaults to HORIZONTAL when multiple rows are being sent, and to VERTICAL when a single row is being sent.  HORIZONTAL formats the rows being sent as a grid, whereas VERTICAL formats the rows being sent as separate cards.</td>
 </tr>
 </tbody></table>
 
@@ -15979,8 +16032,8 @@ Either <strong>email</strong> and <strong>groupId</strong> may be set, but not b
 -H <span class="s2">"Authorization: Bearer ACCESS_TOKEN"</span> <span class="se">\</span>
 -H <span class="s2">"Content-Type: application/json"</span> <span class="se">\</span>
 -d <span class="s1">'{ \
-    "destinationType": "workspace|folder|home", \
-    "destinationId": workspace_or_folder_id, \
+    "destinationType": "folder", \
+    "destinationId": 7960873114331012, \
     "newName": "newSheetName" \
 }'</span> <span class="se">\</span>
 -X POST
@@ -17203,7 +17256,7 @@ Either <strong>email</strong> and <strong>groupId</strong> may be set, but not b
 <pre class="highlight shell"><code>curl https://api.smartsheet.com/2.0/sheets/<span class="o">{</span>sheetId<span class="o">}</span> <span class="se">\</span>
 -H <span class="s2">"Authorization: Bearer ACCESS_TOKEN"</span> <span class="se">\</span>
 -H <span class="s2">"Accept: application/vnd.ms-excel"</span> <span class="se">\</span>
--o output.xls
+-o output.xlsx
 </code></pre>
 <pre class="highlight javascript"><code><span class="c1">// Set options.</span>
 <span class="kd">var</span> <span class="nx">options</span> <span class="o">=</span> <span class="p">{</span>
@@ -17232,7 +17285,7 @@ Either <strong>email</strong> and <strong>groupId</strong> may be set, but not b
 <blockquote>
 <p>Example Response:</p>
 </blockquote>
-<pre class="highlight shell"><code><span class="c"># See local file named "output.xls"</span>
+<pre class="highlight shell"><code><span class="c"># See local file named "output.xlsx"</span>
 </code></pre>
 <pre class="highlight javascript"><code><span class="c1">// [todo]</span>
 </code></pre>
@@ -17339,7 +17392,7 @@ Either <strong>email</strong> and <strong>groupId</strong> may be set, but not b
 
 <p>Gets the Sheet in the format specified, based on the Sheet ID.  </p>
 
-<aside class="notice">Note:<ul><li>For Excel format, only .xls output format is supported at this time.</li><li>Gantt chart is not generated at this time.</li></ul></aside>
+<aside class="notice">Note:<ul><li>For Excel format, only .xlsx output format is supported at this time.</li><li>Gantt chart is not generated at this time.</li></ul></aside>
 
 <table><thead>
 <tr>
@@ -17555,8 +17608,8 @@ Either <strong>email</strong> and <strong>groupId</strong> may be set, but not b
 -H <span class="s2">"Authorization: Bearer ACCESS_TOKEN"</span> <span class="se">\</span>
 -H <span class="s2">"Content-Type: application/json"</span> <span class="se">\</span>
 -d <span class="s1">'{ \
-    "destinationType": "workspace|folder|home", \
-    "destinationId": workspace_or_folder_id, \
+    "destinationType": "folder", \
+    "destinationId": 7960873114331012, \
 }'</span> <span class="se">\</span>
 -X POST
 </code></pre>
@@ -18450,6 +18503,11 @@ only has read-only access to the sheet (i.e. the user has viewer permissions, or
 <td><em>(Optional)</em> Title of the widget</td>
 </tr>
 <tr>
+<td><strong>showTitle</strong></td>
+<td>boolean</td>
+<td><strong>True</strong> indicates that the client should display the widget title.  Note that this is independent of the &ldquo;title&rdquo; string which may be null or empty.</td>
+</tr>
+<tr>
 <td><strong>showTitleIcon</strong></td>
 <td>boolean</td>
 <td><strong>True</strong> indicates that the client should display the Sheet icon in the widget title</td>
@@ -18487,7 +18545,7 @@ only has read-only access to the sheet (i.e. the user has viewer permissions, or
 <tr>
 <td><strong>contents</strong></td>
 <td><a href="#widgetcontent-object">WidgetContent</a></td>
-<td>Data that specifies the contents of the widget. _Note: the type of <em>WidgetContent</em> object (and attributes within) will depend on the value of <em>Widget.type</em>: <ul><li>CELLLINK - <a href="#celllinkwidgetcontent-object">CellLinkWidgetContent</a></li> <li>SHEETSUMMARY - <a href="#celllinkwidgetcontent-object">CellLinkWidgetContent</a></li> <li>RICHTEXT - <a href="#richtextwidgetcontent-object">RichTextWidgetContent</a></li> <li>SHORTCUTICON - <a href="#shortcutwidgetcontent-object">ShortcutWidgetContent</a></li> <li>SHORTCUTLIST - <a href="#shortcutwidgetcontent-object">ShortcutWidgetContent</a> </li> <li>GRIDGANTT - <a href="#reportwidgetcontent-object">ReportWidgetContent</a></li></td>
+<td>Data that specifies the contents of the widget. _Note: the type of <em>WidgetContent</em> object (and attributes within) will depend on the value of <em>Widget.type</em>: <ul><li>CELLLINK - <a href="#celllinkwidgetcontent-object">CellLinkWidgetContent</a></li> <li>SHEETSUMMARY - <a href="#celllinkwidgetcontent-object">CellLinkWidgetContent</a></li> <li>RICHTEXT - <a href="#richtextwidgetcontent-object">RichTextWidgetContent</a></li> <li>SHORTCUTICON - <a href="#shortcutwidgetcontent-object">ShortcutWidgetContent</a></li> <li>SHORTCUTLIST - <a href="#shortcutwidgetcontent-object">ShortcutWidgetContent</a> </li> <li>GRIDGANTT - <a href="#reportwidgetcontent-object">ReportWidgetContent</a></li> <li>IMAGE - <a href="#imagewidgetcontent-object">ImageWidgetContent</a></li></td>
 </tr>
 </tbody></table>
 
@@ -18562,6 +18620,42 @@ only has read-only access to the sheet (i.e. the user has viewer permissions, or
 <td>htmlContent</td>
 <td>string</td>
 <td>HTML snippet to render Report</td>
+</tr>
+</tbody></table>
+
+<h3 id="imagewidgetcontent-object">ImageWidgetContent object</h3>
+
+<table><thead>
+<tr>
+<th></th>
+<th></th>
+<th></th>
+</tr>
+</thead><tbody>
+<tr>
+<td><strong>privateId</strong></td>
+<td>string</td>
+<td>The image private ID</td>
+</tr>
+<tr>
+<td><strong>height</strong></td>
+<td>integer</td>
+<td>Original height of the image in pixels</td>
+</tr>
+<tr>
+<td><strong>width</strong></td>
+<td>integer</td>
+<td>Original width of the image in pixels</td>
+</tr>
+<tr>
+<td><strong>fileName</strong></td>
+<td>string</td>
+<td>Name of the image file</td>
+</tr>
+<tr>
+<td><strong>format</strong></td>
+<td>string</td>
+<td><a href="#formatting">formatDescriptor</a></td>
 </tr>
 </tbody></table>
 
@@ -22041,7 +22135,7 @@ and the webhook that initiated the verification request will be disabled as desc
 <td>false</td>
 <td>DISABLED_BY_OWNER</td>
 <td>Webhook has been disabled by the owner.</td>
-<td>Owner can re-enable the webhook by using the <a href="#update-webhook">Update Webhook</a> operation to set <strong>enabled</strong> to <code class="prettyprint">true</code>. No verification is necessary for enabling webhooks that were disabled by the owner.</td>
+<td>Owner can re-enable the webhook by using the <a href="#update-webhook">Update Webhook</a> operation to set <strong>enabled</strong> to <code class="prettyprint">true</code>. Once the subscriber successfully acknowledges the <a href="#webhook-verification">verification request</a>, the webhook will become enabled.</td>
 </tr>
 <tr>
 <td>false</td>
@@ -22402,6 +22496,11 @@ Use this information to implement error handling logic according to the followin
 <td>Only present if <strong>objectType</strong> is &ldquo;cell&rdquo;. The ID of the column where the cell is located.</td>
 </tr>
 <tr>
+<td><strong>userId</strong></td>
+<td>number</td>
+<td>The user ID of the person who caused this event.</td>
+</tr>
+<tr>
 <td><strong>changeAgent</strong></td>
 <td>string</td>
 <td>A comma-delimited list of values that uniquely identify the agent(s) responsible for making the change(s) that caused the callback to occur. Only present if the change agent included the <strong>Smartsheet-Change-Agent</strong> header in the API request that changed data in Smartsheet. For more information, see <a href="#preventing-infinite-loops">Preventing Infinite Loops</a>.</td>
@@ -22499,6 +22598,11 @@ Use this information to implement error handling logic according to the followin
 <td>Webhook version. Currently, the only supported value is 1. This attribute is intended to ensure backward compatibility as new webhook functionality is released. For example, a webhook with a version of 1 is guaranteed to always be sent callback objects that are compatible with the version 1 release of webhooks.</td>
 </tr>
 <tr>
+<td><strong>stats</strong></td>
+<td><a href="#webhookstats-object">WebhookStats</a></td>
+<td>Useful statistics for this webhook.  Will only be returned once this webhook has performed a callback attempt.  Read-only.</td>
+</tr>
+<tr>
 <td><strong>createdAt</strong></td>
 <td>timestamp</td>
 <td>Time of creation. Read-only.</td>
@@ -22507,6 +22611,32 @@ Use this information to implement error handling logic according to the followin
 <td><strong>modifiedAt</strong></td>
 <td>timestamp</td>
 <td>Time of last modification. Read-only.</td>
+</tr>
+</tbody></table>
+
+<h2 id="webhookstats-object">WebhookStats Object</h2>
+
+<table><thead>
+<tr>
+<th></th>
+<th></th>
+<th></th>
+</tr>
+</thead><tbody>
+<tr>
+<td><strong>lastCallbackAttemptRetryCount</strong></td>
+<td>number</td>
+<td>The number of retries the webhook had performed as of the last callback attempt.</td>
+</tr>
+<tr>
+<td><strong>lastCallbackAttempt</strong></td>
+<td>timestamp</td>
+<td>When this webhook last made a callback attempt.</td>
+</tr>
+<tr>
+<td><strong>lastSuccessfulCallback</strong></td>
+<td>timestamp</td>
+<td>When this webhook last made a successful callback.</td>
 </tr>
 </tbody></table>
 
