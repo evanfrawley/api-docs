@@ -1520,6 +1520,18 @@ Use this information to implement error handling logic according to the followin
 <td>Do not retry without fixing the problem.</td>
 </tr>
 <tr>
+<td>400</td>
+<td>1178</td>
+<td>The following combination of attributes is not allowed for this operation: {0}.</td>
+<td>Do not retry without fixing the problem.<br/><br/>Hint: Examine the detail attribute(s) within the error response for detail about the issue(s).</td>
+</tr>
+<tr>
+<td>400</td>
+<td>1179</td>
+<td>The schedule specified is invalid because endAt is earlier than the next send date.</td>
+<td>Do not retry without fixing the problem.<br/><br/>Hint: Verify that startAt, endAt, repeatEvery and other attributes will result in one or more future delivery.</td>
+</tr>
+<tr>
 <td>500</td>
 <td>4000</td>
 <td>An unexpected error has occurred. Please contact api@smartsheet.com for assistance.</td>
@@ -1683,8 +1695,9 @@ flexible UI and is one of the key benefits to using Smartsheet.</p>
 
 <h3 id="cell-value-representation">Cell Value Representation</h3>
 
-<p><a href="#cell-object">Cell objects</a> retrieved through the Smartsheet API&rsquo;s have two attributes representing cell values: <strong>Cell.value</strong>, and
-<strong>Cell.displayValue</strong>.  An empty cell is always represented by <strong>null</strong> for both.</p>
+<p><a href="#cell-object">Cell objects</a> retrieved through the Smartsheet API&rsquo;s have two main attributes representing cell values: <strong>Cell.value</strong>, and
+<strong>Cell.displayValue</strong>.  A third attribute, <strong>Cell.objectValue</strong> is currently used only for adding and updating predecessors.
+An empty cell is always represented by <strong>null</strong> for all of these attributes.</p>
 
 <p><strong>Cell.displayValue</strong> is always a <strong>string</strong> and is only returned for certain column types (see below).  It represents the formatted value as it should
 be displayed to an end-user.  For example, if a TEXT_NUMBER column is formatted as a US Dollar currency, its <strong>value</strong> may be a number
@@ -1741,6 +1754,10 @@ depending on the column type.  Complex types are represented as strings, formatt
 <td>No.</td>
 </tr>
 </tbody></table>
+
+<p><strong>Cell.objectValue</strong> is an object representation of a cell&rsquo;s value and is currently used for adding or updating predecessor cell values.
+It provides a more &ldquo;programmer friendly&rdquo; format for assembling predecessors. To update a cell&rsquo;s predecessors, set objectValue to a
+<a href="#predecessorlist-object">PredecessorList object</a> containing <a href="#predecessor-object">Predecessor objects</a>.</p>
 
 <h3 id="cell-value-parsing">Cell Value Parsing</h3>
 
@@ -1877,23 +1894,8 @@ sense of it. To enable lenient parsing simply include <code class="prettyprint">
 
 <p><strong>PREDECESSOR</strong>:</p>
 
-<table><thead>
-<tr>
-<th></th>
-<th></th>
-</tr>
-</thead><tbody>
-<tr>
-<td><em>Strict</em></td>
-<td>Only valid predecessor strings in the user&rsquo;s locale are valid. Information on predecessor strings can be found in the <a href="http://help.smartsheet.com/customer/portal/articles/765737-project-sheet-columns-start-date-end-date-duration-complete-and-predecessors">Help Center</a>.</td>
-</tr>
-<tr>
-<td><em>Lenient</em></td>
-<td>String values which are valid predecessor strings in the user&rsquo;s locale are treated as predecessors, and any other values are treated as free-form text values.</td>
-</tr>
-</tbody></table>
-
-<aside class="notice">You may use the query string parameter <b>projectParseLocale</b> with a <a href="#server-information">supported locale string</a> to force parsing in the specified locale (e.g. using <code>en_US</code> will let you send in English values regardless of the user&rsquo;s locale)</aside>
+<p>The Smartsheet API doesn&rsquo;t support parsing of predecessor strings, so strict and lenient parsing don&rsquo;t apply to predecessors.  Instead, you can set the <strong>objectValue</strong> attribute to a <a href="#predecessorlist-object">PredecessorList object</a> containing
+<a href="#predecessor-object">Predecessor objects</a>. To set a cell in a predecessor column to a non-predecessor string value, simply set <strong>objectValue</strong> to a string.</p>
 
 <p><strong>ABSTRACT_DATETIME</strong>:</p>
 
@@ -4267,7 +4269,7 @@ For example, you can perform a simple upload to upload a file to a <a href="#att
 
 <p>Gets a list of all Attachments that are on the Sheet, including Sheet, Row, and Discussion level Attachments.</p>
 
-<aside class="notice">This operation supports pagination of results. For more information, see <a href="#paging">Paging</a>.</aside>
+<aside class="notice">This operation supports pagination of results. For more information, see <a href='#paging'>Paging</a>.</aside>
 
 <table><thead>
 <tr>
@@ -4381,7 +4383,7 @@ For example, you can perform a simple upload to upload a file to a <a href="#att
 
 <p>Gets a list of all Attachments that are in the Discussion.</p>
 
-<aside class="notice">This operation supports pagination of results. For more information, see <a href="#paging">Paging</a>.</aside>
+<aside class="notice">This operation supports pagination of results. For more information, see <a href='#paging'>Paging</a>.</aside>
 
 <table><thead>
 <tr>
@@ -4495,7 +4497,7 @@ For example, you can perform a simple upload to upload a file to a <a href="#att
 
 <p>Gets a list of all Attachments that are on the Row, including Row and Discussion level Attachments.</p>
 
-<aside class="notice">This operation supports pagination of results. For more information, see <a href="#paging">Paging</a>.</aside>
+<aside class="notice">This operation supports pagination of results. For more information, see <a href='#paging'>Paging</a>.</aside>
 
 <table><thead>
 <tr>
@@ -4808,7 +4810,7 @@ For example, you can perform a simple upload to upload a file to a <a href="#att
 
 <p>Gets a list of all versions of the given Attachment ID, in order from newest to oldest.</p>
 
-<aside class="notice">This operation supports pagination of results. For more information, see <a href="#paging">Paging</a>.</aside>
+<aside class="notice">This operation supports pagination of results. For more information, see <a href='#paging'>Paging</a>.</aside>
 
 <table><thead>
 <tr>
@@ -4870,6 +4872,11 @@ For example, you can perform a simple upload to upload a file to a <a href="#att
 <td><strong>displayValue</strong></td>
 <td>string</td>
 <td>Visual representation of cell contents, as presented to the user in the UI.  See <a href="#cell-values">Cell Values</a>.</td>
+</tr>
+<tr>
+<td><strong>objectValue</strong></td>
+<td><a href="#objectvalue-object">ObjectValue</a></td>
+<td><a href="#row-include-flags">Optionally included</a> object representation of the cell&rsquo;s value. Used for updating predecessor cell values.</td>
 </tr>
 <tr>
 <td><strong>formula</strong></td>
@@ -5011,6 +5018,149 @@ For example, you can perform a simple upload to upload a file to a <a href="#att
 </tr>
 </tbody></table>
 
+<h3 id="objectvalue-object">ObjectValue object</h3>
+
+<p>The base object for values found in the <strong>Cell.objectValue</strong> attribute. Its <strong>objectType</strong> attribute indicates the type of the object.
+This object itself is not used directly.</p>
+
+<table><thead>
+<tr>
+<th></th>
+<th></th>
+<th></th>
+</tr>
+</thead><tbody>
+<tr>
+<td><strong>objectType</strong></td>
+<td>string</td>
+<td>One of DATE, DATETIME, ABSTRACT_DATETIME, CONTACT, DURATION, or PREDECESSOR_LIST</td>
+</tr>
+</tbody></table>
+
+<h2 id="duration-object">Duration object</h2>
+
+<p>Extends the <a href="#objectvalue-object">ObjectValue object</a>.</p>
+
+<p>In a project sheet, represents a value in a duration cell, or a lag value of a predecessor.</p>
+
+<table><thead>
+<tr>
+<th></th>
+<th></th>
+<th></th>
+</tr>
+</thead><tbody>
+<tr>
+<td><strong>objectType</strong></td>
+<td>string</td>
+<td>DURATION</td>
+</tr>
+<tr>
+<td><strong>negative</strong></td>
+<td>boolean</td>
+<td>When used as a predecessor&rsquo;s lag value, indicates whether the lag is negative (if true), or positive (false). The individual duration values themselves (e.g. <strong>days</strong>, <strong>hours</strong>, <strong>minutes</strong>, etc.) will always be positive.</td>
+</tr>
+<tr>
+<td><strong>elapsed</strong></td>
+<td>boolean</td>
+<td>If true, indicates this duration represents elapsed time, which ignores non-working time.</td>
+</tr>
+<tr>
+<td><strong>weeks</strong></td>
+<td>number</td>
+<td>The number of weeks for this duration.</td>
+</tr>
+<tr>
+<td><strong>days</strong></td>
+<td>number</td>
+<td>The number of days for this duration.</td>
+</tr>
+<tr>
+<td><strong>hours</strong></td>
+<td>number</td>
+<td>The number of hours for this duration.</td>
+</tr>
+<tr>
+<td><strong>minutes</strong></td>
+<td>number</td>
+<td>The number of minutes for this duration.</td>
+</tr>
+<tr>
+<td><strong>seconds</strong></td>
+<td>number</td>
+<td>The number of seconds for this duration.</td>
+</tr>
+<tr>
+<td><strong>milliseconds</strong></td>
+<td>number</td>
+<td>The number of milliseconds for this duration.</td>
+</tr>
+</tbody></table>
+
+<h2 id="predecessor-object">Predecessor object</h2>
+
+<table><thead>
+<tr>
+<th></th>
+<th></th>
+<th></th>
+</tr>
+</thead><tbody>
+<tr>
+<td><strong>rowId</strong></td>
+<td>number</td>
+<td>The ID of the predecessor row</td>
+</tr>
+<tr>
+<td><strong>rowNumber</strong></td>
+<td>number</td>
+<td>The row number of the predecessor row. Omitted if <strong>invalid</strong> is true. Read-only.</td>
+</tr>
+<tr>
+<td><strong>type</strong></td>
+<td>string</td>
+<td>The type of the predecessor. One of FS, FF, SS, or SF.</td>
+</tr>
+<tr>
+<td><strong>lag</strong></td>
+<td><a href="#duration-object">Duration</a></td>
+<td>The lag value of this predecessor. Omitted if there is no lag.</td>
+</tr>
+<tr>
+<td><strong>invalid</strong></td>
+<td>boolean</td>
+<td>True if the row referenced by rowId is not a valid row in this sheet, or there is a circular reference (displayed in the Smartsheet web application as &ldquo;#REF&rdquo;). Omitted if false.</td>
+</tr>
+<tr>
+<td><strong>inCriticalPath</strong></td>
+<td>boolean</td>
+<td>True if this predecessor is in the critical path.</td>
+</tr>
+</tbody></table>
+
+<h2 id="predecessorlist-object">PredecessorList object</h2>
+
+<p>Extends the <a href="#objectvalue-object">ObjectValue object</a>.</p>
+
+<table><thead>
+<tr>
+<th></th>
+<th></th>
+<th></th>
+</tr>
+</thead><tbody>
+<tr>
+<td><strong>objectType</strong></td>
+<td>string</td>
+<td>PREDECESSOR_LIST</td>
+</tr>
+<tr>
+<td>predecessors</td>
+<td><a href="#predecessor-object">Predecessor</a>[]</td>
+<td>Array of <a href="#predecessor-object">Predecessor objects</a>.</td>
+</tr>
+</tbody></table>
+
 <h2 id="get-cell-history">Get Cell History</h2>
 
 <blockquote>
@@ -5119,7 +5269,7 @@ For example, you can perform a simple upload to upload a file to a <a href="#att
 
 <p>Gets the cell modification history. </p>
 
-<aside class="notice">This operation supports pagination of results. For more information, see <a href="#paging">Paging</a>.</aside>
+<aside class="notice">This operation supports pagination of results. For more information, see <a href='#paging'>Paging</a>.</aside>
 
 <aside class="notice">This is a resource-intensive operation and incurs 10 additional requests against the rate limit.</aside>
 
@@ -5999,7 +6149,7 @@ If null, the cell&rsquo;s value will be derived from the hyperlink:
 
 <p>Gets a list of all Columns belonging to the Sheet specified in the URL.</p>
 
-<aside class="notice">This operation supports pagination of results. For more information, see <a href="#paging">Paging</a>.</aside>
+<aside class="notice">This operation supports pagination of results. For more information, see <a href='#paging'>Paging</a>.</aside>
 
 <table><thead>
 <tr>
@@ -6657,7 +6807,7 @@ If null, the cell&rsquo;s value will be derived from the hyperlink:
 
 <p>Gets a list of the user&rsquo;s Smartsheet Contacts.</p>
 
-<aside class="notice">This operation supports pagination of results. For more information, see <a href="#paging">Paging</a>.</aside>
+<aside class="notice">This operation supports pagination of results. For more information, see <a href='#paging'>Paging</a>.</aside>
 
 <table><thead>
 <tr>
@@ -7338,7 +7488,7 @@ If null, the cell&rsquo;s value will be derived from the hyperlink:
 
 <p>Gets a list of all Discussions associated with the specified Sheet (both sheet-level discussions and row-level discussions).</p>
 
-<aside class="notice">This operation supports pagination of results. For more information, see <a href="#paging">Paging</a>.</aside>
+<aside class="notice">This operation supports pagination of results. For more information, see <a href='#paging'>Paging</a>.</aside>
 
 <table><thead>
 <tr>
@@ -7550,7 +7700,7 @@ If null, the cell&rsquo;s value will be derived from the hyperlink:
 
 <p>Gets a list of all Discussions associated with the specified Row.</p>
 
-<aside class="notice">This operation supports pagination of results. For more information, see <a href="#paging">Paging</a>.</aside>
+<aside class="notice">This operation supports pagination of results. For more information, see <a href='#paging'>Paging</a>.</aside>
 
 <table><thead>
 <tr>
@@ -7784,7 +7934,7 @@ These API operations allow you to access the user&rsquo;s favorite API-supported
 
 <p>Gets a list of all of the user&rsquo;s Favorite items.</p>
 
-<aside class="notice">This operation supports pagination of results. For more information, see <a href="#paging">Paging</a>.</aside>
+<aside class="notice">This operation supports pagination of results. For more information, see <a href='#paging'>Paging</a>.</aside>
 
 <table><thead>
 <tr>
@@ -9309,7 +9459,7 @@ These API operations allow you to access the user&rsquo;s favorite API-supported
 
 <p>Gets a list of the top-level child Folders within the user&rsquo;s <strong>Sheets</strong> folder (<a href="#home">Home</a>).</p>
 
-<aside class="notice">This operation supports pagination of results. For more information, see <a href="#paging">Paging</a>.</aside>
+<aside class="notice">This operation supports pagination of results. For more information, see <a href='#paging'>Paging</a>.</aside>
 
 <table><thead>
 <tr>
@@ -9411,7 +9561,7 @@ These API operations allow you to access the user&rsquo;s favorite API-supported
 
 <p>Gets a list of the top-level child Folders within the specified Folder.</p>
 
-<aside class="notice">This operation supports pagination of results. For more information, see <a href="#paging">Paging</a>.</aside>
+<aside class="notice">This operation supports pagination of results. For more information, see <a href='#paging'>Paging</a>.</aside>
 
 <table><thead>
 <tr>
@@ -9513,7 +9663,7 @@ These API operations allow you to access the user&rsquo;s favorite API-supported
 
 <p>Gets a list of the top-level child Folders within the specified Workspace.</p>
 
-<aside class="notice">This operation supports pagination of results. For more information, see <a href="#paging">Paging</a>.</aside>
+<aside class="notice">This operation supports pagination of results. For more information, see <a href='#paging'>Paging</a>.</aside>
 
 <table><thead>
 <tr>
@@ -10110,7 +10260,7 @@ These API operations allow you to access the user&rsquo;s favorite API-supported
 
 <p>Gets the list of all Groups in an organization. To fetch the members of an individual group, use the <a href="#get-group">Get Group</a> operation.</p>
 
-<aside class="notice">This operation supports pagination of results. For more information, see <a href="#paging">Paging</a>.</aside>
+<aside class="notice">This operation supports pagination of results. For more information, see <a href='#paging'>Paging</a>.</aside>
 
 <table><thead>
 <tr>
@@ -10505,6 +10655,11 @@ of <a href="#groupmember-object">GroupMember objects</a> any users specified in 
 <td><strong>workspaces</strong></td>
 <td><a href="#workspace-object">Workspace</a>[]</td>
 <td>Array of Workspace objects</td>
+</tr>
+<tr>
+<td><strong>sights</strong></td>
+<td><a href="#sight-object">Sight</a>[]</td>
+<td>Array of Sight objects</td>
 </tr>
 </tbody></table>
 
@@ -11076,7 +11231,9 @@ of <a href="#groupmember-object">GroupMember objects</a> any users specified in 
 
 <p>Gets the list of all Reports that the User has access to, in alphabetical order, by name.</p>
 
-<aside class="notice">This operation supports pagination of results. For more information, see <a href="#paging">Paging</a>.</aside>
+<aside class="notice">You may use the query string parameter <b>numericDates</b> with a value of <code>true</code> to enable strict parsing of dates in numeric format.  See <a href='#dates-and-times'>Dates and Times</a> for more information.</aside>
+
+<aside class="notice">This operation supports pagination of results. For more information, see <a href='#paging'>Paging</a>.</aside>
 
 <table><thead>
 <tr>
@@ -11094,6 +11251,10 @@ of <a href="#groupmember-object">GroupMember objects</a> any users specified in 
 </tr>
 <tr>
 <td><strong>Parameters</strong></td>
+<td><strong>modifiedSince</strong> (optional): when specified with a <a href='#dates-and-times'>date and time</a> value, response will only include the objects that are modified on or after the date and time specified.</td>
+</tr>
+<tr>
+<td></td>
 <td>This operation supports query string parameters for pagination of results. For more information, see <a href="#paging-query-string-parameters">Paging Query String Parameters</a>.</td>
 </tr>
 <tr>
@@ -12407,79 +12568,96 @@ of <a href="#groupmember-object">GroupMember objects</a> any users specified in 
 -X POST <span class="se">\</span>
 -d <span class="s1">'{ \
     "sendTo": [ \
-        {"email": "email789@smartsheet.com"}, \
-        {"email": "email0123@smartsheet.com"} \
+        {"email": "recipient1@smartsheet.com"}, \
+        {"email": "recipient2@smartsheet.com"} \
     ], \
     "subject": "some subject", \
     "message": "some message", \
-    "ccMe": (true|false), \
-    "rowIds": [rowId1, rowId2], \
-    "columnIds": [colId1, colId2], \
-    "includeAttachments": (true|false), \
-    "includeDiscussions": (true|false) \
+    "ccMe": false, \
+    "rowIds": [4508292249610116, 2256492435924868], \
+    "columnIds": [4508284196546436, 2256484382861188], \
+    "includeAttachments": false, \
+    "includeDiscussions": false \
 }'</span>
 </code></pre>
 
-<pre class="highlight csharp"><code><span class="c1">// Specify recipients.
-</span><span class="n">Recipient</span><span class="p">[]</span> <span class="n">recipients</span> <span class="p">=</span> <span class="k">new</span> <span class="n">Recipient</span><span class="p">[]</span> <span class="p">{</span> 
-    <span class="k">new</span> <span class="n">Recipient</span> <span class="p">{</span> <span class="n">Email</span> <span class="p">=</span> <span class="s">"email789@smartsheet.com"</span> <span class="p">},</span>
-    <span class="k">new</span> <span class="n">Recipient</span> <span class="p">{</span> <span class="n">Email</span> <span class="p">=</span> <span class="s">"email0123@smartsheet.com"</span> <span class="p">}</span>
-<span class="p">};</span>
+<!--Pending SDK Update 
+```csharp
+// Specify recipients.
+Recipient[] recipients = new Recipient[] { 
+    new Recipient { Email = "recipient1@smartsheet.com" },
+    new Recipient { Email = "recipient2@smartsheet.com" }
+};
 
-<span class="c1">// Configure email.
-</span><span class="n">MultiRowEmail</span> <span class="n">multiEmail</span> <span class="p">=</span> <span class="k">new</span> <span class="n">MultiRowEmail</span> <span class="p">{</span>
-    <span class="n">SendTo</span> <span class="p">=</span> <span class="n">recipients</span><span class="p">,</span>
-    <span class="n">Subject</span> <span class="p">=</span> <span class="s">"some subject"</span><span class="p">,</span>
-    <span class="n">Message</span> <span class="p">=</span> <span class="s">"some message"</span><span class="p">,</span>
-    <span class="n">CcMe</span> <span class="p">=</span> <span class="k">true</span><span class="p">,</span>
-    <span class="n">RowIds</span> <span class="p">=</span> <span class="k">new</span> <span class="kt">long</span><span class="p">[]</span> <span class="p">{</span> <span class="n">rowId1</span><span class="p">,</span> <span class="n">rowId2</span> <span class="p">},</span>
-    <span class="n">ColumnIds</span> <span class="p">=</span> <span class="k">new</span> <span class="kt">long</span><span class="p">[]</span> <span class="p">{</span> <span class="n">colId1</span><span class="p">,</span> <span class="n">colId2</span> <span class="p">},</span>
-    <span class="n">IncludeAttachments</span> <span class="p">=</span> <span class="k">true</span><span class="p">,</span>
-    <span class="n">IncludeDiscussions</span> <span class="p">=</span> <span class="k">true</span>
-<span class="p">};</span>
+// Configure email.
+MultiRowEmail multiEmail = new MultiRowEmail {
+    SendTo = recipients,
+    Subject = "some subject",
+    Message = "some message",
+    CcMe = true,
+    RowIds = new long[] { rowId1, rowId2 },
+    ColumnIds = new long[] { colId1, colId2 },
+    IncludeAttachments = true,
+    IncludeDiscussions = true
+};
 
-<span class="c1">// Send update request via email.
-</span><span class="n">smartsheet</span><span class="p">.</span><span class="n">SheetResources</span><span class="p">.</span><span class="nf">SendUpdateRequest</span><span class="p">(</span><span class="n">sheetId</span><span class="p">,</span> <span class="n">multiEmail</span><span class="p">);</span>
+// Send update request via email.
+smartsheet.SheetResources.SendUpdateRequest(sheetId, multiEmail);
+```-->
+
+<pre class="highlight csharp"><code><span class="c1">// [todo]
+</span></code></pre>
+
+<pre class="highlight javascript"><code><span class="c1">// [todo]</span>
 </code></pre>
 
-<pre class="highlight java"><code><span class="c1">// Specify recipients.</span>
-<span class="n">RecipientEmail</span> <span class="n">recipientEmail</span> <span class="o">=</span> <span class="k">new</span> <span class="n">RecipientEmail</span><span class="o">.</span><span class="na">AddRecipientEmailBuilder</span><span class="o">()</span>
-                <span class="o">.</span><span class="na">setEmail</span><span class="o">(</span><span class="s">"email789@smartsheet.com"</span><span class="o">)</span>
-                <span class="o">.</span><span class="na">setEmail</span><span class="o">(</span><span class="s">"email0123@smartsheet.com"</span><span class="o">)</span>
-                <span class="o">.</span><span class="na">build</span><span class="o">();</span>
+<!--Pending SDK Update 
+```java
+// Specify recipients.
+RecipientEmail recipientEmail = new RecipientEmail.AddRecipientEmailBuilder()
+                .setEmail("recipient1@smartsheet.com")
+                .setEmail("recipient2@smartsheet.com")
+                .build();
 
-<span class="n">List</span><span class="o">&lt;</span><span class="n">Recipient</span><span class="o">&gt;</span> <span class="n">recipients</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ArrayList</span><span class="o">&lt;</span><span class="n">Recipient</span><span class="o">&gt;();</span>
-<span class="n">recipients</span><span class="o">.</span><span class="na">add</span><span class="o">(</span><span class="n">recipientEmail</span><span class="o">);</span>
+List<Recipient> recipients = new ArrayList<Recipient>();
+recipients.add(recipientEmail);
 
-<span class="c1">// Configure email.</span>
-<span class="n">MultiRowEmail</span> <span class="n">multiRowEmail</span> <span class="o">=</span> <span class="k">new</span> <span class="n">MultiRowEmail</span><span class="o">.</span><span class="na">AddMultiRowEmailBuilder</span><span class="o">()</span>
-    <span class="o">.</span><span class="na">setSendTo</span><span class="o">(</span><span class="n">recipients</span><span class="o">)</span>
-    <span class="o">.</span><span class="na">setSubject</span><span class="o">(</span><span class="s">"some subject"</span><span class="o">)</span>
-    <span class="o">.</span><span class="na">setMessage</span><span class="o">(</span><span class="s">"some message"</span><span class="o">)</span>
-    <span class="o">.</span><span class="na">setCcMe</span><span class="o">(</span><span class="kc">false</span><span class="o">)</span>
-    <span class="o">.</span><span class="na">setRowIds</span><span class="o">(</span><span class="n">Arrays</span><span class="o">.</span><span class="na">asList</span><span class="o">(</span><span class="n">rowId1</span><span class="o">,</span> <span class="n">rowId2</span><span class="o">)</span>
-    <span class="o">.</span><span class="na">setColumnIds</span><span class="o">(</span><span class="n">Arrays</span><span class="o">.</span><span class="na">asList</span><span class="o">(</span><span class="n">columnId1</span><span class="o">,</span> <span class="n">columnId2</span><span class="o">)</span>
-    <span class="o">.</span><span class="na">setIncludeAttachments</span><span class="o">(</span><span class="kc">false</span><span class="o">)</span>
-    <span class="o">.</span><span class="na">setIncludeDiscussions</span><span class="o">(</span><span class="kc">false</span><span class="o">)</span>
-    <span class="o">.</span><span class="na">build</span><span class="o">();</span>
-
-<span class="c1">// Send update request via email.</span>
-<span class="n">smartsheet</span><span class="o">.</span><span class="na">sheetResources</span><span class="o">().</span><span class="na">createUpdateRequest</span><span class="o">(</span><span class="n">sheetId</span><span class="o">,</span> <span class="n">multiRowEmail</span><span class="o">);</span>
+// Configure email.
+MultiRowEmail multiRowEmail = new MultiRowEmail.AddMultiRowEmailBuilder()
+    .setSendTo(recipients)
+    .setSubject(&ldquo;some subject&rdquo;)
+    .setMessage(&ldquo;some message&rdquo;)
+    .setCcMe(false)
+    .setRowIds(Arrays.asList(rowId1, rowId2)
+    .setColumnIds(Arrays.asList(columnId1, columnId2)
+    .setIncludeAttachments(false)
+    .setIncludeDiscussions(false)
+    .build();
+    
+// Send update request via email.
+smartsheet.sheetResources().createUpdateRequest(sheetId, multiRowEmail);
+&ldquo;`&ndash;>
+<pre class="highlight java"><code><span class="c1">// [todo]</span>
 </code></pre>
 
-<pre class="highlight python"><code><span class="c"># Configure email.</span>
-<span class="n">email</span> <span class="o">=</span> <span class="n">smartsheet</span><span class="o">.</span><span class="n">models</span><span class="o">.</span><span class="n">MultiRowEmail</span><span class="p">()</span>
-<span class="n">email</span><span class="o">.</span><span class="n">send_to</span> <span class="o">=</span> <span class="p">[</span>
-    <span class="n">smartsheet</span><span class="o">.</span><span class="n">models</span><span class="o">.</span><span class="n">Recipient</span><span class="p">({</span><span class="s">'email'</span><span class="p">:</span> <span class="s">'email789@smartsheet.com'</span><span class="p">}),</span>
-    <span class="n">smartsheet</span><span class="o">.</span><span class="n">models</span><span class="o">.</span><span class="n">Recipient</span><span class="p">({</span><span class="s">'email'</span><span class="p">:</span> <span class="s">'email0123@smartsheet.com'</span><span class="p">})]</span> 
-<span class="n">email</span><span class="o">.</span><span class="n">subject</span> <span class="o">=</span> <span class="s">'some subject'</span>
-<span class="n">email</span><span class="o">.</span><span class="n">message</span> <span class="o">=</span> <span class="s">'some message'</span>
-<span class="n">email</span><span class="o">.</span><span class="n">cc_me</span> <span class="o">=</span> <span class="bp">False</span>
-<span class="n">email</span><span class="o">.</span><span class="n">row_ids</span> <span class="o">=</span> <span class="p">[</span><span class="n">rowId1</span><span class="p">,</span> <span class="n">rowId2</span><span class="p">]</span>
-<span class="n">email</span><span class="o">.</span><span class="n">column_ids</span> <span class="o">=</span> <span class="p">[</span><span class="n">columnId1</span><span class="p">,</span> <span class="n">columnId2</span><span class="p">]</span>
+<!--Pending SDK Update 
+```python
+# Configure email.
+email = smartsheet.models.MultiRowEmail()
+email.send_to = [
+    smartsheet.models.Recipient({'email': 'recipient1@smartsheet.com'}),
+    smartsheet.models.Recipient({'email': 'recipient2@smartsheet.com'})] 
+email.subject = 'some subject'
+email.message = 'some message'
+email.cc_me = False
+email.row_ids = [rowId1, rowId2]
+email.column_ids = [columnId1, columnId2]
 
-<span class="c"># Send update request.</span>
-<span class="n">smartsheet</span><span class="o">.</span><span class="n">Sheets</span><span class="o">.</span><span class="n">send_update_request</span><span class="p">(</span><span class="n">sheetId</span><span class="p">,</span> <span class="n">email</span><span class="p">)</span>
+# Send update request.
+smartsheet.Sheets.send_update_request(sheetId, email)
+```-->
+
+<pre class="highlight python"><code><span class="c"># [todo]</span>
 </code></pre>
 
 <blockquote>
@@ -12487,17 +12665,102 @@ of <a href="#groupmember-object">GroupMember objects</a> any users specified in 
 </blockquote>
 
 <pre class="highlight json"><code><span class="p">{</span><span class="w">
+    </span><span class="s2">"message"</span><span class="p">:</span><span class="w"> </span><span class="s2">"SUCCESS"</span><span class="p">,</span><span class="w">
     </span><span class="s2">"resultCode"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
     </span><span class="s2">"result"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
-        </span><span class="s2">"id"</span><span class="p">:</span><span class="w"> </span><span class="mi">4583173393803140</span><span class="w">
-    </span><span class="p">},</span><span class="w">
-    </span><span class="s2">"message"</span><span class="p">:</span><span class="w"> </span><span class="s2">"SUCCESS"</span><span class="w">
+        </span><span class="s2">"sendTo"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+            </span><span class="p">{</span><span class="s2">"email"</span><span class="p">:</span><span class="w"> </span><span class="s2">"recipient1@smartsheet.com"</span><span class="p">},</span><span class="w">
+            </span><span class="p">{</span><span class="s2">"email"</span><span class="p">:</span><span class="w"> </span><span class="s2">"recipient2@smartsheet.com"</span><span class="p">}</span><span class="w">
+        </span><span class="p">],</span><span class="w">
+        </span><span class="s2">"subject"</span><span class="p">:</span><span class="w"> </span><span class="s2">"some subject"</span><span class="p">,</span><span class="w">
+        </span><span class="s2">"message"</span><span class="p">:</span><span class="w"> </span><span class="s2">"some message"</span><span class="p">,</span><span class="w">
+        </span><span class="s2">"ccMe"</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span><span class="w">
+        </span><span class="s2">"includeAttachments"</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span><span class="w">
+        </span><span class="s2">"includeDiscussions"</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span><span class="w">
+        </span><span class="s2">"columnIds"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="mi">4508284196546436</span><span class="p">,</span><span class="w"> </span><span class="mi">2256484382861188</span><span class="p">],</span><span class="w">
+        </span><span class="s2">"rowIds"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="mi">4508292249610116</span><span class="p">,</span><span class="w"> </span><span class="mi">2256492435924868</span><span class="p">],</span><span class="w">
+        </span><span class="s2">"id"</span><span class="p">:</span><span class="w"> </span><span class="mi">4523799765903236</span><span class="p">,</span><span class="w">
+        </span><span class="s2">"sentBy"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+            </span><span class="s2">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"John Doe"</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"email"</span><span class="p">:</span><span class="w"> </span><span class="s2">"john.doe@smartsheet.com"</span><span class="w">
+        </span><span class="p">},</span><span class="w">
+        </span><span class="s2">"schedule"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+            </span><span class="s2">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ONCE"</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"startAt"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2016-05-16T22:33:28Z"</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"nextSendAt"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2016-05-16T22:33:28Z"</span><span class="w">
+        </span><span class="p">}</span><span class="w">
+    </span><span class="p">}</span><span class="w">
 </span><span class="p">}</span><span class="w">
 </span></code></pre>
 
+<blockquote>
+<p>Example Request:</p>
+</blockquote>
+
+<pre class="highlight shell"><code>curl https://api.smartsheet.com/2.0/sheets/<span class="o">{</span>sheetId<span class="o">}</span>/updaterequests <span class="se">\</span>
+-H <span class="s2">"Authorization: Bearer ACCESS_TOKEN"</span> <span class="se">\</span>
+-H <span class="s2">"Content-Type: application/json"</span> <span class="se">\</span>
+-X POST <span class="se">\</span>
+-d <span class="s1">'{ \
+    "sendTo": [ \
+        {"email": "recipient1@smartsheet.com"} \
+    ], \
+    "subject": "Sample Monthly Update Request", \
+    "message": "Please update my online sheet.", \
+    "ccMe": false, \
+    "rowIds": [7886095586224004], \
+    "columnIds": [6962516556310404, 3584816835782532], \
+    "includeAttachments": true, \
+    "includeDiscussions": true, \
+    "schedule": { \
+        "type": "MONTHLY", \
+        "startAt": "2016-04-01T19:00:00Z", \
+        "endAt": "2016-12-31T07:00:00Z", \
+        "dayOfMonth": 1, \
+        "repeatEvery": 1 \
+    } \
+}'</span>
+</code></pre>
+
+<blockquote>
+<p>Example Response:</p>
+</blockquote>
+
+<pre class="highlight json"><code><span class="p">{</span><span class="w">
+    </span><span class="s2">"message"</span><span class="p">:</span><span class="w"> </span><span class="s2">"SUCCESS"</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"resultCode"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"result"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+        </span><span class="s2">"sendTo"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+            </span><span class="p">{</span><span class="s2">"email"</span><span class="p">:</span><span class="w"> </span><span class="s2">"recipient1@smartsheet.com"</span><span class="p">}</span><span class="w">
+        </span><span class="p">],</span><span class="w">
+        </span><span class="s2">"subject"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Sample Monthly Update Request"</span><span class="p">,</span><span class="w">
+        </span><span class="s2">"message"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Please update my online sheet."</span><span class="p">,</span><span class="w">
+        </span><span class="s2">"ccMe"</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span><span class="w">
+        </span><span class="s2">"includeAttachments"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w">
+        </span><span class="s2">"includeDiscussions"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w">
+        </span><span class="s2">"columnIds"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="mi">6962516556310404</span><span class="p">,</span><span class="w"> </span><span class="mi">3584816835782532</span><span class="p">],</span><span class="w">
+        </span><span class="s2">"rowIds"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="mi">7886095586224004</span><span class="p">],</span><span class="w">
+        </span><span class="s2">"id"</span><span class="p">:</span><span class="w"> </span><span class="mi">7820135625975684</span><span class="p">,</span><span class="w">
+        </span><span class="s2">"sentBy"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+            </span><span class="s2">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"John Doe"</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"email"</span><span class="p">:</span><span class="w"> </span><span class="s2">"john.doe@smartsheet.com"</span><span class="w">
+        </span><span class="p">},</span><span class="w">
+        </span><span class="s2">"schedule"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+            </span><span class="s2">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"MONTHLY"</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"startAt"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2016-04-01T19:00:00Z"</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"endAt"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2016-12-31T07:00:00Z"</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"dayOfMonth"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"repeatEvery"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"nextSendAt"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2016-05-01T19:00:00Z"</span><span class="w">
+        </span><span class="p">}</span><span class="w">
+    </span><span class="p">}</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre>
+ 
+
 <p><code class="prettyprint">POST /sheets/{sheetId}/updaterequests</code></p>
 
-<p>Creates an Update Request for the specified Row(s) within the Sheet. An email notification (containing a link to the update request) will be asynchronously sent to the specified recipient(s).</p>
+<p>Creates an Update Request for the specified Row(s) within the Sheet. An email notification (containing a link to the update request) will be sent to the specified recipient(s) according to the specified scheduled.</p>
 
 <aside class="notice" >The recipient(s) of an update request must be specified using email address(es) only. Sending an update request to a <a href="#groups">Group</a> is not supported.</aside>
 
@@ -12517,7 +12780,7 @@ of <a href="#groupmember-object">GroupMember objects</a> any users specified in 
 </tr>
 <tr>
 <td><strong>Request Body</strong></td>
-<td><a href="#multirowemail-object">MultiRowEmail object</a><br/><br/>The MultiRowEmail object in the request body must specify one or more of the following attributes:<ul><li><b>columnIds</b>: number[]</li><li><b>includeAttachments</b>: true</li><li><b>includeDiscussions</b>: true</li></ul></td>
+<td><a href="#updaterequest-object">UpdateRequest object</a>.<br/><br/>The UpdateRequest object in the request body must specify one or more of the following attributes:<ul><li><b>sendTo</b>: <a href="#recipient-object">Recipient</a>[]</li><li><b>rowIds</b>: number[]</li><li>One or more of the followings:<ul><li><b>columnIds</b>: number[]</li><li><b>includeAttachments</b>: true</li><li><b>includeDiscussions</b>: true</li></ul></ul>The following attributes have the following values when not specified:<ul><li><b>Subject</b>: Update Request: {Sheet Name}</li><li><b>Message</b>: Please update the following rows in my online sheet.</li><li><b>ccMe</b>: false</li></ul>When the Schedule object is not specified, the request will be sent to the recipients immediately.</td>
 </tr>
 <tr>
 <td><strong>Returns</strong></td>
@@ -12525,7 +12788,7 @@ of <a href="#groupmember-object">GroupMember objects</a> any users specified in 
 </tr>
 <tr>
 <td><strong>Errors</strong></td>
-<td>If an error occurs because the request specified one or more <a href="#alternate-email-address(es)"><em>alternate</em> email addresses</a> (i.e., not the primary email address associated with the User account), the <a href="#errors">Error object</a> returned will contain a <strong>detail</strong> attribute set to an array of objects, each object in the array having the following attributes:<ul><li><strong>alternateEmailAddress</strong>: User&rsquo;s <em>alternate</em> email address that was specified in the request</li><li><strong>primaryEmailAddress</strong>: User&rsquo;s primary email address that must instead be specified for the operation</li></ul>For example:<br/>{<br/>&#160;&#160;&ldquo;errorCode&rdquo;: 5xxx,<br/>&#160;&#160;&ldquo;message&rdquo;: &ldquo;u1+1@smartsheet.com is an alternate address of the user u1@smartsheet.com. Please retry sending directly to u1@smartsheet.com.&rdquo;<br/>&#160;&#160;&ldquo;detail&rdquo;: [<br/>&#160;&#160;&#160;&#160;&#160;&#160;{<br/>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&ldquo;alternateEmailAddress&rdquo;: &ldquo;u1+1@smartsheet.com&rdquo;,<br/>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&ldquo;primaryEmailAddress&rdquo;: &ldquo;u1@smartsheet.com&rdquo;<br/>&#160;&#160;&#160;&#160;&#160;&#160;}<br/>&#160;&#160;]<br/>}</td>
+<td>If an error occurs because the request specified one or more <a href="#alternate-email-address(es)"><em>alternate</em> email addresses</a> (i.e., not the primary email address associated with the User account), the <a href="#errors">Error object</a> returned will contain a <strong>detail</strong> attribute set to an array of objects, each object in the array having the following attributes:<ul><li><strong>alternateEmailAddress</strong>: User&rsquo;s <em>alternate</em> email address that was specified in the request</li><li><strong>primaryEmailAddress</strong>: User&rsquo;s primary email address that must instead be specified for the operation</li></ul>For example:<br/>{<br/>&nbsp;&nbsp;&ldquo;errorCode&rdquo;: 5xxx,<br/>&nbsp;&nbsp;&ldquo;message&rdquo;: &ldquo;u1+1@smartsheet.com is an alternate address of the user u1@smartsheet.com. Please retry sharing directly to u1@smartsheet.com.&rdquo;<br/>&nbsp;&nbsp;&ldquo;detail&rdquo;: [<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&ldquo;alternateEmailAddress&rdquo;: &ldquo;u1+1@smartsheet.com&rdquo;,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&ldquo;primaryEmailAddress&rdquo;: &ldquo;u1@smartsheet.com&rdquo;<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br/>&nbsp;&nbsp;]<br/>}</td>
 </tr>
 </tbody></table>
 
@@ -12810,6 +13073,10 @@ a comma-delimited list of flags that indicate additional attributes to be includ
 <td><strong>rowWriterInfo</strong></td>
 <td>Includes <strong>createdBy</strong> and <strong>modifiedBy</strong> attributes on the row, indicating the row&rsquo;s creator, and last modifier.</td>
 </tr>
+<tr>
+<td><strong>objectValue</strong></td>
+<td>Includes <strong>objectValue</strong> attribute on cells containing values. For more information see <a href="#cell-values">Cell Values</a>.</td>
+</tr>
 </tbody></table>
 
 <h3 id="row-location">Row Location</h3>
@@ -12823,6 +13090,8 @@ the following &ldquo;location-specifier&rdquo; <a href="#row-object">Row</a> att
 <li>above</li>
 <li>siblingId</li>
 <li>parentId</li>
+<li>indent (applicable when updating a row only)</li>
+<li>outdent (applicable when updating a row only)</li>
 </ul>
 
 <p>The following table describes which <em>location-specifier</em> Row attribute(s) should be set to implement various actions.</p>
@@ -12856,6 +13125,14 @@ the following &ldquo;location-specifier&rdquo; <a href="#row-object">Row</a> att
 <tr>
 <td>Add or move the Row so that it is the last child row of the specified parent Row.</td>
 <td><strong>parentId</strong> = (ID of parent row)<br/><strong>toBottom</strong> = <code class="prettyprint">true</code></td>
+</tr>
+<tr>
+<td>Indent an existing Row.</td>
+<td><strong>indent</strong> = (number of level to indent, minimum of 1)</td>
+</tr>
+<tr>
+<td>Outdent an existing Row.</td>
+<td><strong>outdent</strong> = (number of level to outdent, minimum of 1)</td>
 </tr>
 </tbody></table>
 
@@ -13730,79 +14007,96 @@ Either <strong>email</strong> and <strong>groupId</strong> may be set, but not b
 -X POST <span class="se">\</span>
 -d <span class="s1">'{ \
     "sendTo": [ \
-        {"email": "email789@smartsheet.com"}, \
-        {"email": "email0123@smartsheet.com"} \
+        {"email": "recipient1@smartsheet.com"}, \
+        {"email": "recipient2@smartsheet.com"} \
     ], \
     "subject": "some subject", \
     "message": "some message", \
-    "ccMe": (true|false), \
-    "rowIds": [rowId1, rowId2], \
-    "columnIds": [colId1, colId2], \
-    "includeAttachments": (true|false), \
-    "includeDiscussions": (true|false) \
+    "ccMe": false, \
+    "rowIds": [4508292249610116, 2256492435924868], \
+    "columnIds": [4508284196546436, 2256484382861188], \
+    "includeAttachments": false, \
+    "includeDiscussions": false \
 }'</span>
 </code></pre>
 
-<pre class="highlight csharp"><code><span class="c1">// Specify recipients.
-</span><span class="n">Recipient</span><span class="p">[]</span> <span class="n">recipients</span> <span class="p">=</span> <span class="k">new</span> <span class="n">Recipient</span><span class="p">[]</span> <span class="p">{</span> 
-    <span class="k">new</span> <span class="n">Recipient</span> <span class="p">{</span> <span class="n">Email</span> <span class="p">=</span> <span class="s">"email789@smartsheet.com"</span> <span class="p">},</span>
-    <span class="k">new</span> <span class="n">Recipient</span> <span class="p">{</span> <span class="n">Email</span> <span class="p">=</span> <span class="s">"email0123@smartsheet.com"</span> <span class="p">}</span>
-<span class="p">};</span>
+<!--Pending SDK Update 
+```csharp
+// Specify recipients.
+Recipient[] recipients = new Recipient[] { 
+    new Recipient { Email = "recipient1@smartsheet.com" },
+    new Recipient { Email = "recipient2@smartsheet.com" }
+};
 
-<span class="c1">// Configure email.
-</span><span class="n">MultiRowEmail</span> <span class="n">multiEmail</span> <span class="p">=</span> <span class="k">new</span> <span class="n">MultiRowEmail</span> <span class="p">{</span>
-    <span class="n">SendTo</span> <span class="p">=</span> <span class="n">recipients</span><span class="p">,</span>
-    <span class="n">Subject</span> <span class="p">=</span> <span class="s">"some subject"</span><span class="p">,</span>
-    <span class="n">Message</span> <span class="p">=</span> <span class="s">"some message"</span><span class="p">,</span>
-    <span class="n">CcMe</span> <span class="p">=</span> <span class="k">true</span><span class="p">,</span>
-    <span class="n">RowIds</span> <span class="p">=</span> <span class="k">new</span> <span class="kt">long</span><span class="p">[]</span> <span class="p">{</span> <span class="n">rowId1</span><span class="p">,</span> <span class="n">rowId2</span> <span class="p">},</span>
-    <span class="n">ColumnIds</span> <span class="p">=</span> <span class="k">new</span> <span class="kt">long</span><span class="p">[]</span> <span class="p">{</span> <span class="n">colId1</span><span class="p">,</span> <span class="n">colId2</span> <span class="p">},</span>
-    <span class="n">IncludeAttachments</span> <span class="p">=</span> <span class="k">true</span><span class="p">,</span>
-    <span class="n">IncludeDiscussions</span> <span class="p">=</span> <span class="k">true</span>
-<span class="p">};</span>
+// Configure email.
+MultiRowEmail multiEmail = new MultiRowEmail {
+    SendTo = recipients,
+    Subject = "some subject",
+    Message = "some message",
+    CcMe = true,
+    RowIds = new long[] { rowId1, rowId2 },
+    ColumnIds = new long[] { colId1, colId2 },
+    IncludeAttachments = true,
+    IncludeDiscussions = true
+};
 
-<span class="c1">// Send update request via email.
-</span><span class="n">smartsheet</span><span class="p">.</span><span class="n">SheetResources</span><span class="p">.</span><span class="nf">SendUpdateRequest</span><span class="p">(</span><span class="n">sheetId</span><span class="p">,</span> <span class="n">multiEmail</span><span class="p">);</span>
+// Send update request via email.
+smartsheet.SheetResources.SendUpdateRequest(sheetId, multiEmail);
+```-->
+
+<pre class="highlight csharp"><code><span class="c1">// [todo]
+</span></code></pre>
+
+<pre class="highlight javascript"><code><span class="c1">// [todo]</span>
 </code></pre>
 
-<pre class="highlight java"><code><span class="c1">// Specify recipients.</span>
-<span class="n">RecipientEmail</span> <span class="n">recipientEmail</span> <span class="o">=</span> <span class="k">new</span> <span class="n">RecipientEmail</span><span class="o">.</span><span class="na">AddRecipientEmailBuilder</span><span class="o">()</span>
-                <span class="o">.</span><span class="na">setEmail</span><span class="o">(</span><span class="s">"email789@smartsheet.com"</span><span class="o">)</span>
-                <span class="o">.</span><span class="na">setEmail</span><span class="o">(</span><span class="s">"email0123@smartsheet.com"</span><span class="o">)</span>
-                <span class="o">.</span><span class="na">build</span><span class="o">();</span>
+<!--Pending SDK Update 
+```java
+// Specify recipients.
+RecipientEmail recipientEmail = new RecipientEmail.AddRecipientEmailBuilder()
+                .setEmail("recipient1@smartsheet.com")
+                .setEmail("recipient2@smartsheet.com")
+                .build();
 
-<span class="n">List</span><span class="o">&lt;</span><span class="n">Recipient</span><span class="o">&gt;</span> <span class="n">recipients</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ArrayList</span><span class="o">&lt;</span><span class="n">Recipient</span><span class="o">&gt;();</span>
-<span class="n">recipients</span><span class="o">.</span><span class="na">add</span><span class="o">(</span><span class="n">recipientEmail</span><span class="o">);</span>
+List<Recipient> recipients = new ArrayList<Recipient>();
+recipients.add(recipientEmail);
 
-<span class="c1">// Configure email.</span>
-<span class="n">MultiRowEmail</span> <span class="n">multiRowEmail</span> <span class="o">=</span> <span class="k">new</span> <span class="n">MultiRowEmail</span><span class="o">.</span><span class="na">AddMultiRowEmailBuilder</span><span class="o">()</span>
-    <span class="o">.</span><span class="na">setSendTo</span><span class="o">(</span><span class="n">recipients</span><span class="o">)</span>
-    <span class="o">.</span><span class="na">setSubject</span><span class="o">(</span><span class="s">"some subject"</span><span class="o">)</span>
-    <span class="o">.</span><span class="na">setMessage</span><span class="o">(</span><span class="s">"some message"</span><span class="o">)</span>
-    <span class="o">.</span><span class="na">setCcMe</span><span class="o">(</span><span class="kc">false</span><span class="o">)</span>
-    <span class="o">.</span><span class="na">setRowIds</span><span class="o">(</span><span class="n">Arrays</span><span class="o">.</span><span class="na">asList</span><span class="o">(</span><span class="n">rowId1</span><span class="o">,</span> <span class="n">rowId2</span><span class="o">)</span>
-    <span class="o">.</span><span class="na">setColumnIds</span><span class="o">(</span><span class="n">Arrays</span><span class="o">.</span><span class="na">asList</span><span class="o">(</span><span class="n">columnId1</span><span class="o">,</span> <span class="n">columnId2</span><span class="o">)</span>
-    <span class="o">.</span><span class="na">setIncludeAttachments</span><span class="o">(</span><span class="kc">false</span><span class="o">)</span>
-    <span class="o">.</span><span class="na">setIncludeDiscussions</span><span class="o">(</span><span class="kc">false</span><span class="o">)</span>
-    <span class="o">.</span><span class="na">build</span><span class="o">();</span>
-
-<span class="c1">// Send update request via email.</span>
-<span class="n">smartsheet</span><span class="o">.</span><span class="na">sheetResources</span><span class="o">().</span><span class="na">createUpdateRequest</span><span class="o">(</span><span class="n">sheetId</span><span class="o">,</span> <span class="n">multiRowEmail</span><span class="o">);</span>
+// Configure email.
+MultiRowEmail multiRowEmail = new MultiRowEmail.AddMultiRowEmailBuilder()
+    .setSendTo(recipients)
+    .setSubject(&ldquo;some subject&rdquo;)
+    .setMessage(&ldquo;some message&rdquo;)
+    .setCcMe(false)
+    .setRowIds(Arrays.asList(rowId1, rowId2)
+    .setColumnIds(Arrays.asList(columnId1, columnId2)
+    .setIncludeAttachments(false)
+    .setIncludeDiscussions(false)
+    .build();
+    
+// Send update request via email.
+smartsheet.sheetResources().createUpdateRequest(sheetId, multiRowEmail);
+&ldquo;`&ndash;>
+<pre class="highlight java"><code><span class="c1">// [todo]</span>
 </code></pre>
 
-<pre class="highlight python"><code><span class="c"># Configure email.</span>
-<span class="n">email</span> <span class="o">=</span> <span class="n">smartsheet</span><span class="o">.</span><span class="n">models</span><span class="o">.</span><span class="n">MultiRowEmail</span><span class="p">()</span>
-<span class="n">email</span><span class="o">.</span><span class="n">send_to</span> <span class="o">=</span> <span class="p">[</span>
-    <span class="n">smartsheet</span><span class="o">.</span><span class="n">models</span><span class="o">.</span><span class="n">Recipient</span><span class="p">({</span><span class="s">'email'</span><span class="p">:</span> <span class="s">'email789@smartsheet.com'</span><span class="p">}),</span>
-    <span class="n">smartsheet</span><span class="o">.</span><span class="n">models</span><span class="o">.</span><span class="n">Recipient</span><span class="p">({</span><span class="s">'email'</span><span class="p">:</span> <span class="s">'email0123@smartsheet.com'</span><span class="p">})]</span> 
-<span class="n">email</span><span class="o">.</span><span class="n">subject</span> <span class="o">=</span> <span class="s">'some subject'</span>
-<span class="n">email</span><span class="o">.</span><span class="n">message</span> <span class="o">=</span> <span class="s">'some message'</span>
-<span class="n">email</span><span class="o">.</span><span class="n">cc_me</span> <span class="o">=</span> <span class="bp">False</span>
-<span class="n">email</span><span class="o">.</span><span class="n">row_ids</span> <span class="o">=</span> <span class="p">[</span><span class="n">rowId1</span><span class="p">,</span> <span class="n">rowId2</span><span class="p">]</span>
-<span class="n">email</span><span class="o">.</span><span class="n">column_ids</span> <span class="o">=</span> <span class="p">[</span><span class="n">columnId1</span><span class="p">,</span> <span class="n">columnId2</span><span class="p">]</span>
+<!--Pending SDK Update 
+```python
+# Configure email.
+email = smartsheet.models.MultiRowEmail()
+email.send_to = [
+    smartsheet.models.Recipient({'email': 'recipient1@smartsheet.com'}),
+    smartsheet.models.Recipient({'email': 'recipient2@smartsheet.com'})] 
+email.subject = 'some subject'
+email.message = 'some message'
+email.cc_me = False
+email.row_ids = [rowId1, rowId2]
+email.column_ids = [columnId1, columnId2]
 
-<span class="c"># Send update request.</span>
-<span class="n">smartsheet</span><span class="o">.</span><span class="n">Sheets</span><span class="o">.</span><span class="n">send_update_request</span><span class="p">(</span><span class="n">sheetId</span><span class="p">,</span> <span class="n">email</span><span class="p">)</span>
+# Send update request.
+smartsheet.Sheets.send_update_request(sheetId, email)
+```-->
+
+<pre class="highlight python"><code><span class="c"># [todo]</span>
 </code></pre>
 
 <blockquote>
@@ -13810,17 +14104,102 @@ Either <strong>email</strong> and <strong>groupId</strong> may be set, but not b
 </blockquote>
 
 <pre class="highlight json"><code><span class="p">{</span><span class="w">
+    </span><span class="s2">"message"</span><span class="p">:</span><span class="w"> </span><span class="s2">"SUCCESS"</span><span class="p">,</span><span class="w">
     </span><span class="s2">"resultCode"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
     </span><span class="s2">"result"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
-        </span><span class="s2">"id"</span><span class="p">:</span><span class="w"> </span><span class="mi">4583173393803140</span><span class="w">
-    </span><span class="p">},</span><span class="w">
-    </span><span class="s2">"message"</span><span class="p">:</span><span class="w"> </span><span class="s2">"SUCCESS"</span><span class="w">
+        </span><span class="s2">"sendTo"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+            </span><span class="p">{</span><span class="s2">"email"</span><span class="p">:</span><span class="w"> </span><span class="s2">"recipient1@smartsheet.com"</span><span class="p">},</span><span class="w">
+            </span><span class="p">{</span><span class="s2">"email"</span><span class="p">:</span><span class="w"> </span><span class="s2">"recipient2@smartsheet.com"</span><span class="p">}</span><span class="w">
+        </span><span class="p">],</span><span class="w">
+        </span><span class="s2">"subject"</span><span class="p">:</span><span class="w"> </span><span class="s2">"some subject"</span><span class="p">,</span><span class="w">
+        </span><span class="s2">"message"</span><span class="p">:</span><span class="w"> </span><span class="s2">"some message"</span><span class="p">,</span><span class="w">
+        </span><span class="s2">"ccMe"</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span><span class="w">
+        </span><span class="s2">"includeAttachments"</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span><span class="w">
+        </span><span class="s2">"includeDiscussions"</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span><span class="w">
+        </span><span class="s2">"columnIds"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="mi">4508284196546436</span><span class="p">,</span><span class="w"> </span><span class="mi">2256484382861188</span><span class="p">],</span><span class="w">
+        </span><span class="s2">"rowIds"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="mi">4508292249610116</span><span class="p">,</span><span class="w"> </span><span class="mi">2256492435924868</span><span class="p">],</span><span class="w">
+        </span><span class="s2">"id"</span><span class="p">:</span><span class="w"> </span><span class="mi">4523799765903236</span><span class="p">,</span><span class="w">
+        </span><span class="s2">"sentBy"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+            </span><span class="s2">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"John Doe"</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"email"</span><span class="p">:</span><span class="w"> </span><span class="s2">"john.doe@smartsheet.com"</span><span class="w">
+        </span><span class="p">},</span><span class="w">
+        </span><span class="s2">"schedule"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+            </span><span class="s2">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ONCE"</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"startAt"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2016-05-16T22:33:28Z"</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"nextSendAt"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2016-05-16T22:33:28Z"</span><span class="w">
+        </span><span class="p">}</span><span class="w">
+    </span><span class="p">}</span><span class="w">
 </span><span class="p">}</span><span class="w">
 </span></code></pre>
 
+<blockquote>
+<p>Example Request:</p>
+</blockquote>
+
+<pre class="highlight shell"><code>curl https://api.smartsheet.com/2.0/sheets/<span class="o">{</span>sheetId<span class="o">}</span>/updaterequests <span class="se">\</span>
+-H <span class="s2">"Authorization: Bearer ACCESS_TOKEN"</span> <span class="se">\</span>
+-H <span class="s2">"Content-Type: application/json"</span> <span class="se">\</span>
+-X POST <span class="se">\</span>
+-d <span class="s1">'{ \
+    "sendTo": [ \
+        {"email": "recipient1@smartsheet.com"} \
+    ], \
+    "subject": "Sample Monthly Update Request", \
+    "message": "Please update my online sheet.", \
+    "ccMe": false, \
+    "rowIds": [7886095586224004], \
+    "columnIds": [6962516556310404, 3584816835782532], \
+    "includeAttachments": true, \
+    "includeDiscussions": true, \
+    "schedule": { \
+        "type": "MONTHLY", \
+        "startAt": "2016-04-01T19:00:00Z", \
+        "endAt": "2016-12-31T07:00:00Z", \
+        "dayOfMonth": 1, \
+        "repeatEvery": 1 \
+    } \
+}'</span>
+</code></pre>
+
+<blockquote>
+<p>Example Response:</p>
+</blockquote>
+
+<pre class="highlight json"><code><span class="p">{</span><span class="w">
+    </span><span class="s2">"message"</span><span class="p">:</span><span class="w"> </span><span class="s2">"SUCCESS"</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"resultCode"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"result"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+        </span><span class="s2">"sendTo"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+            </span><span class="p">{</span><span class="s2">"email"</span><span class="p">:</span><span class="w"> </span><span class="s2">"recipient1@smartsheet.com"</span><span class="p">}</span><span class="w">
+        </span><span class="p">],</span><span class="w">
+        </span><span class="s2">"subject"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Sample Monthly Update Request"</span><span class="p">,</span><span class="w">
+        </span><span class="s2">"message"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Please update my online sheet."</span><span class="p">,</span><span class="w">
+        </span><span class="s2">"ccMe"</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span><span class="w">
+        </span><span class="s2">"includeAttachments"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w">
+        </span><span class="s2">"includeDiscussions"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w">
+        </span><span class="s2">"columnIds"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="mi">6962516556310404</span><span class="p">,</span><span class="w"> </span><span class="mi">3584816835782532</span><span class="p">],</span><span class="w">
+        </span><span class="s2">"rowIds"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="mi">7886095586224004</span><span class="p">],</span><span class="w">
+        </span><span class="s2">"id"</span><span class="p">:</span><span class="w"> </span><span class="mi">7820135625975684</span><span class="p">,</span><span class="w">
+        </span><span class="s2">"sentBy"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+            </span><span class="s2">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"John Doe"</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"email"</span><span class="p">:</span><span class="w"> </span><span class="s2">"john.doe@smartsheet.com"</span><span class="w">
+        </span><span class="p">},</span><span class="w">
+        </span><span class="s2">"schedule"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+            </span><span class="s2">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"MONTHLY"</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"startAt"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2016-04-01T19:00:00Z"</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"endAt"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2016-12-31T07:00:00Z"</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"dayOfMonth"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"repeatEvery"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"nextSendAt"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2016-05-01T19:00:00Z"</span><span class="w">
+        </span><span class="p">}</span><span class="w">
+    </span><span class="p">}</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre>
+ 
+
 <p><code class="prettyprint">POST /sheets/{sheetId}/updaterequests</code></p>
 
-<p>Creates an Update Request for the specified Row(s) within the Sheet. An email notification (containing a link to the update request) will be asynchronously sent to the specified recipient(s).</p>
+<p>Creates an Update Request for the specified Row(s) within the Sheet. An email notification (containing a link to the update request) will be sent to the specified recipient(s) according to the specified scheduled.</p>
 
 <aside class="notice" >The recipient(s) of an update request must be specified using email address(es) only. Sending an update request to a <a href="#groups">Group</a> is not supported.</aside>
 
@@ -13840,7 +14219,7 @@ Either <strong>email</strong> and <strong>groupId</strong> may be set, but not b
 </tr>
 <tr>
 <td><strong>Request Body</strong></td>
-<td><a href="#multirowemail-object">MultiRowEmail object</a><br/><br/>The MultiRowEmail object in the request body must specify one or more of the following attributes:<ul><li><b>columnIds</b>: number[]</li><li><b>includeAttachments</b>: true</li><li><b>includeDiscussions</b>: true</li></ul></td>
+<td><a href="#updaterequest-object">UpdateRequest object</a>.<br/><br/>The UpdateRequest object in the request body must specify one or more of the following attributes:<ul><li><b>sendTo</b>: <a href="#recipient-object">Recipient</a>[]</li><li><b>rowIds</b>: number[]</li><li>One or more of the followings:<ul><li><b>columnIds</b>: number[]</li><li><b>includeAttachments</b>: true</li><li><b>includeDiscussions</b>: true</li></ul></ul>The following attributes have the following values when not specified:<ul><li><b>Subject</b>: Update Request: {Sheet Name}</li><li><b>Message</b>: Please update the following rows in my online sheet.</li><li><b>ccMe</b>: false</li></ul>When the Schedule object is not specified, the request will be sent to the recipients immediately.</td>
 </tr>
 <tr>
 <td><strong>Returns</strong></td>
@@ -13848,7 +14227,7 @@ Either <strong>email</strong> and <strong>groupId</strong> may be set, but not b
 </tr>
 <tr>
 <td><strong>Errors</strong></td>
-<td>If an error occurs because the request specified one or more <a href="#alternate-email-address(es)"><em>alternate</em> email addresses</a> (i.e., not the primary email address associated with the User account), the <a href="#errors">Error object</a> returned will contain a <strong>detail</strong> attribute set to an array of objects, each object in the array having the following attributes:<ul><li><strong>alternateEmailAddress</strong>: User&rsquo;s <em>alternate</em> email address that was specified in the request</li><li><strong>primaryEmailAddress</strong>: User&rsquo;s primary email address that must instead be specified for the operation</li></ul>For example:<br/>{<br/>&#160;&#160;&ldquo;errorCode&rdquo;: 5xxx,<br/>&#160;&#160;&ldquo;message&rdquo;: &ldquo;u1+1@smartsheet.com is an alternate address of the user u1@smartsheet.com. Please retry sending directly to u1@smartsheet.com.&rdquo;<br/>&#160;&#160;&ldquo;detail&rdquo;: [<br/>&#160;&#160;&#160;&#160;&#160;&#160;{<br/>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&ldquo;alternateEmailAddress&rdquo;: &ldquo;u1+1@smartsheet.com&rdquo;,<br/>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&ldquo;primaryEmailAddress&rdquo;: &ldquo;u1@smartsheet.com&rdquo;<br/>&#160;&#160;&#160;&#160;&#160;&#160;}<br/>&#160;&#160;]<br/>}</td>
+<td>If an error occurs because the request specified one or more <a href="#alternate-email-address(es)"><em>alternate</em> email addresses</a> (i.e., not the primary email address associated with the User account), the <a href="#errors">Error object</a> returned will contain a <strong>detail</strong> attribute set to an array of objects, each object in the array having the following attributes:<ul><li><strong>alternateEmailAddress</strong>: User&rsquo;s <em>alternate</em> email address that was specified in the request</li><li><strong>primaryEmailAddress</strong>: User&rsquo;s primary email address that must instead be specified for the operation</li></ul>For example:<br/>{<br/>&nbsp;&nbsp;&ldquo;errorCode&rdquo;: 5xxx,<br/>&nbsp;&nbsp;&ldquo;message&rdquo;: &ldquo;u1+1@smartsheet.com is an alternate address of the user u1@smartsheet.com. Please retry sharing directly to u1@smartsheet.com.&rdquo;<br/>&nbsp;&nbsp;&ldquo;detail&rdquo;: [<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&ldquo;alternateEmailAddress&rdquo;: &ldquo;u1+1@smartsheet.com&rdquo;,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&ldquo;primaryEmailAddress&rdquo;: &ldquo;u1@smartsheet.com&rdquo;<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br/>&nbsp;&nbsp;]<br/>}</td>
 </tr>
 </tbody></table>
 
@@ -14189,7 +14568,7 @@ Either <strong>email</strong> and <strong>groupId</strong> may be set, but not b
 
 <aside class="notice">By default, this operation returns only <i>item-level</i> shares (<b><a href='#share-object'>scope</b></a>='ITEM&rsquo;). Use the <b>include</b> parameter to request that <i>workspace-level</i> shares (<b><a href='#share-object'>scope</b></a>=='WORKSPACE&rsquo;) also be returned.</aside>
 
-<aside class="notice">This operation supports pagination of results. For more information, see <a href="#paging">Paging</a>.</aside>
+<aside class="notice">This operation supports pagination of results. For more information, see <a href='#paging'>Paging</a>.</aside>
 
 <table><thead>
 <tr>
@@ -14594,7 +14973,7 @@ Either <strong>email</strong> and <strong>groupId</strong> may be set, but not b
 
 <aside class="notice">By default, this operation returns only <i>item-level</i> shares (<b><a href='#share-object'>scope</b></a>='ITEM&rsquo;). Use the <b>include</b> parameter to request that <i>workspace-level</i> shares (<b><a href='#share-object'>scope</b></a>=='WORKSPACE&rsquo;) also be returned.</aside>
 
-<aside class="notice">This operation supports pagination of results. For more information, see <a href="#paging">Paging</a>.</aside>
+<aside class="notice">This operation supports pagination of results. For more information, see <a href='#paging'>Paging</a>.</aside>
 
 <table><thead>
 <tr>
@@ -15067,7 +15446,7 @@ Either <strong>email</strong> and <strong>groupId</strong> may be set, but not b
 
 <aside class="notice">By default, this operation returns only <i>item-level</i> shares (<b><a href='#share-object'>scope</b></a>='ITEM&rsquo;). Use the <b>include</b> parameter to request that <i>workspace-level</i> shares (<b><a href='#share-object'>scope</b></a>=='WORKSPACE&rsquo;) also be returned.</aside>
 
-<aside class="notice">This operation supports pagination of results. For more information, see <a href="#paging">Paging</a>.</aside>
+<aside class="notice">This operation supports pagination of results. For more information, see <a href='#paging'>Paging</a>.</aside>
 
 <table><thead>
 <tr>
@@ -15539,7 +15918,7 @@ Either <strong>email</strong> and <strong>groupId</strong> may be set, but not b
 
 <p>Gets a list of all Users and Groups to whom the specified Workspace is shared, and their access level. </p>
 
-<aside class="notice">This operation supports pagination of results. For more information, see <a href="#paging">Paging</a>.</aside>
+<aside class="notice">This operation supports pagination of results. For more information, see <a href='#paging'>Paging</a>.</aside>
 
 <table><thead>
 <tr>
@@ -17479,9 +17858,11 @@ Either <strong>email</strong> and <strong>groupId</strong> may be set, but not b
 
 <p>Gets the list of all Sheets owned by the members of the account (organization). </p>
 
-<p>This operation supports pagination of results.</p>
-
 <aside class="notice">This operation is only available to system administrators.</aside>
+
+<aside class="notice">You may use the query string parameter <b>numericDates</b> with a value of <code>true</code> to enable strict parsing of dates in numeric format.  See <a href='#dates-and-times'>Dates and Times</a> for more information.</aside>
+
+<aside class="notice">This operation supports pagination of results. For more information, see <a href='#paging'>Paging</a>.</aside>
 
 <table><thead>
 <tr>
@@ -17496,6 +17877,14 @@ Either <strong>email</strong> and <strong>groupId</strong> may be set, but not b
 <tr>
 <td><strong>Headers</strong></td>
 <td><strong>Authorization</strong>: Bearer ACCESS_TOKEN</td>
+</tr>
+<tr>
+<td><strong>Parameters</strong></td>
+<td><strong>modifiedSince</strong> (optional): when specified with a <a href='#dates-and-times'>date and time</a> value, response will only include the objects that are modified on or after the date and time specified.</td>
+</tr>
+<tr>
+<td></td>
+<td>This operation supports query string parameters for pagination of results. For more information, see <a href="#paging-query-string-parameters">Paging Query String Parameters</a>.</td>
 </tr>
 <tr>
 <td><strong>Returns</strong></td>
@@ -17573,7 +17962,9 @@ Either <strong>email</strong> and <strong>groupId</strong> may be set, but not b
 
 <p>Gets the list of all Sheets that the User has access to, in alphabetical order, by name.</p>
 
-<aside class="notice">This operation supports pagination of results. For more information, see <a href="#paging">Paging</a>.</aside>
+<aside class="notice">You may use the query string parameter <b>numericDates</b> with a value of <code>true</code> to enable strict parsing of dates in numeric format.  See <a href='#dates-and-times'>Dates and Times</a> for more information.</aside>
+
+<aside class="notice">This operation supports pagination of results. For more information, see <a href='#paging'>Paging</a>.</aside>
 
 <table><thead>
 <tr>
@@ -17591,7 +17982,15 @@ Either <strong>email</strong> and <strong>groupId</strong> may be set, but not b
 </tr>
 <tr>
 <td><strong>Parameters</strong></td>
-<td><strong>include</strong> (optional) &ndash; a comma-separated list of optional elements to include in the response:<ul><li>ownerInfo - owner&rsquo;s email address and user ID for each sheet</li><li>source - the <a href="#source-object">source</a> for any sheet that was created from another sheet or template</li></ul>This operation supports query string parameters for pagination of results. For more information, see <a href="#paging-query-string-parameters">Paging Query String Parameters</a>.</td>
+<td><strong>include</strong> (optional) &ndash; a comma-separated list of optional elements to include in the response:<ul><li>ownerInfo - owner&rsquo;s email address and user ID for each sheet</li><li>source - the <a href="#source-object">source</a> for any sheet that was created from another sheet or template</li></ul></td>
+</tr>
+<tr>
+<td></td>
+<td><strong>modifiedSince</strong> (optional): when specified with a <a href='#dates-and-times'>date and time</a> value, response will only include the objects that are modified on or after the date and time specified.</td>
+</tr>
+<tr>
+<td></td>
+<td>This operation supports query string parameters for pagination of results. For more information, see <a href="#paging-query-string-parameters">Paging Query String Parameters</a>.</td>
 </tr>
 <tr>
 <td><strong>Returns</strong></td>
@@ -18132,79 +18531,96 @@ Either <strong>email</strong> and <strong>groupId</strong> may be set, but not b
 -X POST <span class="se">\</span>
 -d <span class="s1">'{ \
     "sendTo": [ \
-        {"email": "email789@smartsheet.com"}, \
-        {"email": "email0123@smartsheet.com"} \
+        {"email": "recipient1@smartsheet.com"}, \
+        {"email": "recipient2@smartsheet.com"} \
     ], \
     "subject": "some subject", \
     "message": "some message", \
-    "ccMe": (true|false), \
-    "rowIds": [rowId1, rowId2], \
-    "columnIds": [colId1, colId2], \
-    "includeAttachments": (true|false), \
-    "includeDiscussions": (true|false) \
+    "ccMe": false, \
+    "rowIds": [4508292249610116, 2256492435924868], \
+    "columnIds": [4508284196546436, 2256484382861188], \
+    "includeAttachments": false, \
+    "includeDiscussions": false \
 }'</span>
 </code></pre>
 
-<pre class="highlight csharp"><code><span class="c1">// Specify recipients.
-</span><span class="n">Recipient</span><span class="p">[]</span> <span class="n">recipients</span> <span class="p">=</span> <span class="k">new</span> <span class="n">Recipient</span><span class="p">[]</span> <span class="p">{</span> 
-    <span class="k">new</span> <span class="n">Recipient</span> <span class="p">{</span> <span class="n">Email</span> <span class="p">=</span> <span class="s">"email789@smartsheet.com"</span> <span class="p">},</span>
-    <span class="k">new</span> <span class="n">Recipient</span> <span class="p">{</span> <span class="n">Email</span> <span class="p">=</span> <span class="s">"email0123@smartsheet.com"</span> <span class="p">}</span>
-<span class="p">};</span>
+<!--Pending SDK Update 
+```csharp
+// Specify recipients.
+Recipient[] recipients = new Recipient[] { 
+    new Recipient { Email = "recipient1@smartsheet.com" },
+    new Recipient { Email = "recipient2@smartsheet.com" }
+};
 
-<span class="c1">// Configure email.
-</span><span class="n">MultiRowEmail</span> <span class="n">multiEmail</span> <span class="p">=</span> <span class="k">new</span> <span class="n">MultiRowEmail</span> <span class="p">{</span>
-    <span class="n">SendTo</span> <span class="p">=</span> <span class="n">recipients</span><span class="p">,</span>
-    <span class="n">Subject</span> <span class="p">=</span> <span class="s">"some subject"</span><span class="p">,</span>
-    <span class="n">Message</span> <span class="p">=</span> <span class="s">"some message"</span><span class="p">,</span>
-    <span class="n">CcMe</span> <span class="p">=</span> <span class="k">true</span><span class="p">,</span>
-    <span class="n">RowIds</span> <span class="p">=</span> <span class="k">new</span> <span class="kt">long</span><span class="p">[]</span> <span class="p">{</span> <span class="n">rowId1</span><span class="p">,</span> <span class="n">rowId2</span> <span class="p">},</span>
-    <span class="n">ColumnIds</span> <span class="p">=</span> <span class="k">new</span> <span class="kt">long</span><span class="p">[]</span> <span class="p">{</span> <span class="n">colId1</span><span class="p">,</span> <span class="n">colId2</span> <span class="p">},</span>
-    <span class="n">IncludeAttachments</span> <span class="p">=</span> <span class="k">true</span><span class="p">,</span>
-    <span class="n">IncludeDiscussions</span> <span class="p">=</span> <span class="k">true</span>
-<span class="p">};</span>
+// Configure email.
+MultiRowEmail multiEmail = new MultiRowEmail {
+    SendTo = recipients,
+    Subject = "some subject",
+    Message = "some message",
+    CcMe = true,
+    RowIds = new long[] { rowId1, rowId2 },
+    ColumnIds = new long[] { colId1, colId2 },
+    IncludeAttachments = true,
+    IncludeDiscussions = true
+};
 
-<span class="c1">// Send update request via email.
-</span><span class="n">smartsheet</span><span class="p">.</span><span class="n">SheetResources</span><span class="p">.</span><span class="nf">SendUpdateRequest</span><span class="p">(</span><span class="n">sheetId</span><span class="p">,</span> <span class="n">multiEmail</span><span class="p">);</span>
+// Send update request via email.
+smartsheet.SheetResources.SendUpdateRequest(sheetId, multiEmail);
+```-->
+
+<pre class="highlight csharp"><code><span class="c1">// [todo]
+</span></code></pre>
+
+<pre class="highlight javascript"><code><span class="c1">// [todo]</span>
 </code></pre>
 
-<pre class="highlight java"><code><span class="c1">// Specify recipients.</span>
-<span class="n">RecipientEmail</span> <span class="n">recipientEmail</span> <span class="o">=</span> <span class="k">new</span> <span class="n">RecipientEmail</span><span class="o">.</span><span class="na">AddRecipientEmailBuilder</span><span class="o">()</span>
-                <span class="o">.</span><span class="na">setEmail</span><span class="o">(</span><span class="s">"email789@smartsheet.com"</span><span class="o">)</span>
-                <span class="o">.</span><span class="na">setEmail</span><span class="o">(</span><span class="s">"email0123@smartsheet.com"</span><span class="o">)</span>
-                <span class="o">.</span><span class="na">build</span><span class="o">();</span>
+<!--Pending SDK Update 
+```java
+// Specify recipients.
+RecipientEmail recipientEmail = new RecipientEmail.AddRecipientEmailBuilder()
+                .setEmail("recipient1@smartsheet.com")
+                .setEmail("recipient2@smartsheet.com")
+                .build();
 
-<span class="n">List</span><span class="o">&lt;</span><span class="n">Recipient</span><span class="o">&gt;</span> <span class="n">recipients</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ArrayList</span><span class="o">&lt;</span><span class="n">Recipient</span><span class="o">&gt;();</span>
-<span class="n">recipients</span><span class="o">.</span><span class="na">add</span><span class="o">(</span><span class="n">recipientEmail</span><span class="o">);</span>
+List<Recipient> recipients = new ArrayList<Recipient>();
+recipients.add(recipientEmail);
 
-<span class="c1">// Configure email.</span>
-<span class="n">MultiRowEmail</span> <span class="n">multiRowEmail</span> <span class="o">=</span> <span class="k">new</span> <span class="n">MultiRowEmail</span><span class="o">.</span><span class="na">AddMultiRowEmailBuilder</span><span class="o">()</span>
-    <span class="o">.</span><span class="na">setSendTo</span><span class="o">(</span><span class="n">recipients</span><span class="o">)</span>
-    <span class="o">.</span><span class="na">setSubject</span><span class="o">(</span><span class="s">"some subject"</span><span class="o">)</span>
-    <span class="o">.</span><span class="na">setMessage</span><span class="o">(</span><span class="s">"some message"</span><span class="o">)</span>
-    <span class="o">.</span><span class="na">setCcMe</span><span class="o">(</span><span class="kc">false</span><span class="o">)</span>
-    <span class="o">.</span><span class="na">setRowIds</span><span class="o">(</span><span class="n">Arrays</span><span class="o">.</span><span class="na">asList</span><span class="o">(</span><span class="n">rowId1</span><span class="o">,</span> <span class="n">rowId2</span><span class="o">)</span>
-    <span class="o">.</span><span class="na">setColumnIds</span><span class="o">(</span><span class="n">Arrays</span><span class="o">.</span><span class="na">asList</span><span class="o">(</span><span class="n">columnId1</span><span class="o">,</span> <span class="n">columnId2</span><span class="o">)</span>
-    <span class="o">.</span><span class="na">setIncludeAttachments</span><span class="o">(</span><span class="kc">false</span><span class="o">)</span>
-    <span class="o">.</span><span class="na">setIncludeDiscussions</span><span class="o">(</span><span class="kc">false</span><span class="o">)</span>
-    <span class="o">.</span><span class="na">build</span><span class="o">();</span>
-
-<span class="c1">// Send update request via email.</span>
-<span class="n">smartsheet</span><span class="o">.</span><span class="na">sheetResources</span><span class="o">().</span><span class="na">createUpdateRequest</span><span class="o">(</span><span class="n">sheetId</span><span class="o">,</span> <span class="n">multiRowEmail</span><span class="o">);</span>
+// Configure email.
+MultiRowEmail multiRowEmail = new MultiRowEmail.AddMultiRowEmailBuilder()
+    .setSendTo(recipients)
+    .setSubject(&ldquo;some subject&rdquo;)
+    .setMessage(&ldquo;some message&rdquo;)
+    .setCcMe(false)
+    .setRowIds(Arrays.asList(rowId1, rowId2)
+    .setColumnIds(Arrays.asList(columnId1, columnId2)
+    .setIncludeAttachments(false)
+    .setIncludeDiscussions(false)
+    .build();
+    
+// Send update request via email.
+smartsheet.sheetResources().createUpdateRequest(sheetId, multiRowEmail);
+&ldquo;`&ndash;>
+<pre class="highlight java"><code><span class="c1">// [todo]</span>
 </code></pre>
 
-<pre class="highlight python"><code><span class="c"># Configure email.</span>
-<span class="n">email</span> <span class="o">=</span> <span class="n">smartsheet</span><span class="o">.</span><span class="n">models</span><span class="o">.</span><span class="n">MultiRowEmail</span><span class="p">()</span>
-<span class="n">email</span><span class="o">.</span><span class="n">send_to</span> <span class="o">=</span> <span class="p">[</span>
-    <span class="n">smartsheet</span><span class="o">.</span><span class="n">models</span><span class="o">.</span><span class="n">Recipient</span><span class="p">({</span><span class="s">'email'</span><span class="p">:</span> <span class="s">'email789@smartsheet.com'</span><span class="p">}),</span>
-    <span class="n">smartsheet</span><span class="o">.</span><span class="n">models</span><span class="o">.</span><span class="n">Recipient</span><span class="p">({</span><span class="s">'email'</span><span class="p">:</span> <span class="s">'email0123@smartsheet.com'</span><span class="p">})]</span> 
-<span class="n">email</span><span class="o">.</span><span class="n">subject</span> <span class="o">=</span> <span class="s">'some subject'</span>
-<span class="n">email</span><span class="o">.</span><span class="n">message</span> <span class="o">=</span> <span class="s">'some message'</span>
-<span class="n">email</span><span class="o">.</span><span class="n">cc_me</span> <span class="o">=</span> <span class="bp">False</span>
-<span class="n">email</span><span class="o">.</span><span class="n">row_ids</span> <span class="o">=</span> <span class="p">[</span><span class="n">rowId1</span><span class="p">,</span> <span class="n">rowId2</span><span class="p">]</span>
-<span class="n">email</span><span class="o">.</span><span class="n">column_ids</span> <span class="o">=</span> <span class="p">[</span><span class="n">columnId1</span><span class="p">,</span> <span class="n">columnId2</span><span class="p">]</span>
+<!--Pending SDK Update 
+```python
+# Configure email.
+email = smartsheet.models.MultiRowEmail()
+email.send_to = [
+    smartsheet.models.Recipient({'email': 'recipient1@smartsheet.com'}),
+    smartsheet.models.Recipient({'email': 'recipient2@smartsheet.com'})] 
+email.subject = 'some subject'
+email.message = 'some message'
+email.cc_me = False
+email.row_ids = [rowId1, rowId2]
+email.column_ids = [columnId1, columnId2]
 
-<span class="c"># Send update request.</span>
-<span class="n">smartsheet</span><span class="o">.</span><span class="n">Sheets</span><span class="o">.</span><span class="n">send_update_request</span><span class="p">(</span><span class="n">sheetId</span><span class="p">,</span> <span class="n">email</span><span class="p">)</span>
+# Send update request.
+smartsheet.Sheets.send_update_request(sheetId, email)
+```-->
+
+<pre class="highlight python"><code><span class="c"># [todo]</span>
 </code></pre>
 
 <blockquote>
@@ -18212,17 +18628,102 @@ Either <strong>email</strong> and <strong>groupId</strong> may be set, but not b
 </blockquote>
 
 <pre class="highlight json"><code><span class="p">{</span><span class="w">
+    </span><span class="s2">"message"</span><span class="p">:</span><span class="w"> </span><span class="s2">"SUCCESS"</span><span class="p">,</span><span class="w">
     </span><span class="s2">"resultCode"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
     </span><span class="s2">"result"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
-        </span><span class="s2">"id"</span><span class="p">:</span><span class="w"> </span><span class="mi">4583173393803140</span><span class="w">
-    </span><span class="p">},</span><span class="w">
-    </span><span class="s2">"message"</span><span class="p">:</span><span class="w"> </span><span class="s2">"SUCCESS"</span><span class="w">
+        </span><span class="s2">"sendTo"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+            </span><span class="p">{</span><span class="s2">"email"</span><span class="p">:</span><span class="w"> </span><span class="s2">"recipient1@smartsheet.com"</span><span class="p">},</span><span class="w">
+            </span><span class="p">{</span><span class="s2">"email"</span><span class="p">:</span><span class="w"> </span><span class="s2">"recipient2@smartsheet.com"</span><span class="p">}</span><span class="w">
+        </span><span class="p">],</span><span class="w">
+        </span><span class="s2">"subject"</span><span class="p">:</span><span class="w"> </span><span class="s2">"some subject"</span><span class="p">,</span><span class="w">
+        </span><span class="s2">"message"</span><span class="p">:</span><span class="w"> </span><span class="s2">"some message"</span><span class="p">,</span><span class="w">
+        </span><span class="s2">"ccMe"</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span><span class="w">
+        </span><span class="s2">"includeAttachments"</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span><span class="w">
+        </span><span class="s2">"includeDiscussions"</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span><span class="w">
+        </span><span class="s2">"columnIds"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="mi">4508284196546436</span><span class="p">,</span><span class="w"> </span><span class="mi">2256484382861188</span><span class="p">],</span><span class="w">
+        </span><span class="s2">"rowIds"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="mi">4508292249610116</span><span class="p">,</span><span class="w"> </span><span class="mi">2256492435924868</span><span class="p">],</span><span class="w">
+        </span><span class="s2">"id"</span><span class="p">:</span><span class="w"> </span><span class="mi">4523799765903236</span><span class="p">,</span><span class="w">
+        </span><span class="s2">"sentBy"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+            </span><span class="s2">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"John Doe"</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"email"</span><span class="p">:</span><span class="w"> </span><span class="s2">"john.doe@smartsheet.com"</span><span class="w">
+        </span><span class="p">},</span><span class="w">
+        </span><span class="s2">"schedule"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+            </span><span class="s2">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ONCE"</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"startAt"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2016-05-16T22:33:28Z"</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"nextSendAt"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2016-05-16T22:33:28Z"</span><span class="w">
+        </span><span class="p">}</span><span class="w">
+    </span><span class="p">}</span><span class="w">
 </span><span class="p">}</span><span class="w">
 </span></code></pre>
 
+<blockquote>
+<p>Example Request:</p>
+</blockquote>
+
+<pre class="highlight shell"><code>curl https://api.smartsheet.com/2.0/sheets/<span class="o">{</span>sheetId<span class="o">}</span>/updaterequests <span class="se">\</span>
+-H <span class="s2">"Authorization: Bearer ACCESS_TOKEN"</span> <span class="se">\</span>
+-H <span class="s2">"Content-Type: application/json"</span> <span class="se">\</span>
+-X POST <span class="se">\</span>
+-d <span class="s1">'{ \
+    "sendTo": [ \
+        {"email": "recipient1@smartsheet.com"} \
+    ], \
+    "subject": "Sample Monthly Update Request", \
+    "message": "Please update my online sheet.", \
+    "ccMe": false, \
+    "rowIds": [7886095586224004], \
+    "columnIds": [6962516556310404, 3584816835782532], \
+    "includeAttachments": true, \
+    "includeDiscussions": true, \
+    "schedule": { \
+        "type": "MONTHLY", \
+        "startAt": "2016-04-01T19:00:00Z", \
+        "endAt": "2016-12-31T07:00:00Z", \
+        "dayOfMonth": 1, \
+        "repeatEvery": 1 \
+    } \
+}'</span>
+</code></pre>
+
+<blockquote>
+<p>Example Response:</p>
+</blockquote>
+
+<pre class="highlight json"><code><span class="p">{</span><span class="w">
+    </span><span class="s2">"message"</span><span class="p">:</span><span class="w"> </span><span class="s2">"SUCCESS"</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"resultCode"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"result"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+        </span><span class="s2">"sendTo"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+            </span><span class="p">{</span><span class="s2">"email"</span><span class="p">:</span><span class="w"> </span><span class="s2">"recipient1@smartsheet.com"</span><span class="p">}</span><span class="w">
+        </span><span class="p">],</span><span class="w">
+        </span><span class="s2">"subject"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Sample Monthly Update Request"</span><span class="p">,</span><span class="w">
+        </span><span class="s2">"message"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Please update my online sheet."</span><span class="p">,</span><span class="w">
+        </span><span class="s2">"ccMe"</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span><span class="w">
+        </span><span class="s2">"includeAttachments"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w">
+        </span><span class="s2">"includeDiscussions"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w">
+        </span><span class="s2">"columnIds"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="mi">6962516556310404</span><span class="p">,</span><span class="w"> </span><span class="mi">3584816835782532</span><span class="p">],</span><span class="w">
+        </span><span class="s2">"rowIds"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="mi">7886095586224004</span><span class="p">],</span><span class="w">
+        </span><span class="s2">"id"</span><span class="p">:</span><span class="w"> </span><span class="mi">7820135625975684</span><span class="p">,</span><span class="w">
+        </span><span class="s2">"sentBy"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+            </span><span class="s2">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"John Doe"</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"email"</span><span class="p">:</span><span class="w"> </span><span class="s2">"john.doe@smartsheet.com"</span><span class="w">
+        </span><span class="p">},</span><span class="w">
+        </span><span class="s2">"schedule"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+            </span><span class="s2">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"MONTHLY"</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"startAt"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2016-04-01T19:00:00Z"</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"endAt"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2016-12-31T07:00:00Z"</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"dayOfMonth"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"repeatEvery"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"nextSendAt"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2016-05-01T19:00:00Z"</span><span class="w">
+        </span><span class="p">}</span><span class="w">
+    </span><span class="p">}</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre>
+ 
+
 <p><code class="prettyprint">POST /sheets/{sheetId}/updaterequests</code></p>
 
-<p>Creates an Update Request for the specified Row(s) within the Sheet. An email notification (containing a link to the update request) will be asynchronously sent to the specified recipient(s).</p>
+<p>Creates an Update Request for the specified Row(s) within the Sheet. An email notification (containing a link to the update request) will be sent to the specified recipient(s) according to the specified scheduled.</p>
 
 <aside class="notice" >The recipient(s) of an update request must be specified using email address(es) only. Sending an update request to a <a href="#groups">Group</a> is not supported.</aside>
 
@@ -18242,7 +18743,7 @@ Either <strong>email</strong> and <strong>groupId</strong> may be set, but not b
 </tr>
 <tr>
 <td><strong>Request Body</strong></td>
-<td><a href="#multirowemail-object">MultiRowEmail object</a><br/><br/>The MultiRowEmail object in the request body must specify one or more of the following attributes:<ul><li><b>columnIds</b>: number[]</li><li><b>includeAttachments</b>: true</li><li><b>includeDiscussions</b>: true</li></ul></td>
+<td><a href="#updaterequest-object">UpdateRequest object</a>.<br/><br/>The UpdateRequest object in the request body must specify one or more of the following attributes:<ul><li><b>sendTo</b>: <a href="#recipient-object">Recipient</a>[]</li><li><b>rowIds</b>: number[]</li><li>One or more of the followings:<ul><li><b>columnIds</b>: number[]</li><li><b>includeAttachments</b>: true</li><li><b>includeDiscussions</b>: true</li></ul></ul>The following attributes have the following values when not specified:<ul><li><b>Subject</b>: Update Request: {Sheet Name}</li><li><b>Message</b>: Please update the following rows in my online sheet.</li><li><b>ccMe</b>: false</li></ul>When the Schedule object is not specified, the request will be sent to the recipients immediately.</td>
 </tr>
 <tr>
 <td><strong>Returns</strong></td>
@@ -18250,7 +18751,7 @@ Either <strong>email</strong> and <strong>groupId</strong> may be set, but not b
 </tr>
 <tr>
 <td><strong>Errors</strong></td>
-<td>If an error occurs because the request specified one or more <a href="#alternate-email-address(es)"><em>alternate</em> email addresses</a> (i.e., not the primary email address associated with the User account), the <a href="#errors">Error object</a> returned will contain a <strong>detail</strong> attribute set to an array of objects, each object in the array having the following attributes:<ul><li><strong>alternateEmailAddress</strong>: User&rsquo;s <em>alternate</em> email address that was specified in the request</li><li><strong>primaryEmailAddress</strong>: User&rsquo;s primary email address that must instead be specified for the operation</li></ul>For example:<br/>{<br/>&#160;&#160;&ldquo;errorCode&rdquo;: 5xxx,<br/>&#160;&#160;&ldquo;message&rdquo;: &ldquo;u1+1@smartsheet.com is an alternate address of the user u1@smartsheet.com. Please retry sending directly to u1@smartsheet.com.&rdquo;<br/>&#160;&#160;&ldquo;detail&rdquo;: [<br/>&#160;&#160;&#160;&#160;&#160;&#160;{<br/>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&ldquo;alternateEmailAddress&rdquo;: &ldquo;u1+1@smartsheet.com&rdquo;,<br/>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&ldquo;primaryEmailAddress&rdquo;: &ldquo;u1@smartsheet.com&rdquo;<br/>&#160;&#160;&#160;&#160;&#160;&#160;}<br/>&#160;&#160;]<br/>}</td>
+<td>If an error occurs because the request specified one or more <a href="#alternate-email-address(es)"><em>alternate</em> email addresses</a> (i.e., not the primary email address associated with the User account), the <a href="#errors">Error object</a> returned will contain a <strong>detail</strong> attribute set to an array of objects, each object in the array having the following attributes:<ul><li><strong>alternateEmailAddress</strong>: User&rsquo;s <em>alternate</em> email address that was specified in the request</li><li><strong>primaryEmailAddress</strong>: User&rsquo;s primary email address that must instead be specified for the operation</li></ul>For example:<br/>{<br/>&nbsp;&nbsp;&ldquo;errorCode&rdquo;: 5xxx,<br/>&nbsp;&nbsp;&ldquo;message&rdquo;: &ldquo;u1+1@smartsheet.com is an alternate address of the user u1@smartsheet.com. Please retry sharing directly to u1@smartsheet.com.&rdquo;<br/>&nbsp;&nbsp;&ldquo;detail&rdquo;: [<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&ldquo;alternateEmailAddress&rdquo;: &ldquo;u1+1@smartsheet.com&rdquo;,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&ldquo;primaryEmailAddress&rdquo;: &ldquo;u1@smartsheet.com&rdquo;<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br/>&nbsp;&nbsp;]<br/>}</td>
 </tr>
 </tbody></table>
 
@@ -19001,7 +19502,9 @@ only has read-only access to the sheet (i.e. the user has viewer permissions, or
 
 <p>Gets the list of all Sights that the User has access to.</p>
 
-<aside class="notice">This operation supports pagination of results. For more information, see <a href="#paging">Paging</a>.</aside>
+<aside class="notice">You may use the query string parameter <b>numericDates</b> with a value of <code>true</code> to enable strict parsing of dates in numeric format.  See <a href='#dates-and-times'>Dates and Times</a> for more information.</aside>
+
+<aside class="notice">This operation supports pagination of results. For more information, see <a href='#paging'>Paging</a>.</aside>
 
 <table><thead>
 <tr>
@@ -19019,11 +19522,15 @@ only has read-only access to the sheet (i.e. the user has viewer permissions, or
 </tr>
 <tr>
 <td><strong>Parameters</strong></td>
+<td><strong>modifiedSince</strong> (optional): when specified with a <a href='#dates-and-times'>date and time</a> value, response will only include the objects that are modified on or after the date and time specified.</td>
+</tr>
+<tr>
+<td></td>
 <td>This operation supports query string parameters for pagination of results. For more information, see <a href="#paging-query-string-parameters">Paging Query String Parameters</a>.</td>
 </tr>
 <tr>
 <td><strong>Returns</strong></td>
-<td><a href="#indexresult-object">IndexResult object</a> containing an array of <a href="#sight-object">Sight object</a> limited to the following attributes:<ul><li>id</li><li>name</li><li>accessLevel</li><li>permalink</li><li>createdAt</li><li>modifiedAt</li></ul></td>
+<td><a href="#indexresult-object">IndexResult object</a> containing an array of <a href="#sight-object">Sight objects</a> limited to the following attributes:<ul><li>id</li><li>name</li><li>accessLevel</li><li>permalink</li><li>createdAt</li><li>modifiedAt</li></ul></td>
 </tr>
 </tbody></table>
 
@@ -19307,7 +19814,7 @@ only has read-only access to the sheet (i.e. the user has viewer permissions, or
 
 <p>Gets the list of public Templates to which the user has access.</p>
 
-<aside class="notice">This operation supports pagination of results. For more information, see <a href="#paging">Paging</a>.</aside>
+<aside class="notice">This operation supports pagination of results. For more information, see <a href='#paging'>Paging</a>.</aside>
 
 <table><thead>
 <tr>
@@ -19401,7 +19908,7 @@ only has read-only access to the sheet (i.e. the user has viewer permissions, or
 
 <p>Gets the list of user-created Templates to which the user has access.</p>
 
-<aside class="notice">This operation supports pagination of results. For more information, see <a href="#paging">Paging</a>.</aside>
+<aside class="notice">This operation supports pagination of results. For more information, see <a href='#paging'>Paging</a>.</aside>
 
 <table><thead>
 <tr>
@@ -19608,6 +20115,8 @@ only has read-only access to the sheet (i.e. the user has viewer permissions, or
 
 <h3 id="updaterequest-object">UpdateRequest Object</h3>
 
+<p>UpdateRequest object extends the <a href="#multirowemail-object">MultiRowEmail object</a>, adding the following:</p>
+
 <table><thead>
 <tr>
 <th></th>
@@ -19620,7 +20129,252 @@ only has read-only access to the sheet (i.e. the user has viewer permissions, or
 <td>number</td>
 <td>ID of the update request.</td>
 </tr>
+<tr>
+<td><strong>sentBy</strong></td>
+<td><a href="#user-object">User</a></td>
+<td>User object containing name and email of the sender.</td>
+</tr>
+<tr>
+<td><strong>schedule</strong></td>
+<td><a href="#schedule-object">Schedule</a></td>
+<td>The schedule for which update requests will be sent out.</td>
+</tr>
+<tr>
+<td><strong>createdAt</strong></td>
+<td>timestamp</td>
+<td>The date and time for when this request was originally created. Read-only.</td>
+</tr>
+<tr>
+<td><strong>modifiedAt</strong></td>
+<td>timestamp</td>
+<td>The date and time for when the last change was made to this request. Read-only.</td>
+</tr>
 </tbody></table>
+
+<h3 id="sentupdaterequest-object">SentUpdateRequest Object</h3>
+
+<table><thead>
+<tr>
+<th></th>
+<th></th>
+<th></th>
+</tr>
+</thead><tbody>
+<tr>
+<td><strong>id</strong></td>
+<td>number</td>
+<td>ID of the sent update request.</td>
+</tr>
+<tr>
+<td><strong>updateRequestId</strong></td>
+<td>number</td>
+<td>ID of the originating update request.</td>
+</tr>
+<tr>
+<td><strong>sentAt</strong></td>
+<td>timestamp</td>
+<td>The date and time for when the sent update request was sent to the recipient.</td>
+</tr>
+<tr>
+<td><strong>sentBy</strong></td>
+<td><a href="#user-object">User</a></td>
+<td>User object containing name and email of the sender.</td>
+</tr>
+<tr>
+<td><strong>status</strong></td>
+<td>string</td>
+<td>The status of the sent update request. It must be one of the following values:<ul><li><b>PENDING</b>: The request has not been responded by the recipient.</li><li><b>COMPLETE</b>: The request has been responded by the recipient.</li></ul></td>
+</tr>
+<tr>
+<td><strong>rowIds</strong></td>
+<td>number[]</td>
+<td>IDs of rows update is requested.</td>
+</tr>
+<tr>
+<td><strong>columnIds</strong></td>
+<td>number[]</td>
+<td>IDs of columns included in the request.</td>
+</tr>
+<tr>
+<td><strong>includeAttachments</strong></td>
+<td>boolean</td>
+<td>A flag to indicate whether or not the Attachments were included in the email.</td>
+</tr>
+<tr>
+<td><strong>includeDiscussions</strong></td>
+<td>boolean</td>
+<td>A flag to indicate whether or not the Discussions were included in the email.</td>
+</tr>
+<tr>
+<td><strong>sentTo</strong></td>
+<td><a href="#recipient-object">Recipient</a></td>
+<td>Recipient object.</td>
+</tr>
+<tr>
+<td><strong>subject</strong></td>
+<td>string</td>
+<td>The subject of the email.</td>
+</tr>
+<tr>
+<td><strong>message</strong></td>
+<td>string</td>
+<td>The message of the email.</td>
+</tr>
+</tbody></table>
+
+<h3 id="schedule-object">Schedule Object</h3>
+
+<table><thead>
+<tr>
+<th></th>
+<th></th>
+<th></th>
+</tr>
+</thead><tbody>
+<tr>
+<td><strong>type</strong></td>
+<td>string</td>
+<td>Schedule type. It must be one of the following values:<ul><li>ONCE</li><li>DAILY</li><li>WEEKLY</li><li>MONTHLY</li><li>YEARLY</li></ul></td>
+</tr>
+<tr>
+<td><strong>startAt</strong></td>
+<td>timestamp</td>
+<td>The date, time and time zone at which the first delivery will start.<br/><br/>The value is either in a string format or a numeric format:<ul><li>When the value is a string, it must be a valid <a href="http://en.wikipedia.org/wiki/ISO_8601">ISO-8601</a> date and time with an offset (YYYY-MM-DDThh:mm:ssTZD).</li><li>When the value is a number, it represents a date and time with no offset (UTC time zone). See <a href="#dates-and-times">Dates and Times</a> for more information.</li></ul>For ONCE schedule type, it must be later than the current date time.<br/><br/>For all other schedule types, it must be later than “2000-01-01T00:00:00Z” in string format or 946684800000 in numeric format.<br/><br/>The value must contain zero minute and zero second.<br/><br/>This attribute is applicable to all schedule types.<br/><br/>For more details, refer to the <a href="#table-of-schedule-object’s-attributes">Table of Schedule Object’s Attributes</a>.</td>
+</tr>
+<tr>
+<td><strong>endAt</strong></td>
+<td>timestamp</td>
+<td>The date, time and time zone at which the delivery schedule will end.<br/><br/>The value is either in a string format or a numeric format:<ul><li> When the value is a string, it must be a valid <a href="http://en.wikipedia.org/wiki/ISO_8601">ISO-8601</a> date and time with an offset (YYYY-MM-DDThh:mm:ssTZD).</li><li>When the value is a number, it represents a date and time with no offset (UTC time zone). See <a href="#dates-and-times">Dates and Times</a> for more information.</li></ul>The value must be later than startAt and the current date and time.<br/><br/>The value must contain zero hour, zero minute and zero second.<br/><br/>The offset (time zone) value must be the same as the offset (time zone) value in startAt.<br/><br/>This attribute is applicable to the following schedule types:<ul><li>DAILY</li><li>WEEKLY</li><li>MONTHLY</li><li>YEARLY</li></ul>For more details, refer to the <a href="#table-of-schedule-object’s-attributes">Table of Schedule Object’s Attributes</a>.</td>
+</tr>
+<tr>
+<td><strong>dayOfMonth</strong></td>
+<td>number</td>
+<td>The day within the month.<br/><br/>Valid range is 1 to 28.<br/><br/>This attribute is applicable to the following schedule type:<ul><li>MONTHLY</li></ul>For more details, refer to the <a href="#table-of-schedule-object’s-attributes">Table of Schedule Object’s Attributes</a>.</td>
+</tr>
+<tr>
+<td><strong>dayOrdinal</strong></td>
+<td>string</td>
+<td>It must be one of the following values:<ul><li>FIRST</li><li>SECOND</li><li>THIRD</li><li>FOURTH</li><li>LAST</li></ul>This attribute is applicable to the following schedule type:<ul><li>MONTHLY</li></ul>For more details, refer to the <a href="#table-of-schedule-object’s-attributes">Table of Schedule Object’s Attributes</a>.</td>
+</tr>
+<tr>
+<td><strong>dayDescriptors</strong></td>
+<td>string[]</td>
+<td>A string array consists of one or more of the following values:<ul><li>DAY</li><li>WEEKDAY</li><li>WEEKEND</li><li>SUNDAY</li><li>MONDAY</li><li>TUESDAY</li><li>WEDNESDAY</li><li>THURSDAY</li><li>FRIDAY</li><li>SATURDAY</li></ul>The subset of value(s) applicable to the schedule type are as followed:<br/><br/><table><tr><td><strong>Value</strong></td><td><center><strong>Daily schedule</strong></center></td><td><center><strong>Weekly schedule</strong></center></td><td><center><strong>Monthly schedule</strong></center></td></tr><tr><td><strong>DAY</strong></td><td></td><td></td><td><center>&check;</center></td></tr><tr><td><strong>WEEKDAY</strong></td><td><center>&check;</center></td><td></td><td><center>&check;</center></td></tr><tr><td><strong>WEEKEND</strong></td><td></td><td></td><td><center>&check;</center></td></tr><tr><td><strong>SUNDAY</strong></td><td></td><td><center>&check;</center></td><td><center>&check;</center></td></tr><tr><td><strong>MONDAY</strong></td><td></td><td><center>&check;</center></td><td><center>&check;</center></td></tr><tr><td><strong>TUESDAY</strong></td><td></td><td><center>&check;</center></td><td><center>&check;</center></td></tr><tr><td><strong>WEDNESDAY</strong></td><td></td><td><center>&check;</center></td><td><center>&check;</center></td></tr><tr><td><strong>THURSDAY</strong></td><td></td><td><center>&check;</center></td><td><center>&check;</center></td></tr><tr><td><strong>FRIDAY</strong></td><td></td><td><center>&check;</center></td><td><center>&check;</center></td></tr><tr><td><strong>SATURDAY</strong></td><td></td><td><center>&check;</center></td><td><center>&check;</center></td></tr></table><br/>For more details, refer to the <a href="#table-of-schedule-object’s-attributes">Table of Schedule Object’s Attributes</a>.</td>
+</tr>
+<tr>
+<td><strong>repeatEvery</strong></td>
+<td>number</td>
+<td>Frequency on which the request will be delivered.  The unit is a function of the “type” attribute. For example, for MONTHLY schedule, repeatEvery=1 means every month.<br/><br/>Valid range is 1 to 99.<br/><br/>This attribute is applicable to the following schedule types:<ul><li>DAILY</li><li>WEEKLY</li><li>YEARLY</li><li>MONTHLY</li></ul>For more details, refer to the <a href="#table-of-schedule-object’s-attributes">Table of Schedule Object’s Attributes</a>.</td>
+</tr>
+<tr>
+<td><strong>lastSentAt</strong></td>
+<td>timestamp</td>
+<td>The date and time for when the last request was sent. Read-only.</td>
+</tr>
+<tr>
+<td><strong>nextSendAt</strong></td>
+<td>timestamp</td>
+<td>The date and time for when the next request is scheduled to send. Read-only.</td>
+</tr>
+</tbody></table>
+
+<h4 id="table-of-schedule-object’s-attributes">Table of Schedule Object’s Attributes</h4>
+
+<p>The following table shows valid attribute values for each of the schedule type.</p>
+
+<table><thead>
+<tr>
+<th>Attributes</th>
+<th>Send Now</th>
+<th>Deliver On</th>
+<th>Daily Schedule</th>
+<th>Weekly Schedule</th>
+<th>Monthly Schedule</th>
+<th>Yearly Schedule</th>
+</tr>
+</thead><tbody>
+<tr>
+<td><strong>type</strong></td>
+<td>ONCE</td>
+<td>ONCE</td>
+<td>DAILY</td>
+<td>WEEKLY</td>
+<td>MONTHLY</td>
+<td>YEARLY</td>
+</tr>
+<tr>
+<td><strong>startAt</strong></td>
+<td>N/A</td>
+<td>Required</td>
+<td>Required</td>
+<td>Required</td>
+<td>Required</td>
+<td>Required</td>
+</tr>
+<tr>
+<td><strong>endAt</strong></td>
+<td>N/A</td>
+<td>N/A</td>
+<td>Optional</td>
+<td>Optional</td>
+<td>Optional</td>
+<td>Optional</td>
+</tr>
+<tr>
+<td><strong>dayOfMonth</strong></td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>Required<br/>(see Note 3)</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td><strong>dayOrdinal</strong></td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>Required<br/>(see Note 3)</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td><strong>dayDescriptors</strong></td>
+<td>N/A</td>
+<td>N/A</td>
+<td>Required<br/>(see Note 1)</td>
+<td>Required<br/>(see Note 2)</td>
+<td>Required<br/>(see Note 3)</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td><strong>repeatEvery</strong></td>
+<td>N/A</td>
+<td>N/A</td>
+<td>Required<br/>(see Note 1)</td>
+<td>Required</td>
+<td>Required</td>
+<td>Required</td>
+</tr>
+</tbody></table>
+
+<p><strong>Note:</strong></p>
+
+<ol>
+<li>For <strong>DAILY</strong> schedule, only one of the attributes can be specified:
+
+<ul>
+<li><strong>repeatEvery</strong>, or</li>
+<li><strong>dayDescriptors</strong>. The only supported value is <strong>WEEKDAY</strong>.</li>
+</ul></li>
+<li>For <strong>WEEKLY</strong> schedule,  the <strong>dayDescriptors</strong> attribute requires one or more of the following values: <strong>SUNDAY</strong>, <strong>MONDAY</strong>, <strong>TUESDAY</strong>, <strong>WEDNESDAY</strong>, <strong>THURSDAY</strong>, <strong>FRIDAY</strong>, and <strong>SATURDAY</strong>.</li>
+<li>For <strong>MONTHLY</strong> schedule, only one of the following attribute combinations are valid:
+
+<ul>
+<li><strong>dayOfMonth</strong>, or</li>
+<li><strong>dayOrdinal</strong> together with <strong>dayDescriptors</strong>.  <strong>dayDescriptors</strong> should contain only one value.</li>
+</ul></li>
+</ol>
 
 <h2 id="create-update-request">Create Update Request</h2>
 
@@ -19634,79 +20388,96 @@ only has read-only access to the sheet (i.e. the user has viewer permissions, or
 -X POST <span class="se">\</span>
 -d <span class="s1">'{ \
     "sendTo": [ \
-        {"email": "email789@smartsheet.com"}, \
-        {"email": "email0123@smartsheet.com"} \
+        {"email": "recipient1@smartsheet.com"}, \
+        {"email": "recipient2@smartsheet.com"} \
     ], \
     "subject": "some subject", \
     "message": "some message", \
-    "ccMe": (true|false), \
-    "rowIds": [rowId1, rowId2], \
-    "columnIds": [colId1, colId2], \
-    "includeAttachments": (true|false), \
-    "includeDiscussions": (true|false) \
+    "ccMe": false, \
+    "rowIds": [4508292249610116, 2256492435924868], \
+    "columnIds": [4508284196546436, 2256484382861188], \
+    "includeAttachments": false, \
+    "includeDiscussions": false \
 }'</span>
 </code></pre>
 
-<pre class="highlight csharp"><code><span class="c1">// Specify recipients.
-</span><span class="n">Recipient</span><span class="p">[]</span> <span class="n">recipients</span> <span class="p">=</span> <span class="k">new</span> <span class="n">Recipient</span><span class="p">[]</span> <span class="p">{</span> 
-    <span class="k">new</span> <span class="n">Recipient</span> <span class="p">{</span> <span class="n">Email</span> <span class="p">=</span> <span class="s">"email789@smartsheet.com"</span> <span class="p">},</span>
-    <span class="k">new</span> <span class="n">Recipient</span> <span class="p">{</span> <span class="n">Email</span> <span class="p">=</span> <span class="s">"email0123@smartsheet.com"</span> <span class="p">}</span>
-<span class="p">};</span>
+<!--Pending SDK Update 
+```csharp
+// Specify recipients.
+Recipient[] recipients = new Recipient[] { 
+    new Recipient { Email = "recipient1@smartsheet.com" },
+    new Recipient { Email = "recipient2@smartsheet.com" }
+};
 
-<span class="c1">// Configure email.
-</span><span class="n">MultiRowEmail</span> <span class="n">multiEmail</span> <span class="p">=</span> <span class="k">new</span> <span class="n">MultiRowEmail</span> <span class="p">{</span>
-    <span class="n">SendTo</span> <span class="p">=</span> <span class="n">recipients</span><span class="p">,</span>
-    <span class="n">Subject</span> <span class="p">=</span> <span class="s">"some subject"</span><span class="p">,</span>
-    <span class="n">Message</span> <span class="p">=</span> <span class="s">"some message"</span><span class="p">,</span>
-    <span class="n">CcMe</span> <span class="p">=</span> <span class="k">true</span><span class="p">,</span>
-    <span class="n">RowIds</span> <span class="p">=</span> <span class="k">new</span> <span class="kt">long</span><span class="p">[]</span> <span class="p">{</span> <span class="n">rowId1</span><span class="p">,</span> <span class="n">rowId2</span> <span class="p">},</span>
-    <span class="n">ColumnIds</span> <span class="p">=</span> <span class="k">new</span> <span class="kt">long</span><span class="p">[]</span> <span class="p">{</span> <span class="n">colId1</span><span class="p">,</span> <span class="n">colId2</span> <span class="p">},</span>
-    <span class="n">IncludeAttachments</span> <span class="p">=</span> <span class="k">true</span><span class="p">,</span>
-    <span class="n">IncludeDiscussions</span> <span class="p">=</span> <span class="k">true</span>
-<span class="p">};</span>
+// Configure email.
+MultiRowEmail multiEmail = new MultiRowEmail {
+    SendTo = recipients,
+    Subject = "some subject",
+    Message = "some message",
+    CcMe = true,
+    RowIds = new long[] { rowId1, rowId2 },
+    ColumnIds = new long[] { colId1, colId2 },
+    IncludeAttachments = true,
+    IncludeDiscussions = true
+};
 
-<span class="c1">// Send update request via email.
-</span><span class="n">smartsheet</span><span class="p">.</span><span class="n">SheetResources</span><span class="p">.</span><span class="nf">SendUpdateRequest</span><span class="p">(</span><span class="n">sheetId</span><span class="p">,</span> <span class="n">multiEmail</span><span class="p">);</span>
+// Send update request via email.
+smartsheet.SheetResources.SendUpdateRequest(sheetId, multiEmail);
+```-->
+
+<pre class="highlight csharp"><code><span class="c1">// [todo]
+</span></code></pre>
+
+<pre class="highlight javascript"><code><span class="c1">// [todo]</span>
 </code></pre>
 
-<pre class="highlight java"><code><span class="c1">// Specify recipients.</span>
-<span class="n">RecipientEmail</span> <span class="n">recipientEmail</span> <span class="o">=</span> <span class="k">new</span> <span class="n">RecipientEmail</span><span class="o">.</span><span class="na">AddRecipientEmailBuilder</span><span class="o">()</span>
-                <span class="o">.</span><span class="na">setEmail</span><span class="o">(</span><span class="s">"email789@smartsheet.com"</span><span class="o">)</span>
-                <span class="o">.</span><span class="na">setEmail</span><span class="o">(</span><span class="s">"email0123@smartsheet.com"</span><span class="o">)</span>
-                <span class="o">.</span><span class="na">build</span><span class="o">();</span>
+<!--Pending SDK Update 
+```java
+// Specify recipients.
+RecipientEmail recipientEmail = new RecipientEmail.AddRecipientEmailBuilder()
+                .setEmail("recipient1@smartsheet.com")
+                .setEmail("recipient2@smartsheet.com")
+                .build();
 
-<span class="n">List</span><span class="o">&lt;</span><span class="n">Recipient</span><span class="o">&gt;</span> <span class="n">recipients</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ArrayList</span><span class="o">&lt;</span><span class="n">Recipient</span><span class="o">&gt;();</span>
-<span class="n">recipients</span><span class="o">.</span><span class="na">add</span><span class="o">(</span><span class="n">recipientEmail</span><span class="o">);</span>
+List<Recipient> recipients = new ArrayList<Recipient>();
+recipients.add(recipientEmail);
 
-<span class="c1">// Configure email.</span>
-<span class="n">MultiRowEmail</span> <span class="n">multiRowEmail</span> <span class="o">=</span> <span class="k">new</span> <span class="n">MultiRowEmail</span><span class="o">.</span><span class="na">AddMultiRowEmailBuilder</span><span class="o">()</span>
-    <span class="o">.</span><span class="na">setSendTo</span><span class="o">(</span><span class="n">recipients</span><span class="o">)</span>
-    <span class="o">.</span><span class="na">setSubject</span><span class="o">(</span><span class="s">"some subject"</span><span class="o">)</span>
-    <span class="o">.</span><span class="na">setMessage</span><span class="o">(</span><span class="s">"some message"</span><span class="o">)</span>
-    <span class="o">.</span><span class="na">setCcMe</span><span class="o">(</span><span class="kc">false</span><span class="o">)</span>
-    <span class="o">.</span><span class="na">setRowIds</span><span class="o">(</span><span class="n">Arrays</span><span class="o">.</span><span class="na">asList</span><span class="o">(</span><span class="n">rowId1</span><span class="o">,</span> <span class="n">rowId2</span><span class="o">)</span>
-    <span class="o">.</span><span class="na">setColumnIds</span><span class="o">(</span><span class="n">Arrays</span><span class="o">.</span><span class="na">asList</span><span class="o">(</span><span class="n">columnId1</span><span class="o">,</span> <span class="n">columnId2</span><span class="o">)</span>
-    <span class="o">.</span><span class="na">setIncludeAttachments</span><span class="o">(</span><span class="kc">false</span><span class="o">)</span>
-    <span class="o">.</span><span class="na">setIncludeDiscussions</span><span class="o">(</span><span class="kc">false</span><span class="o">)</span>
-    <span class="o">.</span><span class="na">build</span><span class="o">();</span>
-
-<span class="c1">// Send update request via email.</span>
-<span class="n">smartsheet</span><span class="o">.</span><span class="na">sheetResources</span><span class="o">().</span><span class="na">createUpdateRequest</span><span class="o">(</span><span class="n">sheetId</span><span class="o">,</span> <span class="n">multiRowEmail</span><span class="o">);</span>
+// Configure email.
+MultiRowEmail multiRowEmail = new MultiRowEmail.AddMultiRowEmailBuilder()
+    .setSendTo(recipients)
+    .setSubject(&ldquo;some subject&rdquo;)
+    .setMessage(&ldquo;some message&rdquo;)
+    .setCcMe(false)
+    .setRowIds(Arrays.asList(rowId1, rowId2)
+    .setColumnIds(Arrays.asList(columnId1, columnId2)
+    .setIncludeAttachments(false)
+    .setIncludeDiscussions(false)
+    .build();
+    
+// Send update request via email.
+smartsheet.sheetResources().createUpdateRequest(sheetId, multiRowEmail);
+&ldquo;`&ndash;>
+<pre class="highlight java"><code><span class="c1">// [todo]</span>
 </code></pre>
 
-<pre class="highlight python"><code><span class="c"># Configure email.</span>
-<span class="n">email</span> <span class="o">=</span> <span class="n">smartsheet</span><span class="o">.</span><span class="n">models</span><span class="o">.</span><span class="n">MultiRowEmail</span><span class="p">()</span>
-<span class="n">email</span><span class="o">.</span><span class="n">send_to</span> <span class="o">=</span> <span class="p">[</span>
-    <span class="n">smartsheet</span><span class="o">.</span><span class="n">models</span><span class="o">.</span><span class="n">Recipient</span><span class="p">({</span><span class="s">'email'</span><span class="p">:</span> <span class="s">'email789@smartsheet.com'</span><span class="p">}),</span>
-    <span class="n">smartsheet</span><span class="o">.</span><span class="n">models</span><span class="o">.</span><span class="n">Recipient</span><span class="p">({</span><span class="s">'email'</span><span class="p">:</span> <span class="s">'email0123@smartsheet.com'</span><span class="p">})]</span> 
-<span class="n">email</span><span class="o">.</span><span class="n">subject</span> <span class="o">=</span> <span class="s">'some subject'</span>
-<span class="n">email</span><span class="o">.</span><span class="n">message</span> <span class="o">=</span> <span class="s">'some message'</span>
-<span class="n">email</span><span class="o">.</span><span class="n">cc_me</span> <span class="o">=</span> <span class="bp">False</span>
-<span class="n">email</span><span class="o">.</span><span class="n">row_ids</span> <span class="o">=</span> <span class="p">[</span><span class="n">rowId1</span><span class="p">,</span> <span class="n">rowId2</span><span class="p">]</span>
-<span class="n">email</span><span class="o">.</span><span class="n">column_ids</span> <span class="o">=</span> <span class="p">[</span><span class="n">columnId1</span><span class="p">,</span> <span class="n">columnId2</span><span class="p">]</span>
+<!--Pending SDK Update 
+```python
+# Configure email.
+email = smartsheet.models.MultiRowEmail()
+email.send_to = [
+    smartsheet.models.Recipient({'email': 'recipient1@smartsheet.com'}),
+    smartsheet.models.Recipient({'email': 'recipient2@smartsheet.com'})] 
+email.subject = 'some subject'
+email.message = 'some message'
+email.cc_me = False
+email.row_ids = [rowId1, rowId2]
+email.column_ids = [columnId1, columnId2]
 
-<span class="c"># Send update request.</span>
-<span class="n">smartsheet</span><span class="o">.</span><span class="n">Sheets</span><span class="o">.</span><span class="n">send_update_request</span><span class="p">(</span><span class="n">sheetId</span><span class="p">,</span> <span class="n">email</span><span class="p">)</span>
+# Send update request.
+smartsheet.Sheets.send_update_request(sheetId, email)
+```-->
+
+<pre class="highlight python"><code><span class="c"># [todo]</span>
 </code></pre>
 
 <blockquote>
@@ -19714,17 +20485,102 @@ only has read-only access to the sheet (i.e. the user has viewer permissions, or
 </blockquote>
 
 <pre class="highlight json"><code><span class="p">{</span><span class="w">
+    </span><span class="s2">"message"</span><span class="p">:</span><span class="w"> </span><span class="s2">"SUCCESS"</span><span class="p">,</span><span class="w">
     </span><span class="s2">"resultCode"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
     </span><span class="s2">"result"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
-        </span><span class="s2">"id"</span><span class="p">:</span><span class="w"> </span><span class="mi">4583173393803140</span><span class="w">
-    </span><span class="p">},</span><span class="w">
-    </span><span class="s2">"message"</span><span class="p">:</span><span class="w"> </span><span class="s2">"SUCCESS"</span><span class="w">
+        </span><span class="s2">"sendTo"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+            </span><span class="p">{</span><span class="s2">"email"</span><span class="p">:</span><span class="w"> </span><span class="s2">"recipient1@smartsheet.com"</span><span class="p">},</span><span class="w">
+            </span><span class="p">{</span><span class="s2">"email"</span><span class="p">:</span><span class="w"> </span><span class="s2">"recipient2@smartsheet.com"</span><span class="p">}</span><span class="w">
+        </span><span class="p">],</span><span class="w">
+        </span><span class="s2">"subject"</span><span class="p">:</span><span class="w"> </span><span class="s2">"some subject"</span><span class="p">,</span><span class="w">
+        </span><span class="s2">"message"</span><span class="p">:</span><span class="w"> </span><span class="s2">"some message"</span><span class="p">,</span><span class="w">
+        </span><span class="s2">"ccMe"</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span><span class="w">
+        </span><span class="s2">"includeAttachments"</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span><span class="w">
+        </span><span class="s2">"includeDiscussions"</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span><span class="w">
+        </span><span class="s2">"columnIds"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="mi">4508284196546436</span><span class="p">,</span><span class="w"> </span><span class="mi">2256484382861188</span><span class="p">],</span><span class="w">
+        </span><span class="s2">"rowIds"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="mi">4508292249610116</span><span class="p">,</span><span class="w"> </span><span class="mi">2256492435924868</span><span class="p">],</span><span class="w">
+        </span><span class="s2">"id"</span><span class="p">:</span><span class="w"> </span><span class="mi">4523799765903236</span><span class="p">,</span><span class="w">
+        </span><span class="s2">"sentBy"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+            </span><span class="s2">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"John Doe"</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"email"</span><span class="p">:</span><span class="w"> </span><span class="s2">"john.doe@smartsheet.com"</span><span class="w">
+        </span><span class="p">},</span><span class="w">
+        </span><span class="s2">"schedule"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+            </span><span class="s2">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ONCE"</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"startAt"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2016-05-16T22:33:28Z"</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"nextSendAt"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2016-05-16T22:33:28Z"</span><span class="w">
+        </span><span class="p">}</span><span class="w">
+    </span><span class="p">}</span><span class="w">
 </span><span class="p">}</span><span class="w">
 </span></code></pre>
 
+<blockquote>
+<p>Example Request:</p>
+</blockquote>
+
+<pre class="highlight shell"><code>curl https://api.smartsheet.com/2.0/sheets/<span class="o">{</span>sheetId<span class="o">}</span>/updaterequests <span class="se">\</span>
+-H <span class="s2">"Authorization: Bearer ACCESS_TOKEN"</span> <span class="se">\</span>
+-H <span class="s2">"Content-Type: application/json"</span> <span class="se">\</span>
+-X POST <span class="se">\</span>
+-d <span class="s1">'{ \
+    "sendTo": [ \
+        {"email": "recipient1@smartsheet.com"} \
+    ], \
+    "subject": "Sample Monthly Update Request", \
+    "message": "Please update my online sheet.", \
+    "ccMe": false, \
+    "rowIds": [7886095586224004], \
+    "columnIds": [6962516556310404, 3584816835782532], \
+    "includeAttachments": true, \
+    "includeDiscussions": true, \
+    "schedule": { \
+        "type": "MONTHLY", \
+        "startAt": "2016-04-01T19:00:00Z", \
+        "endAt": "2016-12-31T07:00:00Z", \
+        "dayOfMonth": 1, \
+        "repeatEvery": 1 \
+    } \
+}'</span>
+</code></pre>
+
+<blockquote>
+<p>Example Response:</p>
+</blockquote>
+
+<pre class="highlight json"><code><span class="p">{</span><span class="w">
+    </span><span class="s2">"message"</span><span class="p">:</span><span class="w"> </span><span class="s2">"SUCCESS"</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"resultCode"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"result"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+        </span><span class="s2">"sendTo"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+            </span><span class="p">{</span><span class="s2">"email"</span><span class="p">:</span><span class="w"> </span><span class="s2">"recipient1@smartsheet.com"</span><span class="p">}</span><span class="w">
+        </span><span class="p">],</span><span class="w">
+        </span><span class="s2">"subject"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Sample Monthly Update Request"</span><span class="p">,</span><span class="w">
+        </span><span class="s2">"message"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Please update my online sheet."</span><span class="p">,</span><span class="w">
+        </span><span class="s2">"ccMe"</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span><span class="w">
+        </span><span class="s2">"includeAttachments"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w">
+        </span><span class="s2">"includeDiscussions"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w">
+        </span><span class="s2">"columnIds"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="mi">6962516556310404</span><span class="p">,</span><span class="w"> </span><span class="mi">3584816835782532</span><span class="p">],</span><span class="w">
+        </span><span class="s2">"rowIds"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="mi">7886095586224004</span><span class="p">],</span><span class="w">
+        </span><span class="s2">"id"</span><span class="p">:</span><span class="w"> </span><span class="mi">7820135625975684</span><span class="p">,</span><span class="w">
+        </span><span class="s2">"sentBy"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+            </span><span class="s2">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"John Doe"</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"email"</span><span class="p">:</span><span class="w"> </span><span class="s2">"john.doe@smartsheet.com"</span><span class="w">
+        </span><span class="p">},</span><span class="w">
+        </span><span class="s2">"schedule"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+            </span><span class="s2">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"MONTHLY"</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"startAt"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2016-04-01T19:00:00Z"</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"endAt"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2016-12-31T07:00:00Z"</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"dayOfMonth"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"repeatEvery"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"nextSendAt"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2016-05-01T19:00:00Z"</span><span class="w">
+        </span><span class="p">}</span><span class="w">
+    </span><span class="p">}</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre>
+ 
+
 <p><code class="prettyprint">POST /sheets/{sheetId}/updaterequests</code></p>
 
-<p>Creates an Update Request for the specified Row(s) within the Sheet. An email notification (containing a link to the update request) will be asynchronously sent to the specified recipient(s).</p>
+<p>Creates an Update Request for the specified Row(s) within the Sheet. An email notification (containing a link to the update request) will be sent to the specified recipient(s) according to the specified scheduled.</p>
 
 <aside class="notice" >The recipient(s) of an update request must be specified using email address(es) only. Sending an update request to a <a href="#groups">Group</a> is not supported.</aside>
 
@@ -19744,7 +20600,7 @@ only has read-only access to the sheet (i.e. the user has viewer permissions, or
 </tr>
 <tr>
 <td><strong>Request Body</strong></td>
-<td><a href="#multirowemail-object">MultiRowEmail object</a><br/><br/>The MultiRowEmail object in the request body must specify one or more of the following attributes:<ul><li><b>columnIds</b>: number[]</li><li><b>includeAttachments</b>: true</li><li><b>includeDiscussions</b>: true</li></ul></td>
+<td><a href="#updaterequest-object">UpdateRequest object</a>.<br/><br/>The UpdateRequest object in the request body must specify one or more of the following attributes:<ul><li><b>sendTo</b>: <a href="#recipient-object">Recipient</a>[]</li><li><b>rowIds</b>: number[]</li><li>One or more of the followings:<ul><li><b>columnIds</b>: number[]</li><li><b>includeAttachments</b>: true</li><li><b>includeDiscussions</b>: true</li></ul></ul>The following attributes have the following values when not specified:<ul><li><b>Subject</b>: Update Request: {Sheet Name}</li><li><b>Message</b>: Please update the following rows in my online sheet.</li><li><b>ccMe</b>: false</li></ul>When the Schedule object is not specified, the request will be sent to the recipients immediately.</td>
 </tr>
 <tr>
 <td><strong>Returns</strong></td>
@@ -19752,7 +20608,584 @@ only has read-only access to the sheet (i.e. the user has viewer permissions, or
 </tr>
 <tr>
 <td><strong>Errors</strong></td>
-<td>If an error occurs because the request specified one or more <a href="#alternate-email-address(es)"><em>alternate</em> email addresses</a> (i.e., not the primary email address associated with the User account), the <a href="#errors">Error object</a> returned will contain a <strong>detail</strong> attribute set to an array of objects, each object in the array having the following attributes:<ul><li><strong>alternateEmailAddress</strong>: User&rsquo;s <em>alternate</em> email address that was specified in the request</li><li><strong>primaryEmailAddress</strong>: User&rsquo;s primary email address that must instead be specified for the operation</li></ul>For example:<br/>{<br/>&#160;&#160;&ldquo;errorCode&rdquo;: 5xxx,<br/>&#160;&#160;&ldquo;message&rdquo;: &ldquo;u1+1@smartsheet.com is an alternate address of the user u1@smartsheet.com. Please retry sending directly to u1@smartsheet.com.&rdquo;<br/>&#160;&#160;&ldquo;detail&rdquo;: [<br/>&#160;&#160;&#160;&#160;&#160;&#160;{<br/>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&ldquo;alternateEmailAddress&rdquo;: &ldquo;u1+1@smartsheet.com&rdquo;,<br/>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&ldquo;primaryEmailAddress&rdquo;: &ldquo;u1@smartsheet.com&rdquo;<br/>&#160;&#160;&#160;&#160;&#160;&#160;}<br/>&#160;&#160;]<br/>}</td>
+<td>If an error occurs because the request specified one or more <a href="#alternate-email-address(es)"><em>alternate</em> email addresses</a> (i.e., not the primary email address associated with the User account), the <a href="#errors">Error object</a> returned will contain a <strong>detail</strong> attribute set to an array of objects, each object in the array having the following attributes:<ul><li><strong>alternateEmailAddress</strong>: User&rsquo;s <em>alternate</em> email address that was specified in the request</li><li><strong>primaryEmailAddress</strong>: User&rsquo;s primary email address that must instead be specified for the operation</li></ul>For example:<br/>{<br/>&nbsp;&nbsp;&ldquo;errorCode&rdquo;: 5xxx,<br/>&nbsp;&nbsp;&ldquo;message&rdquo;: &ldquo;u1+1@smartsheet.com is an alternate address of the user u1@smartsheet.com. Please retry sharing directly to u1@smartsheet.com.&rdquo;<br/>&nbsp;&nbsp;&ldquo;detail&rdquo;: [<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&ldquo;alternateEmailAddress&rdquo;: &ldquo;u1+1@smartsheet.com&rdquo;,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&ldquo;primaryEmailAddress&rdquo;: &ldquo;u1@smartsheet.com&rdquo;<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br/>&nbsp;&nbsp;]<br/>}</td>
+</tr>
+</tbody></table>
+
+<h2 id="delete-update-request">Delete Update Request</h2>
+
+<blockquote>
+<p>Example Request:</p>
+</blockquote>
+
+<pre class="highlight shell"><code>curl https://api.smartsheet.com/2.0/sheets/<span class="o">{</span>sheetId<span class="o">}</span>/updaterequests/<span class="o">{</span>updateRequestId<span class="o">}</span> <span class="se">\</span>
+-H <span class="s2">"Authorization: Bearer ACCESS_TOKEN"</span> <span class="se">\</span>
+-X DELETE
+</code></pre>
+
+<pre class="highlight csharp"><code><span class="c1">// [todo]
+</span></code></pre>
+
+<pre class="highlight javascript"><code><span class="c1">// [todo]</span>
+</code></pre>
+
+<pre class="highlight java"><code><span class="c1">// [todo]</span>
+</code></pre>
+
+<pre class="highlight python"><code><span class="c"># [todo]</span>
+</code></pre>
+
+<blockquote>
+<p>Example Response:</p>
+</blockquote>
+
+<pre class="highlight json"><code><span class="p">{</span><span class="w">
+    </span><span class="s2">"message"</span><span class="p">:</span><span class="w"> </span><span class="s2">"SUCCESS"</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"resultCode"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre>
+
+<p><code class="prettyprint">DELETE /sheets/{sheetId}/updaterequests/{updateRequestId}</code></p>
+
+<p>Terminates the future scheduled delivery of the Update Request specified in the URL.</p>
+
+<table><thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead><tbody>
+<tr>
+<td><strong>Access Scope</strong></td>
+<td>Must be one of the followings:<ul><li>ADMIN_SHEETS, or</li><li>WRITE_SHEETS (the access token owner must be the submitter of the specified update request).</li></ul></td>
+</tr>
+<tr>
+<td><strong>Headers</strong></td>
+<td><strong>Authorization</strong>: Bearer ACCESS_TOKEN</td>
+</tr>
+<tr>
+<td><strong>Returns</strong></td>
+<td><a href="#result-object">Result object</a></td>
+</tr>
+</tbody></table>
+
+<h2 id="get-update-request">Get Update Request</h2>
+
+<blockquote>
+<p>Example Request:</p>
+</blockquote>
+
+<pre class="highlight shell"><code>curl https://api.smartsheet.com/2.0/sheets/<span class="o">{</span>sheetId<span class="o">}</span>/updaterequests/<span class="o">{</span>updateRequestId<span class="o">}</span> <span class="se">\</span>
+-H <span class="s2">"Authorization: Bearer ACCESS_TOKEN"</span>
+</code></pre>
+
+<pre class="highlight csharp"><code><span class="c1">// [todo]
+</span></code></pre>
+
+<pre class="highlight javascript"><code><span class="c1">// [todo]</span>
+</code></pre>
+
+<pre class="highlight java"><code><span class="c1">// [todo]</span>
+</code></pre>
+
+<pre class="highlight python"><code><span class="c"># [todo]</span>
+</code></pre>
+
+<blockquote>
+<p>Example Response:</p>
+</blockquote>
+
+<pre class="highlight json"><code><span class="p">{</span><span class="w">
+    </span><span class="s2">"sendTo"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+        </span><span class="p">{</span><span class="s2">"email"</span><span class="p">:</span><span class="w"> </span><span class="s2">"recipient1@smartsheet.com"</span><span class="p">}</span><span class="w">
+    </span><span class="p">],</span><span class="w">
+    </span><span class="s2">"subject"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Sample Monthly Update Request"</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"message"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Please update my online sheet."</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"ccMe"</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"includeAttachments"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"includeDiscussions"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"columnIds"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="mi">6962516556310404</span><span class="p">,</span><span class="w"> </span><span class="mi">3584816835782532</span><span class="w"> </span><span class="p">],</span><span class="w">
+    </span><span class="s2">"rowIds"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="mi">7886095586224004</span><span class="w"> </span><span class="p">],</span><span class="w">
+    </span><span class="s2">"id"</span><span class="p">:</span><span class="w"> </span><span class="mi">7820135625975684</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"sentBy"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+        </span><span class="s2">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"John Doe"</span><span class="p">,</span><span class="w">
+        </span><span class="s2">"email"</span><span class="p">:</span><span class="w"> </span><span class="s2">"john.doe@smartsheet.com"</span><span class="w">
+    </span><span class="p">},</span><span class="w">
+    </span><span class="s2">"schedule"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+        </span><span class="s2">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"MONTHLY"</span><span class="p">,</span><span class="w">
+        </span><span class="s2">"startAt"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2016-04-01T19:00:00Z"</span><span class="p">,</span><span class="w">
+        </span><span class="s2">"endAt"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2016-12-31T07:00:00Z"</span><span class="p">,</span><span class="w">
+        </span><span class="s2">"dayOfMonth"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w">
+        </span><span class="s2">"repeatEvery"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w">
+        </span><span class="s2">"lastSentAt"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2016-05-01T19:00:03Z"</span><span class="p">,</span><span class="w">
+        </span><span class="s2">"nextSendAt"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2016-06-01T19:00:00Z"</span><span class="w">
+    </span><span class="p">},</span><span class="w">
+    </span><span class="s2">"createdAt"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2016-03-28T18:45:59Z"</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"modifiedAt"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2016-03-28T18:45:59Z"</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre>
+
+<p><code class="prettyprint">GET /sheets/{sheetId}/updaterequests/{updateRequestId}</code></p>
+
+<p>Gets the specified Update Request for the Sheet that has a future schedule.</p>
+
+<table><thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead><tbody>
+<tr>
+<td><strong>Access Scope</strong></td>
+<td>READ_SHEETS</td>
+</tr>
+<tr>
+<td><strong>Headers</strong></td>
+<td><strong>Authorization</strong>: Bearer ACCESS_TOKEN</td>
+</tr>
+<tr>
+<td><strong>Returns</strong></td>
+<td><a href="#updaterequest-object">UpdateRequest object</a>.<br/><br/>The rowIds and columnIds in the returned UpdateRequest object represent the list at the time the update request was created or last modified. The lists may contain IDs of rows or columns that are no longer valid (e.g. they have been removed from the sheet).</td>
+</tr>
+</tbody></table>
+
+<h2 id="list-update-requests">List Update Requests</h2>
+
+<blockquote>
+<p>Example Request:</p>
+</blockquote>
+
+<pre class="highlight shell"><code>curl https://api.smartsheet.com/2.0/sheets/<span class="o">{</span>sheetId<span class="o">}</span>/updaterequests <span class="se">\</span>
+-H <span class="s2">"Authorization: Bearer ACCESS_TOKEN"</span>
+</code></pre>
+
+<pre class="highlight csharp"><code><span class="c1">// [todo]
+</span></code></pre>
+
+<pre class="highlight javascript"><code><span class="c1">// [todo]</span>
+</code></pre>
+
+<pre class="highlight java"><code><span class="c1">// [todo]</span>
+</code></pre>
+
+<pre class="highlight python"><code><span class="c"># [todo]</span>
+</code></pre>
+
+<blockquote>
+<p>Example Response:</p>
+</blockquote>
+
+<pre class="highlight json"><code><span class="p">{</span><span class="w">
+    </span><span class="s2">"pageNumber"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"pageSize"</span><span class="p">:</span><span class="w"> </span><span class="mi">100</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"totalPages"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"totalCount"</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"data"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+        </span><span class="p">{</span><span class="w">
+            </span><span class="s2">"sendTo"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+                </span><span class="p">{</span><span class="s2">"email"</span><span class="p">:</span><span class="w"> </span><span class="s2">"recipient1@smartsheet.com"</span><span class="p">}</span><span class="w">
+            </span><span class="p">],</span><span class="w">
+            </span><span class="s2">"subject"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Sample Monthly Update Request"</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"message"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Please update my online sheet."</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"ccMe"</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"id"</span><span class="p">:</span><span class="w"> </span><span class="mi">7820135625975684</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"sentBy"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+                </span><span class="s2">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"John Doe"</span><span class="p">,</span><span class="w">
+                </span><span class="s2">"email"</span><span class="p">:</span><span class="w"> </span><span class="s2">"john.doe@smartsheet.com"</span><span class="w">
+            </span><span class="p">},</span><span class="w">
+            </span><span class="s2">"schedule"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+                </span><span class="s2">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"MONTHLY"</span><span class="p">,</span><span class="w">
+                </span><span class="s2">"startAt"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2016-04-01T19:00:00Z"</span><span class="p">,</span><span class="w">
+                </span><span class="s2">"endAt"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2016-12-31T07:00:00Z"</span><span class="p">,</span><span class="w">
+                </span><span class="s2">"dayOfMonth"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w">
+                </span><span class="s2">"repeatEvery"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w">
+                </span><span class="s2">"lastSentAt"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2016-05-01T19:00:03Z"</span><span class="p">,</span><span class="w">
+                </span><span class="s2">"nextSendAt"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2016-06-01T19:00:00Z"</span><span class="w">
+            </span><span class="p">},</span><span class="w">
+            </span><span class="s2">"createdAt"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2016-03-28T18:45:59Z"</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"modifiedAt"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2016-03-28T18:45:59Z"</span><span class="w">
+        </span><span class="p">},</span><span class="w">
+        </span><span class="p">{</span><span class="w">
+            </span><span class="s2">"sendTo"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+                </span><span class="p">{</span><span class="s2">"email"</span><span class="p">:</span><span class="w"> </span><span class="s2">"recipient2@smartsheet.com"</span><span class="p">},</span><span class="w">
+                </span><span class="p">{</span><span class="s2">"email"</span><span class="p">:</span><span class="w"> </span><span class="s2">"recipient3@smartsheet.com"</span><span class="p">}</span><span class="w">
+            </span><span class="p">],</span><span class="w">
+            </span><span class="s2">"subject"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Bi-montrhly Update Request"</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"message"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Please update my online sheet."</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"ccMe"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"id"</span><span class="p">:</span><span class="w"> </span><span class="mi">6553498230777732</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"sentBy"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+                </span><span class="s2">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"John Doe"</span><span class="p">,</span><span class="w">
+                </span><span class="s2">"email"</span><span class="p">:</span><span class="w"> </span><span class="s2">"john.doe@smartsheet.com"</span><span class="w">
+            </span><span class="p">},</span><span class="w">
+            </span><span class="s2">"schedule"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+                </span><span class="s2">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"MONTHLY"</span><span class="p">,</span><span class="w">
+                </span><span class="s2">"startAt"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2016-04-01T17:00:00Z"</span><span class="p">,</span><span class="w">
+                </span><span class="s2">"endAt"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2016-12-31T08:00:00Z"</span><span class="p">,</span><span class="w">
+                </span><span class="s2">"dayOrdinal"</span><span class="p">:</span><span class="w"> </span><span class="s2">"LAST"</span><span class="p">,</span><span class="w">
+                </span><span class="s2">"dayDescriptors"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="s2">"WEEKEND"</span><span class="w"> </span><span class="p">],</span><span class="w">
+                </span><span class="s2">"repeatEvery"</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span><span class="w">
+                </span><span class="s2">"lastSentAt"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2016-04-30T17:00:04Z"</span><span class="p">,</span><span class="w">
+                </span><span class="s2">"nextSendAt"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2016-06-26T17:00:00Z"</span><span class="w">
+            </span><span class="p">},</span><span class="w">
+            </span><span class="s2">"createdAt"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2016-03-04T00:06:29Z"</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"modifiedAt"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2016-03-04T00:06:29Z"</span><span class="w">
+        </span><span class="p">}</span><span class="w">
+    </span><span class="p">]</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre>
+
+<p><code class="prettyprint">GET /sheets/{sheetId}/updaterequests</code></p>
+
+<p>Gets a list of all Update Requests that have future schedules associated with the specified Sheet.</p>
+
+<aside class="notice">This operation supports pagination of results. For more information, see <a href='#paging'>Paging</a>.</aside>
+
+<table><thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead><tbody>
+<tr>
+<td><strong>Access Scope</strong></td>
+<td>READ_SHEETS</td>
+</tr>
+<tr>
+<td><strong>Headers</strong></td>
+<td><strong>Authorization</strong>: Bearer ACCESS_TOKEN</td>
+</tr>
+<tr>
+<td><strong>Parameters</strong></td>
+<td>This operation supports query string parameters for pagination of results. For more information, see <a href="#paging-query-string-parameters">Paging Query String Parameters</a>.</td>
+</tr>
+<tr>
+<td><strong>Returns</strong></td>
+<td><a href="#indexresult-object">IndexResult object</a> containing an array of <a href="#updaterequest-object">UpdateRequest objects</a> limited to the following attributes:<ul><li>id</li><li>sentBy</li><li>sendTo</li><li>ccMe</li><li>subject</li><li>message</li><li>schedule</li><li>createdAt</li><li>modifiedAt</li></ul></td>
+</tr>
+</tbody></table>
+
+<h2 id="change-update-request">Change Update Request</h2>
+
+<blockquote>
+<p>Example Request:</p>
+</blockquote>
+
+<pre class="highlight shell"><code>curl https://api.smartsheet.com/2.0/sheets/<span class="o">{</span>sheetId<span class="o">}</span>/updaterequests/<span class="o">{</span>updateRequestId<span class="o">}</span> <span class="se">\</span>
+-H <span class="s2">"Authorization: Bearer ACCESS_TOKEN"</span> <span class="se">\</span>
+-H <span class="s2">"Content-Type: application/json"</span> <span class="se">\</span>
+-X PUT <span class="se">\</span>
+-d <span class="s1">'{ \
+    "subject": "Sample Monthly Update Request", \
+    "message": "Please update my online sheet." \
+}'</span>
+
+</code></pre>
+
+<pre class="highlight csharp"><code><span class="c1">// [todo]
+</span></code></pre>
+
+<pre class="highlight javascript"><code><span class="c1">// [todo]</span>
+</code></pre>
+
+<pre class="highlight java"><code><span class="c1">// [todo]</span>
+</code></pre>
+
+<pre class="highlight python"><code><span class="c"># [todo]</span>
+</code></pre>
+
+<blockquote>
+<p>Example Response:</p>
+</blockquote>
+
+<pre class="highlight json"><code><span class="p">{</span><span class="w">
+    </span><span class="s2">"message"</span><span class="p">:</span><span class="w"> </span><span class="s2">"SUCCESS"</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"resultCode"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"result"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+        </span><span class="s2">"sendTo"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+            </span><span class="p">{</span><span class="s2">"email"</span><span class="p">:</span><span class="w"> </span><span class="s2">"recipient1@smartsheet.com"</span><span class="p">}</span><span class="w">
+        </span><span class="p">],</span><span class="w">
+        </span><span class="s2">"subject"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Sample Monthly Update Request"</span><span class="p">,</span><span class="w">
+        </span><span class="s2">"message"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Please update my online sheet."</span><span class="p">,</span><span class="w">
+        </span><span class="s2">"ccMe"</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span><span class="w">
+        </span><span class="s2">"includeAttachments"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w">
+        </span><span class="s2">"includeDiscussions"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w">
+        </span><span class="s2">"columnIds"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="mi">6962516556310404</span><span class="p">,</span><span class="w"> </span><span class="mi">3584816835782532</span><span class="p">],</span><span class="w">
+        </span><span class="s2">"rowIds"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="mi">7886095586224004</span><span class="p">],</span><span class="w">
+        </span><span class="s2">"id"</span><span class="p">:</span><span class="w"> </span><span class="mi">7820135625975684</span><span class="p">,</span><span class="w">
+        </span><span class="s2">"sentBy"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+            </span><span class="s2">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"John Doe"</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"email"</span><span class="p">:</span><span class="w"> </span><span class="s2">"john.doe@smartsheet.com"</span><span class="w">
+        </span><span class="p">},</span><span class="w">
+        </span><span class="s2">"schedule"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+            </span><span class="s2">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"MONTHLY"</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"startAt"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2016-04-01T19:00:00Z"</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"endAt"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2016-12-31T07:00:00Z"</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"dayOfMonth"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"repeatEvery"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"nextSendAt"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2016-05-01T19:00:00Z"</span><span class="w">
+        </span><span class="p">}</span><span class="w">
+    </span><span class="p">}</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre>
+
+<p><code class="prettyprint">PUT /sheets/{sheetId}/updaterequests/{updateRequestId}</code></p>
+
+<p>Changes the specified Update Request for the Sheet.</p>
+
+<aside class="notice">Making changes to update requests that do not have future scheduled delivery is not allowed.</aside>
+
+<table><thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead><tbody>
+<tr>
+<td><strong>Access Scope</strong></td>
+<td>Must be one of the followings:<ul><li>ADMIN_SHEETS, or</li><li>WRITE_SHEETS (the access token owner must be the submitter of the specified update request).</li></ul></td>
+</tr>
+<tr>
+<td><strong>Headers</strong></td>
+<td><strong>Authorization</strong>: Bearer ACCESS_TOKEN<br/><strong>Content-Type</strong>: application/json</td>
+</tr>
+<tr>
+<td><strong>Request Body</strong></td>
+<td><a href="#updaterequest-object">UpdateRequest object</a>.<br/><br/>The UpdateRequest object in the request body must specify one or more of the following attributes:<ul><li><b>sendTo</b>: <a href="#recipient-object">Recipient</a>[]</li><li><b>subject</b>: string</li><li><b>message</b>: string</li><li><b>ccMe</b>: boolean</li><li><b>schedule</b>: <a href="#schedule-object">Schedule object</a></li><li><b>columnIds</b>: number[]</li><li><b>includeAttachments</b>: boolean</li><li><b>includeDiscussions</b>: boolean</li></ul></td>
+</tr>
+<tr>
+<td><strong>Returns</strong></td>
+<td><a href="#result-object">Result object</a> containing the modified <a href="#updaterequest-object">UpdateRequest object</a>.</td>
+</tr>
+<tr>
+<td><strong>Errors</strong></td>
+<td>If an error occurs because the request specified one or more <a href="#alternate-email-address(es)"><em>alternate</em> email addresses</a> (i.e., not the primary email address associated with the User account), the <a href="#errors">Error object</a> returned will contain a <strong>detail</strong> attribute set to an array of objects, each object in the array having the following attributes:<ul><li><strong>alternateEmailAddress</strong>: User&rsquo;s <em>alternate</em> email address that was specified in the request</li><li><strong>primaryEmailAddress</strong>: User&rsquo;s primary email address that must instead be specified for the operation</li></ul>For example:<br/>{<br/>&#160;&#160;&ldquo;errorCode&rdquo;: 5xxx,<br/>&#160;&#160;&ldquo;message&rdquo;: &ldquo;u1+1@smartsheet.com is an alternate address of the user u1@smartsheet.com. Please retry sharing directly to u1@smartsheet.com.&rdquo;<br/>&#160;&#160;&ldquo;detail&rdquo;: [<br/>&#160;&#160;&#160;&#160;&#160;&#160;{<br/>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&ldquo;alternateEmailAddress&rdquo;: &ldquo;u1+1@smartsheet.com&rdquo;,<br/>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&ldquo;primaryEmailAddress&rdquo;: &ldquo;u1@smartsheet.com&rdquo;<br/>&#160;&#160;&#160;&#160;&#160;&#160;}<br/>&#160;&#160;]<br/>}</td>
+</tr>
+</tbody></table>
+
+<h2 id="delete-sent-update-request">Delete Sent Update Request</h2>
+
+<blockquote>
+<p>Example Request:</p>
+</blockquote>
+
+<pre class="highlight shell"><code>curl https://api.smartsheet.com/2.0/sheets/<span class="o">{</span>sheetId<span class="o">}</span>/sentupdaterequests/<span class="o">{</span>sentUpdateRequestId<span class="o">}</span> <span class="se">\</span>
+-H <span class="s2">"Authorization: Bearer ACCESS_TOKEN"</span> <span class="se">\</span>
+-X DELETE
+</code></pre>
+
+<pre class="highlight csharp"><code><span class="c1">// [todo]
+</span></code></pre>
+
+<pre class="highlight javascript"><code><span class="c1">// [todo]</span>
+</code></pre>
+
+<pre class="highlight java"><code><span class="c1">// [todo]</span>
+</code></pre>
+
+<pre class="highlight python"><code><span class="c"># [todo]</span>
+</code></pre>
+
+<blockquote>
+<p>Example Response:</p>
+</blockquote>
+
+<pre class="highlight json"><code><span class="p">{</span><span class="w">
+    </span><span class="s2">"message"</span><span class="p">:</span><span class="w"> </span><span class="s2">"SUCCESS"</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"resultCode"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre>
+
+<p><code class="prettyprint">DELETE /sheets/{sheetId}/sentupdaterequests/{sentUpdateRequestId}</code></p>
+
+<p>Deletes the specified sent update request.</p>
+
+<aside class="notice">Delete operation is supported only when the specified sent update request is in the pending status. Deleting a sent update request that was already completed by recipient is not allowed.</aside>
+
+<table><thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead><tbody>
+<tr>
+<td><strong>Access Scope</strong></td>
+<td>Must be one of the followings:<ul><li>ADMIN_SHEETS, or</li><li>WRITE_SHEETS (The access token owner must be the submitter of the specified sent update request).</li></ul></td>
+</tr>
+<tr>
+<td><strong>Headers</strong></td>
+<td><strong>Authorization</strong>: Bearer ACCESS_TOKEN</td>
+</tr>
+<tr>
+<td><strong>Returns</strong></td>
+<td><a href="#result-object">Result object</a></td>
+</tr>
+</tbody></table>
+
+<h2 id="get-sent-update-request">Get Sent Update Request</h2>
+
+<blockquote>
+<p>Example Request:</p>
+</blockquote>
+
+<pre class="highlight shell"><code>curl https://api.smartsheet.com/2.0/sheets/<span class="o">{</span>sheetId<span class="o">}</span>/sentupdaterequests/<span class="o">{</span>sentUpdateRequestId<span class="o">}</span> <span class="se">\</span>
+-H <span class="s2">"Authorization: Bearer ACCESS_TOKEN"</span>
+</code></pre>
+
+<pre class="highlight csharp"><code><span class="c1">// [todo]
+</span></code></pre>
+
+<pre class="highlight javascript"><code><span class="c1">// [todo]</span>
+</code></pre>
+
+<pre class="highlight java"><code><span class="c1">// [todo]</span>
+</code></pre>
+
+<pre class="highlight python"><code><span class="c"># [todo]</span>
+</code></pre>
+
+<blockquote>
+<p>Example Response:</p>
+</blockquote>
+
+<pre class="highlight json"><code><span class="p">{</span><span class="w">
+    </span><span class="s2">"id"</span><span class="p">:</span><span class="w"> </span><span class="mi">8286878311966596</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"updateRequestId"</span><span class="p">:</span><span class="w"> </span><span class="mi">4523799765903236</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"sentAt"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2016-05-16T22:33:32Z"</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"sentBy"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+        </span><span class="s2">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"John Doe"</span><span class="p">,</span><span class="w">
+        </span><span class="s2">"email"</span><span class="p">:</span><span class="w"> </span><span class="s2">"john.doe@smartsheet.com"</span><span class="w">
+    </span><span class="p">},</span><span class="w">
+    </span><span class="s2">"sentTo"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+        </span><span class="s2">"email"</span><span class="p">:</span><span class="w"> </span><span class="s2">"recipient1@smartsheet.com"</span><span class="w">
+    </span><span class="p">},</span><span class="w">
+    </span><span class="s2">"status"</span><span class="p">:</span><span class="w"> </span><span class="s2">"PENDING"</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"subject"</span><span class="p">:</span><span class="w"> </span><span class="s2">"some subject"</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"message"</span><span class="p">:</span><span class="w"> </span><span class="s2">"some message"</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"rowIds"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="mi">4508292249610116</span><span class="p">,</span><span class="w"> </span><span class="mi">2256492435924868</span><span class="w"> </span><span class="p">],</span><span class="w">
+    </span><span class="s2">"includeAttachments"</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"includeDiscussions"</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"columnIds"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="mi">4508284196546436</span><span class="p">,</span><span class="w"> </span><span class="mi">2256484382861188</span><span class="w"> </span><span class="p">]</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre>
+
+<p><code class="prettyprint">GET /sheets/{sheetId}/sentupdaterequests/{sentUpdateRequestId}</code></p>
+
+<p>Gets the specified sent update request on the Sheet.</p>
+
+<table><thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead><tbody>
+<tr>
+<td><strong>Access Scope</strong></td>
+<td>READ_SHEETS</td>
+</tr>
+<tr>
+<td><strong>Headers</strong></td>
+<td><strong>Authorization</strong>: Bearer ACCESS_TOKEN</td>
+</tr>
+<tr>
+<td><strong>Returns</strong></td>
+<td><a href="#sentupdaterequest-object">SentUpdateRequest object</a>.</td>
+</tr>
+</tbody></table>
+
+<h2 id="list-sent-update-requests">List Sent Update Requests</h2>
+
+<blockquote>
+<p>Example Request:</p>
+</blockquote>
+
+<pre class="highlight shell"><code>curl https://api.smartsheet.com/2.0/sheets/<span class="o">{</span>sheetId<span class="o">}</span>/sentupdaterequests <span class="se">\</span>
+-H <span class="s2">"Authorization: Bearer ACCESS_TOKEN"</span>
+</code></pre>
+
+<pre class="highlight csharp"><code><span class="c1">// [todo]
+</span></code></pre>
+
+<pre class="highlight javascript"><code><span class="c1">// [todo]</span>
+</code></pre>
+
+<pre class="highlight java"><code><span class="c1">// [todo]</span>
+</code></pre>
+
+<pre class="highlight python"><code><span class="c"># [todo]</span>
+</code></pre>
+
+<blockquote>
+<p>Example Response:</p>
+</blockquote>
+
+<pre class="highlight json"><code><span class="p">{</span><span class="w">
+    </span><span class="s2">"pageNumber"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"pageSize"</span><span class="p">:</span><span class="w"> </span><span class="mi">100</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"totalPages"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"totalCount"</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"data"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+        </span><span class="p">{</span><span class="w">
+            </span><span class="s2">"id"</span><span class="p">:</span><span class="w"> </span><span class="mi">3319834533488516</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"updateRequestId"</span><span class="p">:</span><span class="w"> </span><span class="mi">6742614230755204</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"sentAt"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2016-04-30T01:00:01Z"</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"sentBy"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+                </span><span class="s2">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"John Doe"</span><span class="p">,</span><span class="w">
+                </span><span class="s2">"email"</span><span class="p">:</span><span class="w"> </span><span class="s2">"john.doe@smartsheet.com"</span><span class="w">
+            </span><span class="p">},</span><span class="w">
+            </span><span class="s2">"sentTo"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+                </span><span class="s2">"email"</span><span class="p">:</span><span class="w"> </span><span class="s2">"recipient1@smartsheet.com"</span><span class="w">
+            </span><span class="p">},</span><span class="w">
+            </span><span class="s2">"status"</span><span class="p">:</span><span class="w"> </span><span class="s2">"PENDING"</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"subject"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Sample Monthly Update Request"</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"message"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Please update my online sheet."</span><span class="w">
+        </span><span class="p">},</span><span class="w">
+        </span><span class="p">{</span><span class="w">
+            </span><span class="s2">"id"</span><span class="p">:</span><span class="w"> </span><span class="mi">6197256463378308</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"updateRequestId"</span><span class="p">:</span><span class="w"> </span><span class="mi">2999876649805700</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"sentAt"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2016-04-02T22:00:02Z"</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"sentBy"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+                </span><span class="s2">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"John Doe"</span><span class="p">,</span><span class="w">
+                </span><span class="s2">"email"</span><span class="p">:</span><span class="w"> </span><span class="s2">"john.doe@smartsheet.com"</span><span class="w">
+            </span><span class="p">},</span><span class="w">
+            </span><span class="s2">"sentTo"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+                </span><span class="s2">"email"</span><span class="p">:</span><span class="w"> </span><span class="s2">"recipient2@smartsheet.com"</span><span class="w">
+            </span><span class="p">},</span><span class="w">
+            </span><span class="s2">"status"</span><span class="p">:</span><span class="w"> </span><span class="s2">"COMPLETED"</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"subject"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Sample Bi-Weekly Update Request"</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"message"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Some message"</span><span class="w">
+        </span><span class="p">}</span><span class="w">
+    </span><span class="p">]</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre>
+
+<p><code class="prettyprint">GET /sheets/{sheetId}/sentupdaterequests</code></p>
+
+<p>Gets a list of all sent update requests on the Sheet.</p>
+
+<aside class="notice">This operation supports pagination of results. For more information, see <a href='#paging'>Paging</a>.</aside>
+
+<table><thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead><tbody>
+<tr>
+<td><strong>Access Scope</strong></td>
+<td>READ_SHEETS</td>
+</tr>
+<tr>
+<td><strong>Headers</strong></td>
+<td><strong>Authorization</strong>: Bearer ACCESS_TOKEN</td>
+</tr>
+<tr>
+<td><strong>Parameters</strong></td>
+<td>This operation supports query string parameters for pagination of results. For more information, see <a href="#paging-query-string-parameters">Paging Query String Parameters</a>.</td>
+</tr>
+<tr>
+<td><strong>Returns</strong></td>
+<td><a href="#indexresult-object">IndexResult object</a> containing an array of <a href="#sentupdaterequest-object">SentUpdateRequest objects</a> limited to the following attributes:<ul><li>id</li><li>updateRequestId</li><li>sentAt</li><li>sentBy</li><li>sendTo</li><li>status</li><li>subject</li><li>message</li></ul></td>
 </tr>
 </tbody></table>
 
@@ -20533,9 +21966,11 @@ only has read-only access to the sheet (i.e. the user has viewer permissions, or
 
 <p>Gets the list of all Sheets owned by the members of the account (organization). </p>
 
-<p>This operation supports pagination of results.</p>
-
 <aside class="notice">This operation is only available to system administrators.</aside>
+
+<aside class="notice">You may use the query string parameter <b>numericDates</b> with a value of <code>true</code> to enable strict parsing of dates in numeric format.  See <a href='#dates-and-times'>Dates and Times</a> for more information.</aside>
+
+<aside class="notice">This operation supports pagination of results. For more information, see <a href='#paging'>Paging</a>.</aside>
 
 <table><thead>
 <tr>
@@ -20550,6 +21985,14 @@ only has read-only access to the sheet (i.e. the user has viewer permissions, or
 <tr>
 <td><strong>Headers</strong></td>
 <td><strong>Authorization</strong>: Bearer ACCESS_TOKEN</td>
+</tr>
+<tr>
+<td><strong>Parameters</strong></td>
+<td><strong>modifiedSince</strong> (optional): when specified with a <a href='#dates-and-times'>date and time</a> value, response will only include the objects that are modified on or after the date and time specified.</td>
+</tr>
+<tr>
+<td></td>
+<td>This operation supports query string parameters for pagination of results. For more information, see <a href="#paging-query-string-parameters">Paging Query String Parameters</a>.</td>
 </tr>
 <tr>
 <td><strong>Returns</strong></td>
@@ -20627,7 +22070,7 @@ only has read-only access to the sheet (i.e. the user has viewer permissions, or
 
 <p>Gets the list of Users in the organization. To filter by email, use the optional <strong>email</strong> query string parameter to specify a list of users&rsquo; email addresses. </p>
 
-<aside class="notice">This operation supports pagination of results. For more information, see <a href="#paging">Paging</a>.</aside>
+<aside class="notice">This operation supports pagination of results. For more information, see <a href='#paging'>Paging</a>.</aside>
 
 <table><thead>
 <tr>
@@ -21307,7 +22750,7 @@ only has read-only access to the sheet (i.e. the user has viewer permissions, or
 
 <p>Gets the list of Workspaces to which the user has access.</p>
 
-<aside class="notice">This operation supports pagination of results. For more information, see <a href="#paging">Paging</a>.</aside>
+<aside class="notice">This operation supports pagination of results. For more information, see <a href='#paging'>Paging</a>.</aside>
 
 <table><thead>
 <tr>
@@ -21947,18 +23390,6 @@ You should never use deprecated APIs in new development, and if you have existin
 
 <h1 id="webhooks"><span class="customTOCSectionHeading">Webhooks</span></h1>
 
-<aside class="warning">Webhooks are currently in beta. Before we ​officially ​release Webhooks, we want to make sure the feature is stable and performs well. Once we feel that these criteria have been met, the beta will be phased out and we will ​officially release the feature.</br></br>
-
-​While Webhooks are in Beta, the following limitations apply:​
-<ul>
-<li>
-<b>Stability</b>: Smartsheet Webhooks are a work in progress, and we make no guarantees regarding service stability / reliability.
-</li>
-<li>
-<b>Changes</b>: As with any beta, we reserve the right to make changes to Webhooks which may break your integrations.  If we make such changes, we promise to do so thoughtfully and to update our documentation accordingly.
-</li>
-</aside>
-
 <h1 id="intro-to-webhooks">Intro to Webhooks</h1>
 
 <p>Webhooks provide a way for Smartsheet to automatically notify your external application or service when certain events occur in Smartsheet. Webhooks offer a more efficient alternative to using the API to periodically <i>poll</i> for changes. </p>
@@ -22196,12 +23627,16 @@ For more information, see <a href="#authenticating-callbacks-(optional)">Authent
         </span><span class="p">{</span><span class="w">
             </span><span class="s2">"objectType"</span><span class="p">:</span><span class="w"> </span><span class="s2">"sheet"</span><span class="p">,</span><span class="w">
             </span><span class="s2">"eventType"</span><span class="p">:</span><span class="w"> </span><span class="s2">"updated"</span><span class="p">,</span><span class="w">
-            </span><span class="s2">"id"</span><span class="p">:</span><span class="w"> </span><span class="mi">4509506114742148</span><span class="w">
+            </span><span class="s2">"id"</span><span class="p">:</span><span class="w"> </span><span class="mi">4509506114742148</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"userId"</span><span class="p">:</span><span class="w"> </span><span class="mi">9007194052434043</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"timestamp"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2015-10-27T17:03:15.000+0000"</span><span class="w">
         </span><span class="p">},</span><span class="w">
         </span><span class="p">{</span><span class="w">
             </span><span class="s2">"objectType"</span><span class="p">:</span><span class="w"> </span><span class="s2">"row"</span><span class="p">,</span><span class="w">
             </span><span class="s2">"eventType"</span><span class="p">:</span><span class="w"> </span><span class="s2">"created"</span><span class="p">,</span><span class="w">
-            </span><span class="s2">"id"</span><span class="p">:</span><span class="w"> </span><span class="mi">7129509179746180</span><span class="w">
+            </span><span class="s2">"id"</span><span class="p">:</span><span class="w"> </span><span class="mi">7129509179746180</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"userId"</span><span class="p">:</span><span class="w"> </span><span class="mi">9007194052434043</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"timestamp"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2015-10-27T17:03:15.000+0000"</span><span class="w">
         </span><span class="p">}</span><span class="w">
     </span><span class="p">]</span><span class="w">
 </span><span class="p">}</span><span class="w">
@@ -22499,6 +23934,11 @@ Use this information to implement error handling logic according to the followin
 <td><strong>userId</strong></td>
 <td>number</td>
 <td>The user ID of the person who caused this event.</td>
+</tr>
+<tr>
+<td><strong>timestamp</strong></td>
+<td>timestamp</td>
+<td>Time that this event occurred. A callback may contain events with different timestamps, as multiple separate events may be aggregated into a single callback request.</td>
 </tr>
 <tr>
 <td><strong>changeAgent</strong></td>

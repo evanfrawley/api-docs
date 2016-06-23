@@ -1,0 +1,230 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta content="IE=edge,chrome=1" http-equiv="X-UA-Compatible">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+	<link rel="shortcut icon" href="images/favicon.ico" type="image/vnd.microsoft.icon">
+    <title>API Documentation</title>
+
+    <link href="../stylesheets/screen.css" rel="stylesheet" type="text/css" media="screen" />
+    <link href="../stylesheets/print.css" rel="stylesheet" type="text/css" media="print" />
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+      <script src="../javascripts/all_nosearch.js" type="text/javascript"></script>
+
+  </head>
+
+  <body class="snippets snippets_schedule_object">
+	<div class="navbar-container">
+	  <nav class="navbar">
+		<a class="logo-container" href="#">
+			<div class="logo"></div>
+		</a>
+		<ul>
+			<li>
+			  <a href="https://www.smartsheet.com/developers" target="_blank">
+			    Developer Portal
+			  </a>
+			</li>
+			<li>
+			  <a href="https://www.smartsheet.com/developers/register" target="_blank">
+			    Registration
+			  </a>
+			</li>
+			<li>
+			  <a href="https://www.smartsheet.com/developers/api-faq" target="_blank">
+			    FAQs
+			  </a>
+			</li>
+			<li>
+			  <a href="https://www.smartsheet.com/blog/development" target="_blank">
+			    Blog
+			  </a>
+			</li>
+		</ul>
+	  </nav>
+	</div>
+    <a href="#" id="nav-button" class>
+      <img src="images/navbar.png">
+    </a>
+    <div class="page-wrapper">
+		<div class="tocify-wrapper">
+		    <ul class="search-results"></ul>
+		  <div id="toc">
+		  </div>
+		</div>
+		<div class="content_body">
+		  <div class="dark-box"></div>
+		  <div class="content">
+			<h3 id="schedule-object">Schedule Object</h3>
+
+<table><thead>
+<tr>
+<th></th>
+<th></th>
+<th></th>
+</tr>
+</thead><tbody>
+<tr>
+<td><strong>type</strong></td>
+<td>string</td>
+<td>Schedule type. It must be one of the following values:<ul><li>ONCE</li><li>DAILY</li><li>WEEKLY</li><li>MONTHLY</li><li>YEARLY</li></ul></td>
+</tr>
+<tr>
+<td><strong>startAt</strong></td>
+<td>timestamp</td>
+<td>The date, time and time zone at which the first delivery will start.<br/><br/>The value is either in a string format or a numeric format:<ul><li>When the value is a string, it must be a valid <a href="http://en.wikipedia.org/wiki/ISO_8601">ISO-8601</a> date and time with an offset (YYYY-MM-DDThh:mm:ssTZD).</li><li>When the value is a number, it represents a date and time with no offset (UTC time zone). See <a href="#dates-and-times">Dates and Times</a> for more information.</li></ul>For ONCE schedule type, it must be later than the current date time.<br/><br/>For all other schedule types, it must be later than “2000-01-01T00:00:00Z” in string format or 946684800000 in numeric format.<br/><br/>The value must contain zero minute and zero second.<br/><br/>This attribute is applicable to all schedule types.<br/><br/>For more details, refer to the <a href="#table-of-schedule-object’s-attributes">Table of Schedule Object’s Attributes</a>.</td>
+</tr>
+<tr>
+<td><strong>endAt</strong></td>
+<td>timestamp</td>
+<td>The date, time and time zone at which the delivery schedule will end.<br/><br/>The value is either in a string format or a numeric format:<ul><li> When the value is a string, it must be a valid <a href="http://en.wikipedia.org/wiki/ISO_8601">ISO-8601</a> date and time with an offset (YYYY-MM-DDThh:mm:ssTZD).</li><li>When the value is a number, it represents a date and time with no offset (UTC time zone). See <a href="#dates-and-times">Dates and Times</a> for more information.</li></ul>The value must be later than startAt and the current date and time.<br/><br/>The value must contain zero hour, zero minute and zero second.<br/><br/>The offset (time zone) value must be the same as the offset (time zone) value in startAt.<br/><br/>This attribute is applicable to the following schedule types:<ul><li>DAILY</li><li>WEEKLY</li><li>MONTHLY</li><li>YEARLY</li></ul>For more details, refer to the <a href="#table-of-schedule-object’s-attributes">Table of Schedule Object’s Attributes</a>.</td>
+</tr>
+<tr>
+<td><strong>dayOfMonth</strong></td>
+<td>number</td>
+<td>The day within the month.<br/><br/>Valid range is 1 to 28.<br/><br/>This attribute is applicable to the following schedule type:<ul><li>MONTHLY</li></ul>For more details, refer to the <a href="#table-of-schedule-object’s-attributes">Table of Schedule Object’s Attributes</a>.</td>
+</tr>
+<tr>
+<td><strong>dayOrdinal</strong></td>
+<td>string</td>
+<td>It must be one of the following values:<ul><li>FIRST</li><li>SECOND</li><li>THIRD</li><li>FOURTH</li><li>LAST</li></ul>This attribute is applicable to the following schedule type:<ul><li>MONTHLY</li></ul>For more details, refer to the <a href="#table-of-schedule-object’s-attributes">Table of Schedule Object’s Attributes</a>.</td>
+</tr>
+<tr>
+<td><strong>dayDescriptors</strong></td>
+<td>string[]</td>
+<td>A string array consists of one or more of the following values:<ul><li>DAY</li><li>WEEKDAY</li><li>WEEKEND</li><li>SUNDAY</li><li>MONDAY</li><li>TUESDAY</li><li>WEDNESDAY</li><li>THURSDAY</li><li>FRIDAY</li><li>SATURDAY</li></ul>The subset of value(s) applicable to the schedule type are as followed:<br/><br/><table><tr><td><strong>Value</strong></td><td><center><strong>Daily schedule</strong></center></td><td><center><strong>Weekly schedule</strong></center></td><td><center><strong>Monthly schedule</strong></center></td></tr><tr><td><strong>DAY</strong></td><td></td><td></td><td><center>&check;</center></td></tr><tr><td><strong>WEEKDAY</strong></td><td><center>&check;</center></td><td></td><td><center>&check;</center></td></tr><tr><td><strong>WEEKEND</strong></td><td></td><td></td><td><center>&check;</center></td></tr><tr><td><strong>SUNDAY</strong></td><td></td><td><center>&check;</center></td><td><center>&check;</center></td></tr><tr><td><strong>MONDAY</strong></td><td></td><td><center>&check;</center></td><td><center>&check;</center></td></tr><tr><td><strong>TUESDAY</strong></td><td></td><td><center>&check;</center></td><td><center>&check;</center></td></tr><tr><td><strong>WEDNESDAY</strong></td><td></td><td><center>&check;</center></td><td><center>&check;</center></td></tr><tr><td><strong>THURSDAY</strong></td><td></td><td><center>&check;</center></td><td><center>&check;</center></td></tr><tr><td><strong>FRIDAY</strong></td><td></td><td><center>&check;</center></td><td><center>&check;</center></td></tr><tr><td><strong>SATURDAY</strong></td><td></td><td><center>&check;</center></td><td><center>&check;</center></td></tr></table><br/>For more details, refer to the <a href="#table-of-schedule-object’s-attributes">Table of Schedule Object’s Attributes</a>.</td>
+</tr>
+<tr>
+<td><strong>repeatEvery</strong></td>
+<td>number</td>
+<td>Frequency on which the request will be delivered.  The unit is a function of the “type” attribute. For example, for MONTHLY schedule, repeatEvery=1 means every month.<br/><br/>Valid range is 1 to 99.<br/><br/>This attribute is applicable to the following schedule types:<ul><li>DAILY</li><li>WEEKLY</li><li>YEARLY</li><li>MONTHLY</li></ul>For more details, refer to the <a href="#table-of-schedule-object’s-attributes">Table of Schedule Object’s Attributes</a>.</td>
+</tr>
+<tr>
+<td><strong>lastSentAt</strong></td>
+<td>timestamp</td>
+<td>The date and time for when the last request was sent. Read-only.</td>
+</tr>
+<tr>
+<td><strong>nextSendAt</strong></td>
+<td>timestamp</td>
+<td>The date and time for when the next request is scheduled to send. Read-only.</td>
+</tr>
+</tbody></table>
+
+<h4 id="table-of-schedule-object’s-attributes">Table of Schedule Object’s Attributes</h4>
+
+<p>The following table shows valid attribute values for each of the schedule type.</p>
+
+<table><thead>
+<tr>
+<th>Attributes</th>
+<th>Send Now</th>
+<th>Deliver On</th>
+<th>Daily Schedule</th>
+<th>Weekly Schedule</th>
+<th>Monthly Schedule</th>
+<th>Yearly Schedule</th>
+</tr>
+</thead><tbody>
+<tr>
+<td><strong>type</strong></td>
+<td>ONCE</td>
+<td>ONCE</td>
+<td>DAILY</td>
+<td>WEEKLY</td>
+<td>MONTHLY</td>
+<td>YEARLY</td>
+</tr>
+<tr>
+<td><strong>startAt</strong></td>
+<td>N/A</td>
+<td>Required</td>
+<td>Required</td>
+<td>Required</td>
+<td>Required</td>
+<td>Required</td>
+</tr>
+<tr>
+<td><strong>endAt</strong></td>
+<td>N/A</td>
+<td>N/A</td>
+<td>Optional</td>
+<td>Optional</td>
+<td>Optional</td>
+<td>Optional</td>
+</tr>
+<tr>
+<td><strong>dayOfMonth</strong></td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>Required<br/>(see Note 3)</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td><strong>dayOrdinal</strong></td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>Required<br/>(see Note 3)</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td><strong>dayDescriptors</strong></td>
+<td>N/A</td>
+<td>N/A</td>
+<td>Required<br/>(see Note 1)</td>
+<td>Required<br/>(see Note 2)</td>
+<td>Required<br/>(see Note 3)</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td><strong>repeatEvery</strong></td>
+<td>N/A</td>
+<td>N/A</td>
+<td>Required<br/>(see Note 1)</td>
+<td>Required</td>
+<td>Required</td>
+<td>Required</td>
+</tr>
+</tbody></table>
+
+<p><strong>Note:</strong></p>
+
+<ol>
+<li>For <strong>DAILY</strong> schedule, only one of the attributes can be specified:
+
+<ul>
+<li><strong>repeatEvery</strong>, or</li>
+<li><strong>dayDescriptors</strong>. The only supported value is <strong>WEEKDAY</strong>.</li>
+</ul></li>
+<li>For <strong>WEEKLY</strong> schedule,  the <strong>dayDescriptors</strong> attribute requires one or more of the following values: <strong>SUNDAY</strong>, <strong>MONDAY</strong>, <strong>TUESDAY</strong>, <strong>WEDNESDAY</strong>, <strong>THURSDAY</strong>, <strong>FRIDAY</strong>, and <strong>SATURDAY</strong>.</li>
+<li>For <strong>MONTHLY</strong> schedule, only one of the following attribute combinations are valid:
+
+<ul>
+<li><strong>dayOfMonth</strong>, or</li>
+<li><strong>dayOrdinal</strong> together with <strong>dayDescriptors</strong>.  <strong>dayDescriptors</strong> should contain only one value.</li>
+</ul></li>
+</ol>
+
+		  </div>
+		  <div class="dark-box">
+		  </div>
+		</div>
+    </div>
+	<script type="text/javascript">
+		$('h1').addClass("section-header");
+		$('h2').addClass("section-header");
+		$('h3').addClass("section-header");
+		$('h4').addClass("section-header");
+	</script>
+	<script type="text/javascript">
+			$(document).ready(function(){
+			$('.content').css('margin-bottom', parseInt($(window).height()) - (parseInt($('.content').height()) - parseInt($('.content h2').last().offset().top)));
+			});
+	</script>
+  </body>
+</html>
