@@ -23452,7 +23452,7 @@ You should never use deprecated APIs in new development, and if you have existin
         <ul>
             <li>Which Smartsheet object to monitor for events</li>
             <li>Which events in that object should trigger a callback</li>
-            <li>The HTTPS URL (i.e., &ldquo;<b>callback URL</b>&rdquo;) where Smartsheet should send callbacks when any of the specified events occur within the scope of the specified Smartsheet object</li>
+            <li>The HTTPS URL (i.e., &ldquo;<b>callback URL</b>&rdquo;) where Smartsheet should send callbacks when any of the specified events occur within the scope of the specified Smartsheet object. (Note: Smartsheet webhooks do not support callbacks to servers using self-signed certificates)</li>
         </ul> 
         <br/>
         
@@ -24061,7 +24061,7 @@ Use this information to implement error handling logic according to the followin
 <tr>
 <td><strong>callbackUrl</strong></td>
 <td>string</td>
-<td>HTTPS URL where callbacks will be sent</td>
+<td>HTTPS URL where callbacks will be sent.<br/><br/><strong>Note:</strong> Smartsheet webhooks do not support callbacks to servers using self-signed certificates. The callback server must be using a signed certificate from a certificate authority.</td>
 </tr>
 <tr>
 <td><strong>sharedSecret</strong></td>
